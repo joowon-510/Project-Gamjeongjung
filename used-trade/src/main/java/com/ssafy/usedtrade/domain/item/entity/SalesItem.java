@@ -34,11 +34,11 @@ public class SalesItem {
 
     @NotNull
     @Column(name = "price", nullable = false)
-    private Integer price;
+    private int price;
 
     @NotNull
     @Column(name = "purchase_date", nullable = false)
-    private Instant purchaseDate;
+    private String purchaseDate;
 
     @NotNull
     @Column(name = "grades", nullable = false)
@@ -50,7 +50,7 @@ public class SalesItem {
 
     @NotNull
     @Column(name = "configuration", nullable = false)
-    private Integer configuration;
+    private int configuration;
 
     @NotNull
     @Column(name = "created_at", nullable = false)
