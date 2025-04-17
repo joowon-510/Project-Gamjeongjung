@@ -1,70 +1,191 @@
 // src/pages/mainPage.tsx
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
+import yeslogo from "../assets/yeslogo.svg";
+import laptop from "../assets/laptop.svg";
+import keyboard from "../assets/keyboard.svg";
+import phone from "../assets/phone.svg";
+import tablet from "../assets/tablet.svg";
+import plusCircle from "../assets/PlusCircle.svg";
+import heart from "../assets/Heart.svg";
+import userProfile from "../assets/user-profile.svg";
+import messageChat from "../assets/message-chat.svg";
+import menu from "../assets/menu.svg";
+import example from "../assets/example.svg";
 
 const MainPage: React.FC = () => {
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">메인 페이지</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="container mx-auto text-first">
+      <header className="fixed top-0 left-0 w-[100%] flex row shadow-md bg-white px-4 pt-2">
+        <img src={yeslogo} alt="logo" className="w-[96px] h-[96ppx]" />
+        <input
+          type="text"
+          value="검색어를 입력하세요."
+          className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4"
+        />
+      </header>
+
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-10">
         <div className="border p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">채팅</h2>
           <div className="flex flex-col space-y-2">
-            <Link 
-              to="/chat/list" 
+            <Link
+              to="/chat/list"
               className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 text-center"
             >
               채팅 목록
             </Link>
             <br />
-            <Link 
-              to="/chat" 
+            <Link
+              to="/chat"
               className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 text-center"
             >
               채팅 페이지
             </Link>
           </div>
         </div>
-        
+
         <div className="border p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">상품</h2>
           <div className="flex flex-col space-y-2">
-            <Link 
-              to="/goods/list" 
+            <Link
+              to="/goods/list"
               className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 text-center"
             >
               상품 목록
             </Link>
             <br />
-            <Link 
-              to="/goods/detail/1" 
+            <Link
+              to="/goods/detail/1"
               className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 text-center"
             >
               상품 상세 보기
             </Link>
             <br />
-            <Link 
-              to="/goods/register" 
+            <Link
+              to="/goods/register"
               className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 text-center"
             >
               상품 등록
             </Link>
           </div>
         </div>
-        
+
         <div className="border p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">사용자</h2>
           <div className="flex flex-col space-y-2">
-            <Link 
-              to="/user/login" 
+            <Link
+              to="/user/login"
               className="bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 text-center"
             >
               로그인
             </Link>
           </div>
         </div>
-      </div>
+      </div> */}
+      <main className="py-[100px] font-semibold flex flex-col gap-4">
+        <article className="px-4 py-2 text-first">
+          <p className="text-center text-[20px] my-3">
+            내가 찾는 중고 물품을 찾아보세요.
+          </p>
+          <div className="flex gap-4">
+            {/* 각 카테고리 */}
+            <div className="w-full h-fit bg-fourth px-2 rounded-lg">
+              <img src={laptop} alt="laptop" className="w-[96px] h-[96px" />
+              <p className="text-center pb-2">노트북</p>
+            </div>
+            <div className="w-full h-fit bg-fourth px-2 rounded-lg">
+              <img src={keyboard} alt="keyboard" className="w-[96px] h-[96px" />
+              <p className="text-center pb-2">키보드</p>
+            </div>
+            <div className="w-full h-fit bg-fourth px-2 rounded-lg">
+              <img src={phone} alt="phone" className="w-[96px] h-[96px" />
+              <p className="text-center pb-2">휴대폰</p>
+            </div>
+            <div className="w-full h-fit bg-fourth px-2 rounded-lg">
+              <img src={tablet} alt="tablet" className="w-[96px] h-[96px" />
+              <p className="text-center pb-2">태블릿</p>
+            </div>
+          </div>
+        </article>
+        <article>
+          <p className="pl-10 text-[20px]">오늘 인기 아이템</p>
+          <div className="grid grid-flow grid-cols-2 gap-4 px-3 mt-2">
+            <div>
+              <img src={example} alt="example" className="w-[200px]" />
+              <p>갤북5(S)급 팝니다</p>
+            </div>
+            <div>
+              <img src={example} alt="example" className="w-[200px]" />
+              <p>맥북pro 팔아용</p>
+            </div>
+            <div>
+              <img src={example} alt="example" className="w-[200px]" />
+              <p>갤북4 싸게 팝니다</p>
+            </div>
+            <div>
+              <img src={example} alt="example" className="w-[200px]" />
+              <p>그램 14인치</p>
+            </div>
+          </div>
+        </article>
+        <article>
+          <p className="pl-10 text-[20px]">방금 등록된 아이템</p>
+          <div className="grid grid-flow grid-cols-2 gap-4 px-3 mt-2">
+            <div>
+              <img src={example} alt="example" className="w-[200px]" />
+              <p>갤북5(S)급 팝니다</p>
+            </div>
+            <div>
+              <img src={example} alt="example" className="w-[200px]" />
+              <p>맥북pro 팔아용</p>
+            </div>
+            <div>
+              <img src={example} alt="example" className="w-[200px]" />
+              <p>갤북4 싸게 팝니다</p>
+            </div>
+            <div>
+              <img src={example} alt="example" className="w-[200px]" />
+              <p>그램 14인치치</p>
+            </div>
+          </div>
+        </article>
+      </main>
+
+      <footer className="fixed bottom-0 left-0 w-[100%] flex gap-2 shadow-[0_-3px_5px_rgba(0,0,0,0.15)] z-50 p-2 pb-3 bg-white">
+        {/* 밑에 있는 Nav바 */}
+        {/* 메뉴 */}
+        <div className="w-full gap-2 justify-items-center pt-2">
+          <img src={menu} alt="menu" className="w-[40px]" />
+          <p className="font-semibold text-first/70">메뉴</p>
+        </div>
+        {/* 찜 */}
+        <div className="w-full gap-2 justify-items-center pt-2">
+          <img src={heart} alt="heart" className="w-[40px]" />
+          <p className="font-semibold text-first/70">찜</p>
+        </div>
+        {/* 등록 */}
+        <Link
+          to="/goods/register"
+          className="w-full gap-2 justify-items-center pt-2"
+        >
+          <img src={plusCircle} alt="plusCircle" className="w-[40px]" />
+          <p className="font-semibold text-first/70">등록</p>
+        </Link>
+        {/* MY */}
+        <div className="w-full gap-2 justify-items-center pt-2">
+          <img src={userProfile} alt="userProfile" className="w-[40px]" />
+          <p className="font-semibold text-first/70">MY</p>
+        </div>
+        {/* 채팅 */}
+        <Link
+          to="/chat/list"
+          className="w-full gap-2 justify-items-center pt-2"
+        >
+          <img src={messageChat} alt="messageChat" className="w-[40px]" />
+          <p className="font-semibold text-first/70">채팅</p>
+        </Link>
+      </footer>
     </div>
   );
 };
