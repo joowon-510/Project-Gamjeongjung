@@ -18,7 +18,7 @@ function App() {
         
         {/* 채팅 관련 페이지 */}
         <Route path="/chat/list" element={<ChatListPage />} />
-        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/chat/:chatid" element={<ChatPage />} />
         
         {/* 상품 관련 페이지 */}
         <Route path="/goods/list" element={<GoodsListPage />} />
