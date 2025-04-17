@@ -1,29 +1,25 @@
-// src/pages/mainPage.tsx
 import React from "react";
-import { Link } from "react-router-dom";
-import yeslogo from "../assets/yeslogo.svg";
 import laptop from "../assets/laptop.svg";
 import keyboard from "../assets/keyboard.svg";
 import phone from "../assets/phone.svg";
 import tablet from "../assets/tablet.svg";
-import plusCircle from "../assets/PlusCircle.svg";
-import heart from "../assets/Heart.svg";
-import userProfile from "../assets/user-profile.svg";
-import messageChat from "../assets/message-chat.svg";
-import menu from "../assets/menu.svg";
 import example from "../assets/example.svg";
+import NavigationBar from "../components/common/NavigationBar";
+import Header from "../components/common/Header";
+import { Link } from "react-router-dom";
 
 const MainPage: React.FC = () => {
   return (
     <div className="container mx-auto text-first">
-      <header className="fixed top-0 left-0 w-[100%] flex row shadow-md bg-white px-4 pt-2">
+      {/* <header className="fixed top-0 left-0 w-[100%] flex row shadow-md bg-white px-4 pt-2">
         <img src={yeslogo} alt="logo" className="w-[96px] h-[96ppx]" />
         <input
           type="text"
           value="검색어를 입력하세요."
           className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4"
         />
-      </header>
+      </header> */}
+      <Header title="LOGO" showBackButton={false} hideSearchButton={false} />
 
       {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-10">
         <div className="border p-4 rounded-lg shadow">
@@ -83,17 +79,23 @@ const MainPage: React.FC = () => {
           </div>
         </div>
       </div> */}
-      <main className="py-[100px] font-semibold flex flex-col gap-4">
+      {/* <main className="font-semibold mb-4 gap-4 flex-1 overflow-y-auto"> */}
+      <main className="font-semibold flex flex-col gap-4 mb-4 flex-1 overflow-y-auto">
         <article className="px-4 py-2 text-first">
           <p className="text-center text-[20px] my-3">
             내가 찾는 중고 물품을 찾아보세요.
           </p>
           <div className="flex gap-4">
             {/* 각 카테고리 */}
-            <div className="w-full h-fit bg-fourth px-2 rounded-lg">
+            <Link
+              to="/goods/list"
+              className="w-full h-fit bg-fourth px-2 rounded-lg"
+            >
+              {/* <div className=""> */}
               <img src={laptop} alt="laptop" className="w-[96px] h-[96px" />
               <p className="text-center pb-2">노트북</p>
-            </div>
+              {/* </div> */}
+            </Link>
             <div className="w-full h-fit bg-fourth px-2 rounded-lg">
               <img src={keyboard} alt="keyboard" className="w-[96px] h-[96px" />
               <p className="text-center pb-2">키보드</p>
@@ -152,40 +154,10 @@ const MainPage: React.FC = () => {
         </article>
       </main>
 
-      <footer className="fixed bottom-0 left-0 w-[100%] flex gap-2 shadow-[0_-3px_5px_rgba(0,0,0,0.15)] z-50 p-2 pb-3 bg-white">
-        {/* 밑에 있는 Nav바 */}
-        {/* 메뉴 */}
-        <div className="w-full gap-2 justify-items-center pt-2">
-          <img src={menu} alt="menu" className="w-[40px]" />
-          <p className="font-semibold text-first/70">메뉴</p>
-        </div>
-        {/* 찜 */}
-        <div className="w-full gap-2 justify-items-center pt-2">
-          <img src={heart} alt="heart" className="w-[40px]" />
-          <p className="font-semibold text-first/70">찜</p>
-        </div>
-        {/* 등록 */}
-        <Link
-          to="/goods/register"
-          className="w-full gap-2 justify-items-center pt-2"
-        >
-          <img src={plusCircle} alt="plusCircle" className="w-[40px]" />
-          <p className="font-semibold text-first/70">등록</p>
-        </Link>
-        {/* MY */}
-        <div className="w-full gap-2 justify-items-center pt-2">
-          <img src={userProfile} alt="userProfile" className="w-[40px]" />
-          <p className="font-semibold text-first/70">MY</p>
-        </div>
-        {/* 채팅 */}
-        <Link
-          to="/chat/list"
-          className="w-full gap-2 justify-items-center pt-2"
-        >
-          <img src={messageChat} alt="messageChat" className="w-[40px]" />
-          <p className="font-semibold text-first/70">채팅</p>
-        </Link>
-      </footer>
+      {/* 하단 네비게이션 바 */}
+      {/* <div className="border-t"> */}
+      <NavigationBar />
+      {/* </div> */}
     </div>
   );
 };
