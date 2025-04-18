@@ -177,7 +177,7 @@ $RECYCLE.BIN/
 *.yml
 
 # But do not ignore application.yml
-!application.yml
+# !application.yml
 
 .env
 
