@@ -1,22 +1,24 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/usedTrade?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    username: root
-    password: 0510
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
+    open-in-view: true
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true
+      # create, create-drop -> 기존 table 삭제 후 새로 생성
+      # update -> 기존 table에 새로 추가되는 컬럼들 적용
+      # validate -> 작성된 entity와 DB가 다르면 예외 + App 종료
+      # none -> 설정 사용안한다는 뜻!
+      ddl-auto: create
     properties:
-      hibernate.format_sql: true
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-
-#jwt:
-#  secret: "asdklhfaskdjfljkasaslkmndasfkjbhfadskjhwertaoihewropijafsdhiuasfdgyhiuasdfuhbdfasuhdsafugvdfsagvydfsa1286423uiy5t873279ewqyfhadsbf8y23y498123u40qwhjifhbsdjfhjaksljf"
-#  access_expiration: 100000
-#  refresh_expiration: 100000
+      hibernate:
+        format_sql: true
+        use-new-id-generator-mappings: false
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
 
 logging:
   level:
