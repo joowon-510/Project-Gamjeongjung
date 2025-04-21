@@ -45,6 +45,9 @@ jwt:
   access_expiration: 100000000000
   refresh_expiration: 10000000000
 
+server:
+  servlet:
+    context-path: ${CONTEXT_PATH}
 #
 #logging:
 #  level:
