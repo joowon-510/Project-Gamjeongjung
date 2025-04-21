@@ -1,4 +1,4 @@
-package com.ssafy.usedtrade.domain.websocket.config;
+package com.ssafy.usedtrade.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
