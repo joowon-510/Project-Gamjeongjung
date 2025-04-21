@@ -9,6 +9,7 @@ import GoodsDetailPage from './pages/goodsPage/goodsDetailPage';
 import GoodsRegistrationPage from './pages/goodsPage/goodsRegistrationPage';
 import LoginPage from './pages/userPage/loginPage';
 import MyPage from './pages/userPage/myPage';
+import ReviewListPage from './pages/ReviewPage/ReviewListPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/user/login" element={<LoginPage />} />
 
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/reviews" element={<ReviewListPage />} />
 
       </Routes>
     </Router>
