@@ -74,7 +74,7 @@ const GoodsListPage: React.FC = () => {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="2"
+        strokeWidth="4"
         d="M12 6v6m0 0v6m0-6h6m-6 0H6"
       />
     </svg>
@@ -138,13 +138,13 @@ const GoodsListPage: React.FC = () => {
         )}
       </main>
 
+      {/* 플로팅 액션 버튼 (상품 등록) */}
+      <FloatingActionButton to="/goods/register" icon={plusIcon} />
+
       {/* 하단 네비게이션 바 */}
       {/* <div className="fixed bottom-0 left-0 right-0 z-10"> */}
       <NavigationBar />
       {/* </div> */}
-
-      {/* 플로팅 액션 버튼 (상품 등록) */}
-      <FloatingActionButton to="/goods/register" icon={plusIcon} />
     </div>
   );
 };
