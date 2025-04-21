@@ -11,14 +11,6 @@ import { Link } from "react-router-dom";
 const MainPage: React.FC = () => {
   return (
     <div className="container mx-auto text-first">
-      {/* <header className="fixed top-0 left-0 w-[100%] flex row shadow-md bg-white px-4 pt-2">
-        <img src={yeslogo} alt="logo" className="w-[96px] h-[96ppx]" />
-        <input
-          type="text"
-          value="검색어를 입력하세요."
-          className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4"
-        />
-      </header> */}
       <Header title="LOGO" showBackButton={false} hideSearchButton={false} />
 
       {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-10">

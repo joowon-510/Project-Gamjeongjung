@@ -88,16 +88,17 @@ const Header: React.FC<HeaderProps> = ({
     //     </div>
     //   </div>
     // </header>
-    <header className="sticky top-0 left-0 w-[100%] flex row shadow-md bg-white px-4 pt-2">
+    <header className="sticky top-0 left-0 w-full h-[96px] flex items-center shadow-md bg-white px-4 pt-2">
       <Link to="/">
-        <img src={yeslogo} alt="logo" className="w-[96px] h-[96ppx]" />
+        <img src={yeslogo} alt="logo" className="w-[96px] h-[96px] block" />
       </Link>
-      {!hideSearchButton && (
+      {!hideSearchButton ? (
         <input
           type="text"
           value="검색어를 입력하세요."
           className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4"
         />
+      ) : (
         // <button className="p-2" onClick={handleSearchClick}>
         //   <svg
         //     className="w-6 h-6"
@@ -113,6 +114,7 @@ const Header: React.FC<HeaderProps> = ({
         //     />
         //   </svg>
         // </button>
+        <p className="w-[100%] h-10 self-center px-4"></p>
       )}
     </header>
   );

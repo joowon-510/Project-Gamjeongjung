@@ -149,12 +149,13 @@ const GoodsRegistrationPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="container h-screen mx-auto text-first">
       {/* 통일된 헤더 사용 */}
       <Header showBackButton={true} title="LOGO" hideSearchButton={true} />
 
       {/* 폼 영역 - 스크롤 문제 해결을 위해 여백 증가 */}
-      <div className="flex-1 overflow-y-auto pb-36">
+      <div className="font-semibold mb-4 flex-1 overflow-y-auto">
+        {/* <div className="font-semibold flex-1 overflow-y-auto pb-36"> */}
         <div className="p-4 space-y-6">
           {/* 상품명 입력 */}
           <div>
@@ -176,13 +177,13 @@ const GoodsRegistrationPage: React.FC = () => {
           </div>
 
           {/* 구매일자 입력 - 드롭다운으로 변경 */}
-          <div>
+          <div className="flex  flex-col">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               구매일자
             </label>
             <div className="flex space-x-2">
               {/* 년도 선택 드롭다운 */}
-              <div className="w-3/5">
+              <div className="w-1/2">
                 <select
                   id="purchaseYear"
                   name="purchaseYear"
@@ -203,7 +204,7 @@ const GoodsRegistrationPage: React.FC = () => {
               </div>
 
               {/* 월 선택 드롭다운 */}
-              <div className="w-2/5">
+              <div className="w-1/2">
                 <select
                   id="purchaseMonth"
                   name="purchaseMonth"
@@ -337,7 +338,8 @@ const GoodsRegistrationPage: React.FC = () => {
       </div>
 
       {/* 하단 버튼 영역 - sticky로 변경하여 스크롤과 무관하게 항상 표시 */}
-      <div className="sticky bottom-14 left-0 right-0 p-4 bg-white border-t flex space-x-2 z-10">
+      <div className="flex-1 px-3 py-7 bg-white flex gap-2 ">
+        {/* <div className="sticky bottom-14 left-0 right-0 p-4 bg-white border-t flex space-x-2 z-10"> */}
         <button
           type="button"
           onClick={handleCancel}
