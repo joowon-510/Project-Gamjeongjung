@@ -5,6 +5,7 @@ import com.ssafy.usedtrade.domain.auth.dto.request.KakaoTokenRequest;
 import com.ssafy.usedtrade.domain.auth.dto.response.LoginResponse;
 import com.ssafy.usedtrade.domain.auth.entity.SecurityMemberDetails;
 import com.ssafy.usedtrade.domain.auth.service.KakaoOAuthService;
+import com.ssafy.usedtrade.domain.user.dto.response.UserInfoResponse;
 import com.ssafy.usedtrade.domain.user.entity.User;
 import com.ssafy.usedtrade.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +30,15 @@ public class AuthController {
     }
 
     @GetMapping("/test")
-    public Api<User> test(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        return Api.OK(userRepository.findByEmail(memberDetails.getEmail())
-                .orElseThrow(IllegalArgumentException::new));
+    public Api<UserInfoResponse> test(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
+        User user = userRepository.findByEmail(memberDetails.getEmail())
+                .orElseThrow(IllegalArgumentException::new);
+
+        return Api.OK(UserInfoResponse.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .status(user.getStatus())
+                .build());
     }
 }
 
