@@ -10,6 +10,7 @@ import GoodsRegistrationPage from './pages/goodsPage/goodsRegistrationPage';
 import LoginPage from './pages/userPage/loginPage';
 import MyPage from './pages/userPage/myPage';
 import ReviewListPage from './pages/ReviewPage/ReviewListPage';
+import TransactionsPage from './pages/TransactionPage/TransactionPage';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
 
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/reviews" element={<ReviewListPage />} />
+        <Route path="/transactions" element={<TransactionsPage />} />
 
       </Routes>
     </Router>
