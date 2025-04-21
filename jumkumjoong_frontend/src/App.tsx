@@ -1,13 +1,14 @@
 // src/App.tsx
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import MainPage from "./pages/mainPage";
-import ChatListPage from "./pages/chattingPage/chatListPage";
-import ChatPage from "./pages/chattingPage/chatPage";
-import GoodsListPage from "./pages/goodsPage/goodsListPage";
-import GoodsDetailPage from "./pages/goodsPage/goodsDetailPage";
-import GoodsRegistrationPage from "./pages/goodsPage/goodsRegistrationPage";
-import LoginPage from "./pages/userPage/loginPage";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import MainPage from './pages/mainPage';
+import ChatListPage from './pages/chattingPage/chatListPage';
+import ChatPage from './pages/chattingPage/chatPage';
+import GoodsListPage from './pages/goodsPage/goodsListPage';
+import GoodsDetailPage from './pages/goodsPage/goodsDetailPage';
+import GoodsRegistrationPage from './pages/goodsPage/goodsRegistrationPage';
+import LoginPage from './pages/userPage/loginPage';
+import MyPage from './pages/userPage/myPage';
 
 function App() {
   return (
@@ -30,6 +31,9 @@ function App() {
 
         {/* 사용자 관련 페이지 */}
         <Route path="/user/login" element={<LoginPage />} />
+
+        <Route path="/mypage" element={<MyPage />} />
+
       </Routes>
     </Router>
   );
