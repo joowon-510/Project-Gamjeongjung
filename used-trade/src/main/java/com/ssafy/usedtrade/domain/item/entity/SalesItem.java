@@ -46,7 +46,7 @@ public class SalesItem {
 
     @NotNull
     @Column(name = "status", nullable = false)
-    private Boolean status = false;
+    private Boolean status = true;
 
     @NotNull
     @Column(name = "configuration", nullable = false)

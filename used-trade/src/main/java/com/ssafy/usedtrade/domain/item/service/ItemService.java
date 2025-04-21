@@ -42,7 +42,11 @@ public class ItemService {
 
     //상품 검색
     public List<ItemListDto> searchItem(String itemName) {
-        return itemSalesRepository.findItemListDtoByTitle(itemName);
+        System.out.println("searchItemmmmmmmmmm:"+itemName);
+        List<ItemListDto> result = itemSalesRepository.findItemListDtoByTitle(itemName);
+        System.out.println(result);
+        return result;
+        //        return itemSalesRepository.findItemListDtoByTitle(itemName);
     }
 
     public List<ItemListDto> getWishList(Integer userId) {
