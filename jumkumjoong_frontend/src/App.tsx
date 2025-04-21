@@ -16,16 +16,19 @@ function App() {
       <Routes>
         {/* 메인 페이지 */}
         <Route path="/" element={<MainPage />} />
-        
+
+        {/* 로그인 페이지 */}
+        <Route path="/login" element={<LoginPage />} />
+
         {/* 채팅 관련 페이지 */}
         <Route path="/chat/list" element={<ChatListPage />} />
         <Route path="/chat/:chatid" element={<ChatPage />} />
-        
+
         {/* 상품 관련 페이지 */}
         <Route path="/goods/list" element={<GoodsListPage />} />
         <Route path="/goods/detail/:id" element={<GoodsDetailPage />} />
         <Route path="/goods/register" element={<GoodsRegistrationPage />} />
-        
+
         {/* 사용자 관련 페이지 */}
         <Route path="/user/login" element={<LoginPage />} />
 

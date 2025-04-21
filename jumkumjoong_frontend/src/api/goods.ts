@@ -1,20 +1,24 @@
 // src/api/goods.ts
-import axios from 'axios';
-import { GoodsItemProps } from '../components/goods/GoodsItem';
+import axios from "axios";
+import { GoodsItemProps } from "../components/goods/GoodsItem";
+import { axiosInstance } from "./axios";
+import { ItemRegistParams } from "../types/types";
 
 // API 기본 URL 설정 (환경에 맞게 변경)
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 
 // 상품 목록 가져오기
-export const fetchGoods = async (searchTerm?: string): Promise<GoodsItemProps[]> => {
+export const fetchGoods = async (
+  searchTerm?: string
+): Promise<GoodsItemProps[]> => {
   try {
     // 검색어가 있으면 쿼리 파라미터로 추가
-    const url = searchTerm 
-      ? `${BASE_URL}/goods?search=${encodeURIComponent(searchTerm)}` 
+    const url = searchTerm
+      ? `${BASE_URL}/goods?search=${encodeURIComponent(searchTerm)}`
       : `${BASE_URL}/goods`;
-    
+
     const response = await axios.get(url);
-    
+
     // 백엔드 응답 데이터 형식에 맞게 매핑
     // 백엔드 응답 구조가 다를 경우 여기서 형식을 변환
     return response.data.map((item: any) => ({
@@ -23,10 +27,10 @@ export const fetchGoods = async (searchTerm?: string): Promise<GoodsItemProps[]>
       price: `${item.price.toLocaleString()}원`,
       time: formatTimeAgo(new Date(item.createdAt)),
       seller: item.sellerName,
-      imageUrl: item.imageUrl // 이미지 URL
+      imageUrl: item.imageUrl, // 이미지 URL
     }));
   } catch (error) {
-    console.error('상품 데이터 가져오기 실패:', error);
+    console.error("상품 데이터 가져오기 실패:", error);
     throw error;
   }
 };
@@ -38,12 +42,94 @@ const formatTimeAgo = (date: Date): string => {
   const diffMin = Math.floor(diffMs / (1000 * 60));
   const diffHour = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDay = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
+
   if (diffMin < 60) {
     return `${diffMin}분 전`;
   } else if (diffHour < 24) {
     return `${diffHour}시간 전`;
   } else {
     return `${diffDay}일 전`;
+  }
+};
+
+// 상품 등록
+export const postGoods = async (itemData: ItemRegistParams): Promise<any> => {
+  try {
+    const response = await axiosInstance.post("/items/regist-item", itemData);
+
+    console.log("상품 등록: ", response);
+    return response;
+  } catch (error) {
+    console.log("상품 등록 실패: ", error);
+    return null;
+  }
+};
+
+// 상품 상세 조회
+export const getGoodsDetail = async (
+  itemData: ItemRegistParams
+): Promise<any> => {
+  try {
+    const response = await axiosInstance.get("/items/item-info");
+
+    console.log("상품 상세 조회: ", response);
+    return response;
+  } catch (error) {
+    console.log("상품 상세 조회 실패: ", error);
+    return null;
+  }
+};
+
+// 상품 수정
+export const postGoodsEdit = async (
+  itemData: ItemRegistParams
+): Promise<any> => {
+  try {
+    const response = await axiosInstance.post("/items/edit", itemData);
+
+    console.log("상품 수정: ", response);
+    return response;
+  } catch (error) {
+    console.log("상품 수정 실패: ", error);
+    return null;
+  }
+};
+
+// 상품 삭제
+export const deleteGoods = async (itemName: string): Promise<any> => {
+  try {
+    const response = await axiosInstance.delete("/items/delete-item");
+
+    console.log("상품 삭제: ", response);
+    return response;
+  } catch (error) {
+    console.log("상품 삭제 실패: ", error);
+    return null;
+  }
+};
+
+// 상품 검색
+export const getGoodsSearch = async (itemName: string): Promise<any> => {
+  try {
+    const response = await axiosInstance.get("/items/search-item");
+
+    console.log("상품 검색: ", response);
+    return response;
+  } catch (error) {
+    console.log("상품 검색 실패: ", error);
+    return null;
+  }
+};
+
+// 상품 상태 변경
+export const postGoodsChangeStatus = async (): Promise<any> => {
+  try {
+    const response = await axiosInstance.post("/items/change-item-status");
+
+    console.log("상품 상태 변경: ", response);
+    return response;
+  } catch (error) {
+    console.log("상품 상태 변경 실패: ", error);
+    return null;
   }
 };
