@@ -1,4 +1,4 @@
-// src/components/mypage/ActionSection.tsx
+// src/components/mypage/ActionSection.tsx 수정
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -14,7 +14,7 @@ const ActionSection: React.FC = () => {
         </svg>
       ),
       label: '거래 내역',
-      path: '/transactions'
+      path: '/transactions'  // 이 경로를 확인
     },
     {
       id: 'favorites',
