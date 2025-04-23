@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private final KakaoOAuthService kakaoOAuthService;
@@ -31,13 +31,13 @@ public class AuthController {
 
     @GetMapping("/test")
     public Api<UserInfoResponse> test(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        User user = userRepository.findByEmail(memberDetails.getEmail())
+        User user1 = userRepository.findById(memberDetails.getId())
                 .orElseThrow(IllegalArgumentException::new);
 
         return Api.OK(UserInfoResponse.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .status(user.getStatus())
+                .email(user1.getEmail())
+                .nickname(user1.getNickname())
+                .status(user1.getStatus())
                 .build());
     }
 }
