@@ -9,6 +9,16 @@ import {
   GoodsRegistrationData,
 } from "../../services/goodsService";
 
+interface GoodsFormData {
+  title: string;
+  description: string;
+  price: string; // 폼에서는 문자열로 관리
+  images: File[];
+  purchaseYear: string;
+  purchaseMonth: string;
+  packageType: PackageType;
+}
+
 // 구성여부 타입 정의
 type PackageType = "full" | "single" | "partial";
 
@@ -29,10 +39,10 @@ const GoodsRegistrationPage: React.FC = () => {
   const [formData, setFormData] = useState<ExtendedGoodsData>({
     title: "",
     description: "",
-    price: "",
+    price: "", // This is causing the error
     images: [],
-    purchaseYear: currentYear.toString(), // 기본값으로 현재 년도 설정
-    purchaseMonth: "0", // 기본값으로 '기억 안남' 설정
+    purchaseYear: currentYear.toString(),
+    purchaseMonth: "0",
     packageType: "full",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);

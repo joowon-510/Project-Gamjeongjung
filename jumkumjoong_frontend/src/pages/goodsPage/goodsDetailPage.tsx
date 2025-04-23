@@ -152,8 +152,8 @@ const GoodsDetailPage: React.FC = () => {
         {/* 가격 정보 */}
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">AI 추천가</span>
-            <span className="font-medium">92만원</span>
+            <span className="text-gray-700">AI의 평가점수</span>
+            <span className="font-medium">92점</span>
           </div>
         </div>
 
