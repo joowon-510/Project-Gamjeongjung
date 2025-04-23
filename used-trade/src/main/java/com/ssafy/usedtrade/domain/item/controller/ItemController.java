@@ -1,12 +1,14 @@
 package com.ssafy.usedtrade.domain.item.controller;
 
 import com.ssafy.usedtrade.common.response.Api;
+import com.ssafy.usedtrade.domain.auth.entity.SecurityMemberDetails;
 import com.ssafy.usedtrade.domain.item.dto.ItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemListDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemStatusDto;
 import com.ssafy.usedtrade.domain.item.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
