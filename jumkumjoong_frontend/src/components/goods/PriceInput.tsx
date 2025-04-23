@@ -1,4 +1,3 @@
-// src/components/goods/PriceInput.tsx
 import React, { useState, useEffect } from 'react';
 
 interface PriceInputProps {
@@ -27,6 +26,10 @@ const PriceInput: React.FC<PriceInputProps> = ({ value, onChange, name, id }) =>
       onChange(inputValue);
     }
   };
+  
+  // 가격 포맷팅 (천 단위 쉼표)
+  const formattedValue = displayValue ? 
+    Number(displayValue).toLocaleString('ko-KR') : '';
 
   return (
     <div className="relative">
@@ -42,6 +45,13 @@ const PriceInput: React.FC<PriceInputProps> = ({ value, onChange, name, id }) =>
       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
         <span className="text-gray-500">만원</span>
       </div>
+      
+      {/* 입력값이 있을 경우 원화 표시 */}
+      {displayValue && (
+        <div className="mt-1 text-sm text-gray-500">
+          ≈ {formattedValue}0,000원
+        </div>
+      )}
     </div>
   );
 };
