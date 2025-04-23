@@ -2,11 +2,14 @@ package com.ssafy.usedtrade.domain.auth.entity;
 
 import com.ssafy.usedtrade.domain.user.entity.User;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+@Slf4j
 public record SecurityMemberDetails(User user) implements UserDetails, OAuth2User {
 
     @Override
@@ -16,7 +19,7 @@ public record SecurityMemberDetails(User user) implements UserDetails, OAuth2Use
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return List.of();
     }
 
     @Override
@@ -51,11 +54,15 @@ public record SecurityMemberDetails(User user) implements UserDetails, OAuth2Use
 
     @Override
     public String getName() {
-        return user.getNickname();
+        return user.getEmail();
     }
 
     public String getEmail() {
         return user.getEmail();
+    }
+
+    public Integer getId() {
+        return user.getId();
     }
 }
 

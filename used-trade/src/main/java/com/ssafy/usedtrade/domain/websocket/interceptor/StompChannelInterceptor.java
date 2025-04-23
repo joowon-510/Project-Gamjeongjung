@@ -1,20 +1,23 @@
 package com.ssafy.usedtrade.domain.websocket.interceptor;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.stereotype.Component;
-
+import com.ssafy.usedtrade.common.jwt.JwtTokenProvider;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class StompChannelInterceptor implements ChannelInterceptor {
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -48,6 +51,15 @@ public class StompChannelInterceptor implements ChannelInterceptor {
     }
 
     private void handleConnect(StompHeaderAccessor accessor) {
-        log.info("[ws]({}) Connected", accessor.getSessionId());
+        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+            String token = accessor.getFirstNativeHeader("Authorization");
+
+            if (token != null && token.startsWith("Bearer ") && jwtTokenProvider.validate(token.substring(7))) {
+                Authentication authentication = jwtTokenProvider.decode(token.substring(7));
+                accessor.setUser(authentication);
+            }
+
+            log.info("[ws]({}) Connected", accessor.getSessionId());
+        }
     }
 }
