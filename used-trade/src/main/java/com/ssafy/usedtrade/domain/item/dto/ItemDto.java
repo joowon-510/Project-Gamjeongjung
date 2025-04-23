@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ItemDto {
     private Integer userId;
+    private Integer itemId;
     private String title;
     private String description;
     private int price;

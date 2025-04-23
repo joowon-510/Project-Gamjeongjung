@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @Order(2)
-public class DementiaTestExceptionHandler {
+public class ItemExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(DementiaTestExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ItemExceptionHandler.class);
 
     @ExceptionHandler(ItemException.class)
     public ResponseEntity<Api<String>> handleUserException(ItemException exception) {

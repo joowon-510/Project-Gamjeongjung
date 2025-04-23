@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -26,7 +25,7 @@ public class ItemService {
     private final ItemSalesRepository itemSalesRepository;
     private final SaveItemRepository saveItemRepository;
 
-    //item 등록
+    //물품 등록
     @Transactional
     public void registItem(ItemDto item) {
         SalesItem salesItem = ItemConverter.dtoToEntity(item);
@@ -78,6 +77,28 @@ public class ItemService {
         saveItem.setItemId(itemId);
         saveItem.setUserId(userId);
         saveItemRepository.save(saveItem);
+    }
+
+    //아이템 수정
+    @Transactional
+    public void editItem(ItemDto itemDto) {
+        System.out.println("service");
+        SalesItem item = itemSalesRepository.findById(itemDto.getItemId())
+                .orElseThrow(() -> new ItemException(ItemErrorCode.ITEM_NOT_FOUND));
+
+        // 유저 검증 (권한 체크)
+/*
+        if (!item.getUserId().equals(itemDto.getUserId())) {
+            throw new ItemException(ItemErrorCode.INVALID_USER_ACCESS);
+        }
+*/
+        // grades, scratchesStatus는 수정하지 않음
+        item.setTitle(itemDto.getTitle());
+        item.setDescription(itemDto.getDescription());
+        item.setPrice(itemDto.getPrice());
+        item.setPurchaseDate(itemDto.getPurchaseDate());
+        item.setStatus(itemDto.getStatus());
+        item.setConfiguration(itemDto.getConfiguration());
     }
 
 }

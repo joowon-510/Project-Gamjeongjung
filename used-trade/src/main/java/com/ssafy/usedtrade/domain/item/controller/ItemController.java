@@ -6,12 +6,15 @@ import com.ssafy.usedtrade.domain.item.dto.ItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemListDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemStatusDto;
 import com.ssafy.usedtrade.domain.item.service.ItemService;
+import com.ssafy.usedtrade.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -20,6 +23,7 @@ import java.util.List;
 public class ItemController {
 
     private final ItemService itemService;
+    private final UserService userService;
 
     //물품 등록
     @PostMapping("/regist-item")
@@ -27,6 +31,14 @@ public class ItemController {
         Integer userId = memberDetails.getId();
         item.setUserId(userId);
         itemService.registItem(item);
+        return Api.OK();
+    }
+    //물품 정보 수정
+    @PostMapping("/edit-item")
+    public Api<Void> editItem(@RequestBody ItemDto item, @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
+        Integer userId = memberDetails.getId();
+        item.setUserId(userId);
+        itemService.editItem(item);
         return Api.OK();
     }
 
@@ -54,12 +66,16 @@ public class ItemController {
 
     //상품 상세 조회
     @GetMapping("/item-info")
-    public Api<ItemDto> getItemInfo(@RequestParam Integer itemId) {
-        System.out.println(itemId);
+    public Api<Map<String, Object>> getItemInfo(@RequestParam Integer itemId) {
         ItemDto item = itemService.getItemInfo(itemId);
-        return Api.OK(item);
-    }
+        String userName = userService.getUserNameById(item.getUserId());
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("item", item);
+        response.put("userName", userName);
+
+        return Api.OK(response);
+    }
     //찜한 목록 조회
     @GetMapping("/wishlist")
     public Api<List<ItemListDto>> getWishList(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
