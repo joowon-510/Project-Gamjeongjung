@@ -52,9 +52,10 @@ public class User {
         this.status = status;
     }
 
-    private User(Integer id, String email, String phoneNumber) {
+    private User(Integer id, String email, String nickname) {
         this.id = id;
         this.email = email;
+        this.nickname = nickname;
     }
 
     public static User createUser(String email, String nickname) {
@@ -65,8 +66,8 @@ public class User {
                 .build();
     }
 
-    public static User createUser(Integer id, String email, String phoneNumber) {
-        return new User(id, email, phoneNumber);
+    public static User createUser(Integer id, String email, String nickname) {
+        return new User(id, email, nickname);
     }
 
     public void updateNickname(String nickname) {
