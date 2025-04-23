@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import laptop from "../assets/laptop.svg";
 import keyboard from "../assets/keyboard.svg";
 import phone from "../assets/phone.svg";
@@ -7,70 +7,25 @@ import example from "../assets/example.svg";
 import NavigationBar from "../components/common/NavigationBar";
 import Header from "../components/common/Header";
 import { Link } from "react-router-dom";
+import { getUserInfo } from "../api/users";
+import { useAuthStore } from "../stores/useUserStore";
 
 const MainPage: React.FC = () => {
+  // const fetchUser = getUserInfo();
+  const fetchUser = async () => {
+    const response = await getUserInfo();
+    console.log(response);
+  };
+  // console.log(fetchUser);
+  useEffect(() => {
+    fetchUser();
+    console.log("User: ", useAuthStore.getState());
+  }, []);
+
   return (
     <div className="container mx-auto text-first">
       <Header title="LOGO" showBackButton={false} hideSearchButton={false} />
 
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-10">
-        <div className="border p-4 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">채팅</h2>
-          <div className="flex flex-col space-y-2">
-            <Link
-              to="/chat/list"
-              className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 text-center"
-            >
-              채팅 목록
-            </Link>
-            <br />
-            <Link
-              to="/chat"
-              className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 text-center"
-            >
-              채팅 페이지
-            </Link>
-          </div>
-        </div>
-
-        <div className="border p-4 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">상품</h2>
-          <div className="flex flex-col space-y-2">
-            <Link
-              to="/goods/list"
-              className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 text-center"
-            >
-              상품 목록
-            </Link>
-            <br />
-            <Link
-              to="/goods/detail/1"
-              className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 text-center"
-            >
-              상품 상세 보기
-            </Link>
-            <br />
-            <Link
-              to="/goods/register"
-              className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 text-center"
-            >
-              상품 등록
-            </Link>
-          </div>
-        </div>
-
-        <div className="border p-4 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">사용자</h2>
-          <div className="flex flex-col space-y-2">
-            <Link
-              to="/user/login"
-              className="bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 text-center"
-            >
-              로그인
-            </Link>
-          </div>
-        </div>
-      </div> */}
       {/* <main className="font-semibold mb-4 gap-4 flex-1 overflow-y-auto"> */}
       <main className="font-semibold flex flex-col gap-4 mb-4 flex-1 overflow-y-auto">
         <article className="px-4 py-2 text-first">
