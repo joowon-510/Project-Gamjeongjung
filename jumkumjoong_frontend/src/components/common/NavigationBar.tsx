@@ -38,10 +38,12 @@ const NavigationBar: React.FC = () => {
         <p className="font-semibold text-first/70">메뉴</p>
       </div>
       {/* 찜 */}
-      <div className="w-full gap-2 justify-items-center pt-2">
-        <img src={heart} alt="heart" className="w-[40px]" />
+      <Link
+        to="/favorites"
+        className="w-full gap-2 justify-items-center pt-2"
+      >        <img src={heart} alt="heart" className="w-[40px]" />
         <p className="font-semibold text-first/70">찜</p>
-      </div>
+        </Link>
       {/* 등록 */}
       <Link
         to="/goods/register"
@@ -51,10 +53,10 @@ const NavigationBar: React.FC = () => {
         <p className="font-semibold text-first/70">등록</p>
       </Link>
       {/* MY */}
-      <div className="w-full gap-2 justify-items-center pt-2">
+      <Link to="/mypage" className="w-full gap-2 justify-items-center pt-2">
         <img src={userProfile} alt="userProfile" className="w-[40px]" />
         <p className="font-semibold text-first/70">MY</p>
-      </div>
+      </Link>
       {/* 채팅 */}
       <Link to="/chat/list" className="w-full gap-2 justify-items-center pt-2">
         <img src={messageChat} alt="messageChat" className="w-[40px]" />

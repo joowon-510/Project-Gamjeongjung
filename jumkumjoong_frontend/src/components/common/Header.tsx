@@ -1,21 +1,22 @@
 // src/components/common/Header.tsx
 import React from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import yeslogo from "../../assets/yeslogo.svg";
 
 interface HeaderProps {
   onSearch?: () => void;
   showBackButton?: boolean;
   title?: string;
-  hideSearchButton?: boolean; // 검색 버튼 숨김 옵션 추가
+  hideSearchButton?: boolean; // 검색 버튼 숨김 옵션
+  showLogout?: boolean; // 로그아웃 버튼 표시 옵션 추가
 }
 
 const Header: React.FC<HeaderProps> = ({
   onSearch,
   showBackButton = false,
   title = "LOGO",
-  hideSearchButton = false, // 기본값은 검색 버튼 표시
+  hideSearchButton = false,
+  showLogout = false, // 기본값은 로그아웃 버튼 숨김
 }) => {
   const navigate = useNavigate();
 
@@ -31,89 +32,40 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
+  // 로그아웃 처리
+  const handleLogout = () => {
+    // 로그아웃 로직 구현
+    localStorage.removeItem('token');
+    // 로그인 페이지로 이동
+    navigate('/login');
+  };
+
   return (
-    // <header className="sticky top-0 z-10 bg-white border-b">
-    //   <div className="flex justify-between items-center h-16 px-4">
-    //     {/* 왼쪽 영역 - 뒤로가기 또는 메뉴 아이콘 */}
-    //     <div className="w-10">
-    //       {showBackButton ? (
-    //         <button className="p-2" onClick={handleGoBack}>
-    //           <svg
-    //             className="w-6 h-6"
-    //             fill="none"
-    //             stroke="currentColor"
-    //             viewBox="0 0 24 24"
-    //           >
-    //             <path
-    //               strokeLinecap="round"
-    //               strokeLinejoin="round"
-    //               strokeWidth="2"
-    //               d="M6 18L18 6M6 6l12 12"
-    //             />
-    //           </svg>
-    //         </button>
-    //       ) : (
-    //         <button className="p-2">
-    //           <span className="text-2xl">≡</span>
-    //         </button>
-    //       )}
-    //     </div>
-
-    //     {/* 중앙 영역 - 로고 또는 제목 */}
-    //     <div className="flex-1 flex justify-center">
-    //       <div>
-    //         <img src={yeslogo} alt="로고" className="h-[76px] w-[76px]" />
-    //       </div>
-    //     </div>
-
-    //     {/* 오른쪽 영역 - 검색 아이콘 */}
-    //     <div className="w-10">
-    //       {!hideSearchButton && (
-    //         <button className="p-2" onClick={handleSearchClick}>
-    //           <svg
-    //             className="w-6 h-6"
-    //             fill="none"
-    //             stroke="currentColor"
-    //             viewBox="0 0 24 24"
-    //           >
-    //             <path
-    //               strokeLinecap="round"
-    //               strokeLinejoin="round"
-    //               strokeWidth="2"
-    //               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-    //             />
-    //           </svg>
-    //         </button>
-    //       )}
-    //     </div>
-    //   </div>
-    // </header>
     <header className="sticky top-0 left-0 w-full h-[96px] flex items-center shadow-md bg-white px-4 pt-2">
       <Link to="/">
         <img src={yeslogo} alt="logo" className="w-[96px] h-[96px] block" />
       </Link>
-      {!hideSearchButton ? (
+      
+      {/* 로그아웃 버튼 또는 검색창 표시 */}
+      {showLogout ? (
+        <div className="w-[100%] h-10 self-center px-4 flex justify-end">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center text-gray-600"
+          >
+            <span>로그아웃</span>
+            <svg className="w-6 h-6 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      ) : !hideSearchButton ? (
         <input
           type="text"
           value="검색어를 입력하세요."
           className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4"
         />
       ) : (
-        // <button className="p-2" onClick={handleSearchClick}>
-        //   <svg
-        //     className="w-6 h-6"
-        //     fill="none"
-        //     stroke="currentColor"
-        //     viewBox="0 0 24 24"
-        //   >
-        //     <path
-        //       strokeLinecap="round"
-        //       strokeLinejoin="round"
-        //       strokeWidth="2"
-        //       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-        //     />
-        //   </svg>
-        // </button>
         <p className="w-[100%] h-10 self-center px-4"></p>
       )}
     </header>
