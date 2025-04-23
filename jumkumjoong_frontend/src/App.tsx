@@ -12,7 +12,7 @@ import MyPage from './pages/userPage/myPage';
 import ReviewListPage from './pages/ReviewPage/ReviewListPage';
 import TransactionsPage from './pages/TransactionPage/TransactionPage';
 import FavoritePage from './pages/FavoritesPage/FavoritesPage';
-
+import MyPostsPage from './pages/userPage/myPostPage'
 function App() {
   return (
     <Router>
@@ -39,6 +39,8 @@ function App() {
         <Route path="/reviews" element={<ReviewListPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/favorites" element={<FavoritePage />} />
+        <Route path="/my-posts" element={<MyPostsPage />} />
+
 
 
       </Routes>
