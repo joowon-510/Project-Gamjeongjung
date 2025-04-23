@@ -6,20 +6,34 @@ import tablet from "../assets/tablet.svg";
 import example from "../assets/example.svg";
 import NavigationBar from "../components/common/NavigationBar";
 import Header from "../components/common/Header";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getUserInfo } from "../api/users";
 import { useAuthStore } from "../stores/useUserStore";
 
 const MainPage: React.FC = () => {
-  // const fetchUser = getUserInfo();
+  const navigate = useNavigate();
   const fetchUser = async () => {
     const response = await getUserInfo();
     console.log(response);
+    if (!response) {
+      return null;
+    }
+    return response;
   };
   // console.log(fetchUser);
   useEffect(() => {
-    fetchUser();
-    console.log("User: ", useAuthStore.getState());
+    const checkUser = async () => {
+      const data = await fetchUser();
+      console.log("data: ", data);
+
+      if (!data) {
+        navigate("/login");
+      } else {
+        console.log("User: ", useAuthStore.getState());
+      }
+    };
+
+    checkUser();
   }, []);
 
   return (
