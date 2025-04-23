@@ -19,6 +19,9 @@ spring:
         use-new-id-generator-mappings: false
         dialect: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
+server:
+  servlet:
+    context-path: ${CONTEXT_PATH}
 
 logging:
   level:

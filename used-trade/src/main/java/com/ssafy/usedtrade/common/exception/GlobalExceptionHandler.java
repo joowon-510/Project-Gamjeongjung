@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = ApplicationException.class)
     public ResponseEntity<Api<String>> handleApplicationException(ApplicationException exception) {
         log.error("ApplicationException occurred: {} - {}",
-                exception.getErrorCode().getStausCode(), exception.getMessage());
+                exception.getErrorCode().getStatusCode(), exception.getMessage());
 
         return ResponseEntity
                 .status(exception.getHttpStatusCode())

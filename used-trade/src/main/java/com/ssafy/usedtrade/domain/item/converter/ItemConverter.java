@@ -19,4 +19,19 @@ public class ItemConverter {
         salesItem.setScratchesStatus(item.getScratchesStatus());
         return salesItem;
     }
+
+    public static ItemDto entityToDto(SalesItem salesItem) {
+        ItemDto itemDto = new ItemDto();
+        itemDto.setUserId(salesItem.getUserId());
+        itemDto.setTitle(salesItem.getTitle());
+        itemDto.setDescription(salesItem.getDescription());
+        itemDto.setPrice(salesItem.getPrice());
+        itemDto.setPurchaseDate(salesItem.getPurchaseDate());
+        itemDto.setGrades(salesItem.getGrades());
+        itemDto.setStatus(salesItem.getStatus());
+        itemDto.setConfiguration(salesItem.getConfiguration());
+        itemDto.setCreatedAt(salesItem.getCreatedAt());
+        itemDto.setScratchesStatus(salesItem.getScratchesStatus());
+        return itemDto;
+    }
 }

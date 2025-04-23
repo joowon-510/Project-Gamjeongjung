@@ -23,11 +23,16 @@ public interface ItemSalesRepository extends JpaRepository<SalesItem, Integer> {
 
     List<ItemListDto> findByTitle(@Size(max = 255) @NotNull String title);
 
-    @Query("SELECT new com.ssafy.usedtrade.domain.item.dto.ItemListDto(i.id, i.title, i.price, i.createdAt) FROM SalesItem i WHERE i.title LIKE %:title%")
+    @Query("SELECT new com.ssafy.usedtrade.domain.item.dto.ItemListDto(i.id, i.title, i.price, i.createdAt,i.status) FROM SalesItem i WHERE i.title LIKE %:title%")
     List<ItemListDto> findItemListDtoByTitle(@Param("title") String title);
 
-    @Query("SELECT new com.ssafy.usedtrade.domain.item.dto.ItemListDto(s.id, s.title, s.price, s.createdAt) " +
+    @Query("SELECT new com.ssafy.usedtrade.domain.item.dto.ItemListDto(s.id, s.title, s.price, s.createdAt,s.status) " +
             "FROM SalesItem s JOIN SaveItem si ON s.id = si.itemId " +
             "WHERE si.userId = :userId")
     List<ItemListDto> findWishListByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT new com.ssafy.usedtrade.domain.item.dto.ItemListDto(si.id, si.title, si.price, si.createdAt,si.status) " +
+            "FROM SalesItem si " +
+            "WHERE si.userId = :userId")
+    List<ItemListDto> findSalesItemByUserId(@Param("userId") Integer userId);
 }

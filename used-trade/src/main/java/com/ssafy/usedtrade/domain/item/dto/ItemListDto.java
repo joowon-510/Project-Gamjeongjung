@@ -13,4 +13,5 @@ public class ItemListDto {
     private  String itemName;
     private  int itemPrice;
     private LocalDateTime createdAt;
+    private Boolean itemStatus;
 }

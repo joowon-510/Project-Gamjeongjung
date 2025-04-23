@@ -21,7 +21,9 @@ public class ItemController {
 
     //물품 등록
     @PostMapping("/regist-item")
-    public Api<Void> registItem(@RequestBody ItemDto item) {
+    public Api<Void> registItem(@RequestBody ItemDto item,@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
+        Integer userId = memberDetails.getId();
+        item.setUserId(userId);
         itemService.registItem(item);
         return Api.OK();
     }
@@ -48,11 +50,37 @@ public class ItemController {
         return Api.OK(itemList);
     }
 
+    //상품 상세 조회
+    @GetMapping("/item-info")
+    public Api<ItemDto> getItemInfo(@RequestParam Integer itemId) {
+        System.out.println(itemId);
+        ItemDto item = itemService.getItemInfo(itemId);
+        return Api.OK(item);
+    }
+
     //찜한 목록 조회
-    @GetMapping("/{userId}/wishlist")
-    public Api<List<ItemListDto>> getWishList(@PathVariable Integer userId) {
+    @GetMapping("/wishlist")
+    public Api<List<ItemListDto>> getWishList(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
+        Integer userId = memberDetails.getId();
         List<ItemListDto> wishList= itemService.getWishList(userId);
         log.info("wish-list result:{}",wishList);
         return Api.OK(wishList);
+    }
+
+    //유저가 판매하는 상품 목록 조회
+    @GetMapping("/item-list")
+    public Api<List<ItemListDto>> getSalesItemList(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
+        Integer userId = memberDetails.getId();
+        List<ItemListDto> itemList = itemService.getSalesItemList(userId);
+        log.info("sales-item-list result:{}",itemList);
+        return Api.OK(itemList);
+    }
+
+    //찜하기
+    @PostMapping("/save-item/{itemId}")
+    public Api<Void> saveItem(@PathVariable  Integer itemId,@AuthenticationPrincipal SecurityMemberDetails memberDetails ) {
+        Integer userId = memberDetails.getId();
+        itemService.saveItem(itemId,userId);
+        return Api.OK();
     }
 }
