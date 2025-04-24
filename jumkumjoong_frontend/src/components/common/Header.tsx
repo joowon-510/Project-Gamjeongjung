@@ -1,5 +1,5 @@
 // src/components/common/Header.tsx
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import yeslogo from "../../assets/yeslogo.svg";
 
@@ -19,6 +19,7 @@ const Header: React.FC<HeaderProps> = ({
   showLogout = false, // 기본값은 로그아웃 버튼 숨김
 }) => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("검색어를 입력하세요.");
 
   // 뒤로가기 처리
   const handleGoBack = () => {
@@ -30,6 +31,11 @@ const Header: React.FC<HeaderProps> = ({
     if (onSearch) {
       onSearch();
     }
+  };
+
+  // 검색어 입력 처리
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
   // 로그아웃 처리
@@ -62,7 +68,8 @@ const Header: React.FC<HeaderProps> = ({
       ) : !hideSearchButton ? (
         <input
           type="text"
-          value="검색어를 입력하세요."
+          value={searchTerm}
+          onChange={handleSearchChange}
           className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4"
         />
       ) : (
