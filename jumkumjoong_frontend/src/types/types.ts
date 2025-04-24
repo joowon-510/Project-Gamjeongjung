@@ -6,8 +6,10 @@ export interface ItemRegistParams {
   purchaseDate: string;
   grades: boolean;
   status: boolean;
-  configuration: number;
+  configuration: number; // 구성품 0: 풀박 / 1: 일부 / 2: 단품
   scratchesStatus: string;
+  createdAt: string;
+  serialNumber: string;
 }
 
 export interface ItemsParams {

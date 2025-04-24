@@ -3,12 +3,18 @@ import laptop from "../assets/laptop.svg";
 import keyboard from "../assets/keyboard.svg";
 import phone from "../assets/phone.svg";
 import tablet from "../assets/tablet.svg";
-import example from "../assets/example.svg";
 import NavigationBar from "../components/common/NavigationBar";
 import Header from "../components/common/Header";
 import { Link, useNavigate } from "react-router-dom";
 import { getUserInfo } from "../api/users";
 import { useAuthStore } from "../stores/useUserStore";
+
+// 썸네일 이미지 임포트
+import thumbnail from "../assets/goods/thumbnail.png";
+import thumbnail2 from "../assets/goods/thumbnail2.png";
+import thumbnail3 from "../assets/goods/thumbnail3.png";
+import thumbnail4 from "../assets/goods/thumbnail4.png";
+import thumbnail5 from "../assets/goods/thumbnail5.png";
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
@@ -75,19 +81,35 @@ const MainPage: React.FC = () => {
           <p className="pl-10 text-[20px]">오늘 인기 아이템</p>
           <div className="grid grid-flow grid-cols-2 gap-4 px-3 mt-2">
             <div>
-              <img src={example} alt="example" className="w-[200px]" />
+              <img
+                src={thumbnail2}
+                alt="thumbnail2"
+                className="w-[200px] rounded-xl"
+              />
               <p>갤북5(S)급 팝니다</p>
             </div>
             <div>
-              <img src={example} alt="example" className="w-[200px]" />
+              <img
+                src={thumbnail3}
+                alt="example"
+                className="w-[200px] rounded-xl"
+              />
               <p>맥북pro 팔아용</p>
             </div>
             <div>
-              <img src={example} alt="example" className="w-[200px]" />
+              <img
+                src={thumbnail4}
+                alt="example"
+                className="w-[200px] rounded-xl"
+              />
               <p>갤북4 싸게 팝니다</p>
             </div>
             <div>
-              <img src={example} alt="example" className="w-[200px]" />
+              <img
+                src={thumbnail5}
+                alt="example"
+                className="w-[200px] rounded-xl"
+              />
               <p>그램 14인치</p>
             </div>
           </div>
@@ -96,19 +118,35 @@ const MainPage: React.FC = () => {
           <p className="pl-10 text-[20px]">방금 등록된 아이템</p>
           <div className="grid grid-flow grid-cols-2 gap-4 px-3 mt-2">
             <div>
-              <img src={example} alt="example" className="w-[200px]" />
+              <img
+                src={thumbnail}
+                alt="example"
+                className="w-[200px] rounded-xl"
+              />
               <p>갤북5(S)급 팝니다</p>
             </div>
             <div>
-              <img src={example} alt="example" className="w-[200px]" />
+              <img
+                src={thumbnail2}
+                alt="example"
+                className="w-[200px] rounded-xl"
+              />
               <p>맥북pro 팔아용</p>
             </div>
             <div>
-              <img src={example} alt="example" className="w-[200px]" />
+              <img
+                src={thumbnail3}
+                alt="example"
+                className="w-[200px] rounded-xl"
+              />
               <p>갤북4 싸게 팝니다</p>
             </div>
             <div>
-              <img src={example} alt="example" className="w-[200px]" />
+              <img
+                src={thumbnail4}
+                alt="example"
+                className="w-[200px] rounded-xl"
+              />
               <p>그램 14인치치</p>
             </div>
           </div>

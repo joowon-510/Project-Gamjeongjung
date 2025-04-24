@@ -2,7 +2,9 @@ import axios from "axios";
 import { useAuthStore } from "../stores/useUserStore";
 
 export const axiosInstance = axios.create({
+  // baseURL: "http://localhost:8080",
   baseURL: "http://localhost:8080/api",
+  // baseURL: process.env.REACT_APP_API_URL,
   timeout: 5000,
   headers: {
     "Content-Type": "application/json",

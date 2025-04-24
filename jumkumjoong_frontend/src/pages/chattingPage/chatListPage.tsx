@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
+import chatting from "../../assets/message-chat.svg";
 
 // 채팅 목록 데이터 인터페이스
 interface ChatItem {
@@ -58,7 +59,8 @@ const ChatListPage: React.FC = () => {
                 <Link to={`/chat/${chat.id}`} className="flex items-center">
                   {/* 프로필 이미지 (원형) */}
                   <div className="relative">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                    <img src={chatting} alt="heart" className="w-[40px]" />
+                    {/* <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
                       <svg
                         className="w-8 h-8 text-gray-500"
                         fill="none"
@@ -72,7 +74,7 @@ const ChatListPage: React.FC = () => {
                           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                         />
                       </svg>
-                    </div>
+                    </div> */}
                     {/* 읽지 않은 메시지 표시 (현재 비활성화)
                     {chat.unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">

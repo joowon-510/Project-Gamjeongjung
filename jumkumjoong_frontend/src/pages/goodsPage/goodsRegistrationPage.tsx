@@ -9,15 +9,18 @@ import {
   GoodsRegistrationData,
 } from "../../services/goodsService";
 
-interface GoodsFormData {
-  title: string;
-  description: string;
-  price: string; // 폼에서는 문자열로 관리
-  images: File[];
-  purchaseYear: string;
-  purchaseMonth: string;
-  packageType: PackageType;
-}
+// Goods 타입 인터페이스 임포트
+import { ItemRegistParams } from "../../types/types";
+
+// interface GoodsFormData {
+//   title: string;
+//   description: string;
+//   price: string; // 폼에서는 문자열로 관리
+//   images: File[];
+//   purchaseYear: string;
+//   purchaseMonth: string;
+//   packageType: PackageType;
+// }
 
 // 구성여부 타입 정의
 type PackageType = "full" | "single" | "partial";
