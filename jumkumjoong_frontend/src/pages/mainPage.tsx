@@ -3,7 +3,6 @@ import laptop from "../assets/laptop.svg";
 import keyboard from "../assets/keyboard.svg";
 import phone from "../assets/phone.svg";
 import tablet from "../assets/tablet.svg";
-import example from "../assets/example.svg";
 import NavigationBar from "../components/common/NavigationBar";
 import Header from "../components/common/Header";
 import { Link, useNavigate } from "react-router-dom";
@@ -42,8 +41,6 @@ const MainPage: React.FC = () => {
 
     checkUser();
   }, []);
-
-  // const thumbnail = Image("../../public/goods/thumbnail.png");
 
   return (
     <div className="container mx-auto text-first">

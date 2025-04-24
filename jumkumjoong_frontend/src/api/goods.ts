@@ -117,9 +117,7 @@ export const getGoodsSearch = async (itemName: string): Promise<any> => {
   try {
     console.log("item Name: ", itemName);
 
-    const response = await axiosInstance.get(
-      `/api/items/search-item/${itemName}`
-    );
+    const response = await axiosInstance.get(`/items/search-item/${itemName}`);
 
     console.log("상품 검색: ", response);
     if (response.data.status_code === 200) {
@@ -150,7 +148,7 @@ export const postGoodsChangeStatus = async (): Promise<any> => {
 // 찜 목록 조회
 export const getGoodsFavorites = async (): Promise<any> => {
   try {
-    const response = await axiosInstance.get("/api/items/wishlist");
+    const response = await axiosInstance.get("/items/wishlist");
     console.log("찜 목록 조회: ", response.data);
     if (response.data.status_code === 200) {
       console.log("찜한 목록 조회 성공: ", response.data.body);

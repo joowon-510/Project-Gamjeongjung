@@ -47,7 +47,7 @@ export const getUserInfo = async (): Promise<any> => {
 // 리뷰 조회
 export const getUserReview = async (): Promise<any> => {
   try {
-    const response = await axiosInstance.get("/api/users/reviews");
+    const response = await axiosInstance.get("/users/reviews");
 
     console.log("리뷰 조회: ", response);
     return response;
