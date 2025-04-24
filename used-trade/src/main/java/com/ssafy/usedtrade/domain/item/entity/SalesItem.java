@@ -59,4 +59,7 @@ public class SalesItem {
     @NotNull
     @Column(name = "scratches_status", nullable = false)
     private String scratchesStatus;
+
+    @Column(name = "serial_number",nullable = true)
+    private String serialNumber;
 }

@@ -23,4 +23,5 @@ public class ItemDto {
     private int configuration;
     private LocalDateTime createdAt;
     private String scratchesStatus;
+    private String serialNumber;
 }

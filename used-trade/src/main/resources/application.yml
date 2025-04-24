@@ -48,6 +48,11 @@ jwt:
 server:
   servlet:
     context-path: ${CONTEXT_PATH}
+
+elasticsearch:
+  host: localhost
+  port: 9200
+
 #
 #logging:
 #  level:
