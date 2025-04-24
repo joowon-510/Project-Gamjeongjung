@@ -57,8 +57,9 @@ public class ItemController {
     }
 
     //상품 검색
-    @GetMapping("/search-item/{itemName}")
-    public Api<List<ItemListDto>> searchItem(@PathVariable String itemName) {
+    @GetMapping("/search-item")
+    public Api<List<ItemListDto>> searchItem(@RequestParam  String itemName) {
+        System.out.println(itemName);
         List<ItemListDto> itemList= itemService.searchItem(itemName);
         log.info("search-item result:{}",itemList);
         return Api.OK(itemList);

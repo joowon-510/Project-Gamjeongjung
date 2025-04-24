@@ -1,5 +1,6 @@
 package com.ssafy.usedtrade.domain.item.converter;
 
+import com.ssafy.usedtrade.domain.item.dto.EsItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemDto;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 
@@ -34,5 +35,16 @@ public class ItemConverter {
         itemDto.setScratchesStatus(salesItem.getScratchesStatus());
         itemDto.setSerialNumber(salesItem.getSerialNumber());
         return itemDto;
+    }
+
+    public static EsItemDto EsDtoToEsItem(SalesItem item) {
+        return EsItemDto.builder()
+                .id(item.getId())
+                .title(item.getTitle())
+                .description(item.getDescription())
+                .price(item.getPrice())
+                .status(item.getStatus())
+                .createdAt(String.valueOf(item.getCreatedAt()))
+                .build();
     }
 }

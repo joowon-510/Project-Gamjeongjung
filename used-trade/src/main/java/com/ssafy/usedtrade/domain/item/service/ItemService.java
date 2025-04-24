@@ -2,6 +2,7 @@ package com.ssafy.usedtrade.domain.item.service;
 
 
 import com.ssafy.usedtrade.domain.item.converter.ItemConverter;
+import com.ssafy.usedtrade.domain.item.dto.EsItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemListDto;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
@@ -15,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -24,17 +27,22 @@ public class ItemService {
 
     private final ItemSalesRepository itemSalesRepository;
     private final SaveItemRepository saveItemRepository;
+    private final ElasticSearchService elasticSearchService;
 
     //물품 등록
     @Transactional
     public void registItem(ItemDto item) {
         SalesItem salesItem = ItemConverter.dtoToEntity(item);
         itemSalesRepository.save(salesItem);
+
+        EsItemDto esItem = ItemConverter.EsDtoToEsItem(salesItem);
+        elasticSearchService.save(esItem);
     }
 
     public void deleteItem(Integer itemId) {
         if (itemSalesRepository.existsById(itemId)) {  // 먼저 해당 아이템이 존재하는지 확인
             itemSalesRepository.deleteById(itemId);  // 아이템 삭제
+            elasticSearchService.delete(itemId);
         } else {
             throw new RuntimeException("Item not found");  // 예외 처리
         }
@@ -46,11 +54,21 @@ public class ItemService {
     }
 
     //상품 검색
-    public List<ItemListDto> searchItem(String itemName) {
-        List<ItemListDto> result = itemSalesRepository.findItemListDtoByTitle(itemName);
-        return result;
-        //        return itemSalesRepository.findItemListDtoByTitle(itemName);
+    public List<ItemListDto> searchItem(String keyword) {
+        List<EsItemDto> esResult = elasticSearchService.searchItem(keyword);
+        System.out.println(esResult);
+
+        return esResult.stream()
+                .map(item -> ItemListDto.builder()
+                        .itemId(item.getId())
+                        .itemName(item.getTitle())
+                        .itemPrice(item.getPrice())
+                        .createdAt(LocalDateTime.parse(item.getCreatedAt()))         // 필요한 경우
+                        .itemStatus(item.getStatus())           // 필요한 경우
+                        .build())
+                .collect(Collectors.toList());
     }
+//        return itemSalesRepository.findItemListDtoByTitle(itemName);
 
     //찜한 목록 조회
     public List<ItemListDto> getWishList(Integer userId) {
@@ -86,12 +104,6 @@ public class ItemService {
         SalesItem item = itemSalesRepository.findById(itemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ItemErrorCode.ITEM_NOT_FOUND));
 
-        // 유저 검증 (권한 체크)
-/*
-        if (!item.getUserId().equals(itemDto.getUserId())) {
-            throw new ItemException(ItemErrorCode.INVALID_USER_ACCESS);
-        }
-*/
         // grades, scratchesStatus는 수정하지 않음
         item.setTitle(itemDto.getTitle());
         item.setDescription(itemDto.getDescription());
@@ -99,6 +111,9 @@ public class ItemService {
         item.setPurchaseDate(itemDto.getPurchaseDate());
         item.setStatus(itemDto.getStatus());
         item.setConfiguration(itemDto.getConfiguration());
+
+        EsItemDto esItem = ItemConverter.EsDtoToEsItem(item);
+        elasticSearchService.save(esItem);
     }
 
 }

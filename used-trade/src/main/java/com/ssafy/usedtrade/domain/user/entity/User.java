@@ -46,7 +46,7 @@ public class User {
     private Integer status;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public User(String email, String nickname, String phoneNumber, Integer status) {
+    public User(String email, String nickname, Integer status) {
         this.email = email;
         this.nickname = nickname;
         this.status = status;
