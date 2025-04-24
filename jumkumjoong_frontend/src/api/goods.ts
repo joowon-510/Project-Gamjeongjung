@@ -58,7 +58,10 @@ export const postGoods = async (itemData: ItemRegistParams): Promise<any> => {
     const response = await axiosInstance.post("/items/regist-item", itemData);
 
     console.log("상품 등록: ", response);
-    return response;
+    if (response.data.status_code === 200) {
+      console.log("상품 등록 성공, 상세 페이지로 이동 필요");
+    }
+    return response.data.body;
   } catch (error) {
     console.log("상품 등록 실패: ", error);
     return null;
@@ -66,11 +69,11 @@ export const postGoods = async (itemData: ItemRegistParams): Promise<any> => {
 };
 
 // 상품 상세 조회
-export const getGoodsDetail = async (
-  itemData: ItemRegistParams
-): Promise<any> => {
+export const getGoodsDetail = async (itemId: number): Promise<any> => {
   try {
-    const response = await axiosInstance.get("/items/item-info");
+    const response = await axiosInstance.get("/items/item-info", {
+      params: itemId,
+    });
 
     console.log("상품 상세 조회: ", response);
     return response;
@@ -111,10 +114,15 @@ export const deleteGoods = async (itemName: string): Promise<any> => {
 // 상품 검색
 export const getGoodsSearch = async (itemName: string): Promise<any> => {
   try {
-    const response = await axiosInstance.get("/items/search-item");
+    const response = await axiosInstance.get(`/items/search-item/${itemName}`);
 
     console.log("상품 검색: ", response);
-    return response;
+    if (response.data.status_code === 200) {
+      console.log("상품 검색 조회 성공");
+      return response.data.body;
+    }
+    console.log("상품 검색 조회 실패: ", response.data.status_code);
+    return [];
   } catch (error) {
     console.log("상품 검색 실패: ", error);
     return null;
