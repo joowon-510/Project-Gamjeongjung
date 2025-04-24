@@ -23,7 +23,7 @@ const GoodsListPage: React.FC = () => {
   // 검색어 상태
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-
+  // setSearchTerm("노트북");
   // 초기 데이터 로딩
   useEffect(() => {
     loadGoods("노트북");
@@ -31,8 +31,8 @@ const GoodsListPage: React.FC = () => {
 
   // 검색어 상태가 변경될 때만 데이터 다시 로드
   useEffect(() => {
-    loadGoods(searchTerm);
-  }, [searchTerm]);
+    loadGoods("노트북");
+  }, []);
 
   // 상품 데이터 로딩 함수
   const loadGoods = async (search: string) => {
@@ -42,8 +42,9 @@ const GoodsListPage: React.FC = () => {
 
       // 서비스 함수를 통해 데이터 로드 (현재는 모의 데이터, 향후 API 연동 예정)
       // const data = await getGoodsList(search);
-      const data = await getGoodsSearch(search);
-      if (data.length === 0) {
+      const data = await getGoodsSearch("노트북");
+      console.log("data: ", data);
+      if (data === null) {
         console.log("상품 목록 비어있음");
         setGoods([]);
       } else {

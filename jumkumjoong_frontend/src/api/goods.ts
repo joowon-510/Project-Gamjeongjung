@@ -112,9 +112,14 @@ export const deleteGoods = async (itemName: string): Promise<any> => {
 };
 
 // 상품 검색
+// TODO: 한글 검색 지원 X, 백엔드 수정 중
 export const getGoodsSearch = async (itemName: string): Promise<any> => {
   try {
-    const response = await axiosInstance.get(`/items/search-item/${itemName}`);
+    console.log("item Name: ", itemName);
+
+    const response = await axiosInstance.get(
+      `/api/items/search-item/${itemName}`
+    );
 
     console.log("상품 검색: ", response);
     if (response.data.status_code === 200) {
@@ -139,5 +144,57 @@ export const postGoodsChangeStatus = async (): Promise<any> => {
   } catch (error) {
     console.log("상품 상태 변경 실패: ", error);
     return null;
+  }
+};
+
+// 찜 목록 조회
+export const getGoodsFavorites = async (): Promise<any> => {
+  try {
+    const response = await axiosInstance.get("/api/items/wishlist");
+    console.log("찜 목록 조회: ", response.data);
+    if (response.data.status_code === 200) {
+      console.log("찜한 목록 조회 성공: ", response.data.body);
+      return response.data.body;
+    }
+
+    return [];
+  } catch (error) {
+    console.log("찜 목록 조회 실패: ", error);
+    return [];
+  }
+};
+
+// 찜 요청
+export const postGoodsFavorites = async (itemId: number): Promise<any> => {
+  try {
+    const response = await axiosInstance.post(`/items/save-item/${itemId}`);
+    if (response.data.status_code === 200) {
+      console.log("상품 찜 완료: ", response.data.body);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.log("상품 찜 실패: ", error);
+    return false;
+  }
+};
+
+// 유저가 업로드한 상품 조회
+export const getGoodsUsers = async (): Promise<any> => {
+  try {
+    const response = await axiosInstance.get("/items/item-list");
+    if (response.data.status_code === 200 && response.data.body.length > 0) {
+      console.log("유저가 올린 상품 목록 조회 성공: ", response);
+      return response.data.body;
+    } else if (
+      response.data.status_code === 200 &&
+      response.data.body.length === 0
+    ) {
+      console.log("유저가 올린 상품 목록 없음:", response);
+      return [];
+    }
+  } catch (error) {
+    console.log("유저가 올린 상품 목록 조회 실패: ", error);
+    return [];
   }
 };
