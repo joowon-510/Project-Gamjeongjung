@@ -51,7 +51,7 @@ const GoodsListPage: React.FC = () => {
         setGoods(data);
       }
     } catch (err) {
-      console.error("상품 로딩 오류:", err);
+      console.log("상품 로딩 오류:", err);
       setError("상품을 불러오는 중 오류가 발생했습니다.");
       setGoods([]);
     } finally {

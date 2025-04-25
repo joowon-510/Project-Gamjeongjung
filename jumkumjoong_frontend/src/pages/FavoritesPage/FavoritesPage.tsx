@@ -8,7 +8,6 @@ import { useAuthStore } from "../../stores/useUserStore";
 
 const FavoritePage: React.FC = () => {
   const userInfo = useAuthStore();
-  console.log(userInfo.nickname);
   const [favoriteItems, setFavoriteItems] = useState<any>([]);
   // 목업 데이터 - 실제 구현에서는 API 호출이나 상태 관리를 통해 가져와야 함
   // const favoriteItems = [
@@ -48,7 +47,7 @@ const FavoritePage: React.FC = () => {
         setFavoriteItems(data);
         console.log("찜한 상품 목록:", data);
       } catch (error) {
-        console.error("찜 목록 로딩 실패:", error);
+        console.log("찜 목록 로딩 실패:", error);
         setFavoriteItems([]); // 에러 시 비워주기
       }
     };

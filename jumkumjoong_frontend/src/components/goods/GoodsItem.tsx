@@ -1,6 +1,7 @@
 // src/components/goods/GoodsItem.tsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { formatRelativeTime } from "../../utils/dateFormatter";
 
 export interface GoodsItemProps {
   createdAt: string;
@@ -98,8 +99,8 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
 
           {/* 등록 시간과 판매자 닉네임을 같은 행의 양 끝으로 배치 */}
           <div className="flex items-center justify-between text-sm text-gray-500 mt-1">
-            <span>{createdAt}</span>
-            {/* <span>{seller}</span> */}
+            {/* <span>{createdAt}</span> */}
+            <span>{formatRelativeTime(createdAt)}</span>
           </div>
         </div>
       </Link>

@@ -153,7 +153,6 @@ export const postGoodsChangeStatus = async (): Promise<any> => {
 export const getGoodsFavorites = async (): Promise<any> => {
   try {
     const response = await axiosInstance.get("/items/wishlist");
-    console.log("찜 목록 조회: ", response.data);
     if (response.data.status_code === 200) {
       console.log("찜한 목록 조회 성공: ", response.data.body);
       return response.data.body;
