@@ -134,7 +134,17 @@ const GoodsListPage: React.FC = () => {
           // 상품 목록 표시 - 마지막 아이템에 패딩 추가하여 하단 네비게이션 바와 겹치지 않게 함
           <ul className="divide-y divide-gray-200">
             {goods.length > 0 ? (
-              goods.map((item, index) => <GoodsItem key={item.id} {...item} />)
+              // [...goods]
+              // goods
+              //   .sort(
+              //     (a, b) =>
+              //       new Date(b.createdAt).getTime() -
+              //       new Date(a.createdAt).getTime()
+              //   )
+              //   .map((item, index) => (
+              goods.map((item, index) => (
+                <GoodsItem key={item.itemId} {...item} />
+              ))
             ) : (
               <li className="p-4 text-center text-gray-500">
                 {searchTerm

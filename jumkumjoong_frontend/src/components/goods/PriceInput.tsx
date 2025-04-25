@@ -1,35 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 interface PriceInputProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: number;
+  onChange: (value: number) => void;
   name: string;
   id: string;
 }
 
-const PriceInput: React.FC<PriceInputProps> = ({ value, onChange, name, id }) => {
+const PriceInput: React.FC<PriceInputProps> = ({
+  value,
+  onChange,
+  name,
+  id,
+}) => {
   // 화면에 표시될 숫자 (입력값)
-  const [displayValue, setDisplayValue] = useState(value);
-  
+  const [displayValue, setDisplayValue] = useState<string>(value.toString());
+
   // 입력값이 외부에서 변경될 경우 동기화
   useEffect(() => {
-    setDisplayValue(value);
+    setDisplayValue(value.toString());
   }, [value]);
-  
+
   // 입력 처리
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    
+
     // 숫자만 허용 (빈 문자열 또는 숫자)
-    if (inputValue === '' || /^[0-9]+$/.test(inputValue)) {
+    if (inputValue === "" || /^[0-9]+$/.test(inputValue)) {
       setDisplayValue(inputValue);
-      onChange(inputValue);
+      onChange(inputValue === "" ? 0 : Number(inputValue));
     }
   };
-  
+
   // 가격 포맷팅 (천 단위 쉼표)
-  const formattedValue = displayValue ? 
-    Number(displayValue).toLocaleString('ko-KR') : '';
+  const formattedValue = displayValue
+    ? Number(displayValue).toLocaleString("ko-KR")
+    : "";
 
   return (
     <div className="relative">
@@ -45,7 +51,7 @@ const PriceInput: React.FC<PriceInputProps> = ({ value, onChange, name, id }) =>
       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
         <span className="text-gray-500">만원</span>
       </div>
-      
+
       {/* 입력값이 있을 경우 원화 표시 */}
       {displayValue && (
         <div className="mt-1 text-sm text-gray-500">

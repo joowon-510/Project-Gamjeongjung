@@ -1,5 +1,4 @@
 export interface ItemRegistParams {
-  userId: number;
   title: string;
   description: string;
   price: number;

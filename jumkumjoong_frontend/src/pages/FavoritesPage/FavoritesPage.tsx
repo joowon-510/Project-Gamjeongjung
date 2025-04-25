@@ -1,5 +1,5 @@
 // src/pages/FavoritePage.tsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsItem from "../../components/goods/GoodsItem";
@@ -9,68 +9,84 @@ import { useAuthStore } from "../../stores/useUserStore";
 const FavoritePage: React.FC = () => {
   const userInfo = useAuthStore();
   console.log(userInfo.nickname);
+  const [favoriteItems, setFavoriteItems] = useState<any>([]);
   // 목업 데이터 - 실제 구현에서는 API 호출이나 상태 관리를 통해 가져와야 함
-  const favoriteItems = [
-    {
-      id: 1,
-      title: "갤럭5(S급) 팝니다",
-      price: "96만원",
-      time: "2시간전",
-      seller: "재드래곤",
-      imageUrl: "/path/to/galaxy5.jpg",
-      isFavorite: true,
-    },
-    {
-      id: 2,
-      title: "맥북pro 팔아용",
-      price: "96만원",
-      time: "16시간전",
-      seller: "AI의신예훈",
-      imageUrl: "/path/to/macbook.jpg",
-      isFavorite: true,
-    },
-    {
-      id: 3,
-      title: "갤럭5(S급) 팝니다",
-      price: "96만원",
-      time: "1일전",
-      seller: "AI의신예훈",
-      imageUrl: "/path/to/galaxy5_2.jpg",
-      isFavorite: true,
-    },
-  ];
+  // const favoriteItems = [
+  //   {
+  //     id: 1,
+  //     title: "갤럭5(S급) 팝니다",
+  //     price: "96만원",
+  //     time: "2시간전",
+  //     seller: "재드래곤",
+  //     imageUrl: "/path/to/galaxy5.jpg",
+  //     isFavorite: true,
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "맥북pro 팔아용",
+  //     price: "96만원",
+  //     time: "16시간전",
+  //     seller: "AI의신예훈",
+  //     imageUrl: "/path/to/macbook.jpg",
+  //     isFavorite: true,
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "갤럭5(S급) 팝니다",
+  //     price: "96만원",
+  //     time: "1일전",
+  //     seller: "AI의신예훈",
+  //     imageUrl: "/path/to/galaxy5_2.jpg",
+  //     isFavorite: true,
+  //   },
+  // ];
 
   useEffect(() => {
-    const data = getGoodsFavorites();
-    console.log(data);
-  });
+    const fetchFavorites = async () => {
+      try {
+        const data = await getGoodsFavorites(); // ✅ 비동기 처리
+        setFavoriteItems(data);
+        console.log("찜한 상품 목록:", data);
+      } catch (error) {
+        console.error("찜 목록 로딩 실패:", error);
+        setFavoriteItems([]); // 에러 시 비워주기
+      }
+    };
+
+    fetchFavorites();
+  }, []);
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
+    <div className="text-first min-h-screen pb-16">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
 
       {/* 찜한 목록 제목 */}
       <div className="px-4 py-6 bg-white">
         <h1 className="text-2xl font-bold">
-          {userInfo.nickname}님의 찜한 목록
+          {userInfo.nickname ?? "user"} 님의 찜한 목록
         </h1>
       </div>
 
       {/* 찜한 상품 목록 */}
       <ul className="mt-1 divide-y divide-gray-200">
-        {favoriteItems.map((item) => (
-          <GoodsItem
-            key={item.id}
-            id={item.id}
-            title={item.title}
-            price={item.price}
-            time={item.time}
-            seller={item.seller}
-            imageUrl={item.imageUrl}
-            isFavorite={item.isFavorite}
-          />
-        ))}
+        {favoriteItems.length > 0 ? (
+          favoriteItems.map((item: any) => (
+            <GoodsItem
+              key={item.id}
+              itemId={item.id}
+              itemName={item.title}
+              itemPrice={item.price}
+              createdAt={item.time}
+              itemStatus={item.itemStatus}
+              // seller={item.seller}
+              imageUrl={item.imageUrl}
+              isFavorite={item.isFavorite}
+            />
+          ))
+        ) : (
+          <p className="p-4 text-center text-first/50">찜한 상품이 없습니다.</p>
+        )}
       </ul>
 
       {/* 여백 추가 */}

@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsImage from "../../components/goods/GoodsImage";
 import GoodsStatus from "../../components/goods/GoodsStatus";
-import { getGoodsDetail } from "../../services/goodsService";
+// import { getGoodsDetail } from "../../services/goodsService";
 import { GoodsItemProps } from "../../components/goods/GoodsItem";
 
 const GoodsDetailPage: React.FC = () => {
@@ -36,31 +36,31 @@ const GoodsDetailPage: React.FC = () => {
     screenPan: 0,
   });
 
-  useEffect(() => {
-    const loadGoodsDetail = async () => {
-      if (!id) return;
+  // useEffect(() => {
+  //   const loadGoodsDetail = async () => {
+  //     if (!id) return;
 
-      try {
-        setIsLoading(true);
-        setError(null);
-        const goodsId = parseInt(id);
-        const goodsData = await getGoodsDetail(goodsId);
+  //     try {
+  //       setIsLoading(true);
+  //       setError(null);
+  //       const goodsId = parseInt(id);
+  //       const goodsData = await getGoodsDetail(goodsId);
 
-        if (goodsData) {
-          setGoods(goodsData);
-        } else {
-          setError("상품을 찾을 수 없습니다.");
-        }
-      } catch (err) {
-        console.error("상품 상세 정보 로딩 오류:", err);
-        setError("상품 정보를 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  //       if (goodsData) {
+  //         setGoods(goodsData);
+  //       } else {
+  //         setError("상품을 찾을 수 없습니다.");
+  //       }
+  //     } catch (err) {
+  //       console.error("상품 상세 정보 로딩 오류:", err);
+  //       setError("상품 정보를 불러오는 중 오류가 발생했습니다.");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
-    loadGoodsDetail();
-  }, [id]);
+  //   loadGoodsDetail();
+  // }, [id]);
 
   // 뒤로가기 처리
   const handleGoBack = () => {
@@ -108,15 +108,15 @@ const GoodsDetailPage: React.FC = () => {
         {/* 상품 이미지 컴포넌트 */}
         <GoodsImage
           imageUrl={goods.imageUrl}
-          title={goods.title}
-          time={goods.time}
+          title={goods.itemName}
+          time={goods.createdAt}
           onGoBack={handleGoBack}
         />
 
         {/* 판매자 정보 */}
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
-            <p className="text-gray-700">판매자: {goods.seller}</p>
+            {/* <p className="text-gray-700">판매자: {goods.}</p> */}
             <div className="flex items-center">
               <svg
                 className="w-5 h-5 text-yellow-500"
@@ -161,7 +161,7 @@ const GoodsDetailPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-700">판매가</span>
-            <span className="font-bold text-lg">{goods.price}</span>
+            <span className="font-bold text-lg">{goods.itemPrice}</span>
           </div>
         </div>
 
@@ -191,7 +191,7 @@ const GoodsDetailPage: React.FC = () => {
       <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
         <div className="flex-1">
           <span className="text-gray-700 mr-2">가격:</span>
-          <span className="text-xl font-bold">{goods.price}</span>
+          <span className="text-xl font-bold">{goods.itemPrice}</span>
         </div>
         <button
           onClick={handleChat}

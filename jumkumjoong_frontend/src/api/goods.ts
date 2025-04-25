@@ -117,7 +117,11 @@ export const getGoodsSearch = async (itemName: string): Promise<any> => {
   try {
     console.log("item Name: ", itemName);
 
-    const response = await axiosInstance.get(`/items/search-item/${itemName}`);
+    const response = await axiosInstance.get(`/items/search-item`, {
+      params: {
+        itemName: itemName,
+      },
+    });
 
     console.log("상품 검색: ", response);
     if (response.data.status_code === 200) {
