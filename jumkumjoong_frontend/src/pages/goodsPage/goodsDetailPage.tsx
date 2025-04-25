@@ -4,13 +4,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsImage from "../../components/goods/GoodsImage";
 import GoodsStatus from "../../components/goods/GoodsStatus";
-import { getGoodsDetail } from "../../services/goodsService";
-import { GoodsItemProps } from "../../components/goods/GoodsItem";
+// import { getGoodsDetail } from "../../services/goodsService";
+import { GoodsDetailProps } from "../../components/goods/GoodsItem";
+import { getGoodsDetail } from "../../api/goods";
 
 const GoodsDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();
-  const [goods, setGoods] = useState<GoodsItemProps | null>(null);
+  const [goods, setGoods] = useState<GoodsDetailProps | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,16 +39,19 @@ const GoodsDetailPage: React.FC = () => {
 
   useEffect(() => {
     const loadGoodsDetail = async () => {
-      if (!id) return;
+      if (!itemId) return;
 
       try {
         setIsLoading(true);
         setError(null);
-        const goodsId = parseInt(id);
+        const goodsId = parseInt(itemId);
         const goodsData = await getGoodsDetail(goodsId);
 
+        console.log(goodsData);
+
         if (goodsData) {
-          setGoods(goodsData);
+          setGoods(goodsData.data.body);
+          console.log("setGoods: ", goods);
         } else {
           setError("상품을 찾을 수 없습니다.");
         }
@@ -60,7 +64,7 @@ const GoodsDetailPage: React.FC = () => {
     };
 
     loadGoodsDetail();
-  }, [id]);
+  }, [itemId]);
 
   // 뒤로가기 처리
   const handleGoBack = () => {
@@ -107,16 +111,16 @@ const GoodsDetailPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto pb-20">
         {/* 상품 이미지 컴포넌트 */}
         <GoodsImage
-          imageUrl={goods.imageUrl}
-          title={goods.title}
-          time={goods.time}
+          imageUrl="../../assets/goods/thumbnail.png"
+          title={goods.item.title}
+          time={goods.item.createdAt}
           onGoBack={handleGoBack}
         />
 
         {/* 판매자 정보 */}
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
-            <p className="text-gray-700">판매자: {goods.seller}</p>
+            <p className="text-gray-700">판매자: {goods.userName}</p>
             <div className="flex items-center">
               <svg
                 className="w-5 h-5 text-yellow-500"
@@ -133,11 +137,12 @@ const GoodsDetailPage: React.FC = () => {
         {/* 상품 설명 */}
         <div className="p-4 border-b">
           <p className="text-gray-800">
-            구매한지 1달 된 거의 새제품 팝니다.
+            {/* 구매한지 1달 된 거의 새제품 팝니다.
             <br />
             이번에 맥북 선물받아서 파는 거라 제품에는 문제 없습니다.
             <br />
-            홍플러스 앞에서 거래할게요
+            홍플러스 앞에서 거래할게요 */}
+            {goods.item.description}
           </p>
         </div>
 
@@ -161,7 +166,7 @@ const GoodsDetailPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-700">판매가</span>
-            <span className="font-bold text-lg">{goods.price}</span>
+            <span className="font-bold text-lg">{goods.item.price}</span>
           </div>
         </div>
 
@@ -191,7 +196,7 @@ const GoodsDetailPage: React.FC = () => {
       <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
         <div className="flex-1">
           <span className="text-gray-700 mr-2">가격:</span>
-          <span className="text-xl font-bold">{goods.price}</span>
+          <span className="text-xl font-bold">{goods.item.price}</span>
         </div>
         <button
           onClick={handleChat}
