@@ -1,16 +1,25 @@
 package com.ssafy.usedtrade.domain.chat.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
-
-import java.time.Instant;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "chatting_contents")
 public class ChattingContent {
     @Id
@@ -19,20 +28,19 @@ public class ChattingContent {
     private Integer id;
 
     @NotNull
-    @Column(name = "chating_list_id", nullable = false)
-    private Integer chatingListId;
+    @ManyToOne
+    private ChattingList chattingList;
 
     @NotNull
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Size(max = 255)
+    @Lob
     @NotNull
     @Column(name = "contents", nullable = false)
     private String contents;
 
     @NotNull
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
+    private LocalDateTime createdAt;
 }
