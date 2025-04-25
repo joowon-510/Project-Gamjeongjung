@@ -40,21 +40,28 @@ public class ElasticSearchService {
 
     public List<EsItemDto> searchItem(String keyword) {
         try {
+
             var resp = elasticsearchClient.search(s -> s
                             .index("items")
                             .query(q -> q
-                                    .bool(b -> b
-                                            .should(m -> m.match(t -> t.field("title").query(keyword)))
-                                            .should(m -> m.match(t -> t.field("description").query(keyword)))
+                                    .multiMatch(m -> m
+                                            .fields("title", "description")
+                                            .query(keyword)
+                                            .fuzziness("AUTO") // 오타나 유사어 허용
                                     )
                             ),
                     EsItemDto.class
             );
+
             return resp.hits().hits().stream()
                     .map(hit -> hit.source())
                     .collect(Collectors.toList());
-    }catch (Exception e){
-        throw new RuntimeException("failed to search item into elasticsearch");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("failed to search item into elasticsearch: " + e.getMessage(), e);
         }
     }
+
+
 }

@@ -55,6 +55,8 @@ public class ItemService {
 
     //상품 검색
     public List<ItemListDto> searchItem(String keyword) {
+        List<ItemListDto> result = itemSalesRepository.findItemListDtoByTitle(keyword);
+        System.out.println(result);
         List<EsItemDto> esResult = elasticSearchService.searchItem(keyword);
         System.out.println(esResult);
 
