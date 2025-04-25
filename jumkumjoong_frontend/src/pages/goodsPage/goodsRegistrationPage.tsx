@@ -4,31 +4,19 @@ import { useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import Header from "../../components/common/Header";
 import PriceInput from "../../components/goods/PriceInput";
-import {
-  registerGoods,
-  GoodsRegistrationData,
-} from "../../services/goodsService";
 
 // Goods 타입 인터페이스 임포트
 import { ItemRegistParams } from "../../types/types";
-
-// interface GoodsFormData {
-//   title: string;
-//   description: string;
-//   price: string; // 폼에서는 문자열로 관리
-//   images: File[];
-//   purchaseYear: string;
-//   purchaseMonth: string;
-//   packageType: PackageType;
-// }
+import { postGoods } from "../../api/goods";
 
 // 구성여부 타입 정의
 type PackageType = "full" | "single" | "partial";
 
-interface ExtendedGoodsData extends GoodsRegistrationData {
+interface ExtendedGoodsData extends ItemRegistParams {
+  // images: File[];
   purchaseYear: string;
   purchaseMonth: string;
-  packageType: PackageType;
+  // purchaseDate: string;
 }
 
 const GoodsRegistrationPage: React.FC = () => {
@@ -42,11 +30,18 @@ const GoodsRegistrationPage: React.FC = () => {
   const [formData, setFormData] = useState<ExtendedGoodsData>({
     title: "",
     description: "",
-    price: "", // This is causing the error
-    images: [],
+    price: 0, // This is causing the error
+    // images: [],
+    purchaseDate: "",
+    grades: true,
+    status: false,
+    configuration: 0, // 구성품 0: 풀박 / 1: 일부 / 2: 단품
+    scratchesStatus: "",
+    createdAt: "",
+    serialNumber: "",
+
     purchaseYear: currentYear.toString(),
     purchaseMonth: "0",
-    packageType: "full",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -64,7 +59,7 @@ const GoodsRegistrationPage: React.FC = () => {
   };
 
   // 가격 입력 처리
-  const handlePriceChange = (value: string) => {
+  const handlePriceChange = (value: number) => {
     setFormData((prev) => ({
       ...prev,
       price: value,
@@ -73,24 +68,32 @@ const GoodsRegistrationPage: React.FC = () => {
 
   // 구성여부 변경 처리
   const handlePackageTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value as PackageType;
+    const selected = e.target.value as PackageType;
+
+    const configValueMap: Record<PackageType, number> = {
+      full: 0,
+      partial: 1,
+      single: 2,
+    };
+
     setFormData((prev) => ({
       ...prev,
-      packageType: value,
+      configuration: configValueMap[selected], // ✅ 숫자로 저장
+      packageType: selected, // 표시용으로 유지
     }));
   };
 
   // 이미지 선택 처리
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      // 파일 배열로 변환
-      const fileArray = Array.from(e.target.files);
-      setFormData((prev) => ({
-        ...prev,
-        images: fileArray,
-      }));
-    }
-  };
+  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (e.target.files && e.target.files.length > 0) {
+  //     // 파일 배열로 변환
+  //     const fileArray = Array.from(e.target.files);
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       images: fileArray,
+  //     }));
+  //   }
+  // };
 
   // 폼 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,7 +102,8 @@ const GoodsRegistrationPage: React.FC = () => {
     // 필수 필드 검증
     if (
       !formData.title.trim() ||
-      !formData.price.trim() ||
+      formData.price <= 0 ||
+      // !formData.price.trim() ||
       !formData.purchaseYear
     ) {
       alert("상품명, 가격, 구매 년도는 필수 입력 항목입니다.");
@@ -108,17 +112,18 @@ const GoodsRegistrationPage: React.FC = () => {
 
     try {
       setIsLoading(true);
+      // ⬇️ purchaseDate YYYY-MM 포맷
+      const purchaseDateString =
+        formData.purchaseMonth === "0"
+          ? formData.purchaseYear
+          : `${formData.purchaseYear}-${formData.purchaseMonth.padStart(
+              2,
+              "0"
+            )}`;
 
-      // 구매일자 문자열 생성
-      let purchaseDateString = `${formData.purchaseYear}년`;
-      if (formData.purchaseMonth !== "0") {
-        purchaseDateString += ` ${formData.purchaseMonth}월`;
-      }
-
-      // 구성여부가 일부인 경우 설명에 안내 메시지 추가
       let finalDescription = formData.description;
       if (
-        formData.packageType === "partial" &&
+        formData.configuration === 1 &&
         !finalDescription.includes("구성품:")
       ) {
         finalDescription = `[구성품 안내가 필요합니다. 어떤 구성품이 포함되어 있는지 작성해주세요.]\n\n${finalDescription}`;
@@ -129,19 +134,29 @@ const GoodsRegistrationPage: React.FC = () => {
         full: "풀박스",
         single: "단품",
         partial: "일부구성품",
-      }[formData.packageType];
+      }[formData.configuration];
 
       // 최종 설명에 구매일자와 구성여부 정보 포함
       finalDescription = `구매일자: ${purchaseDateString}\n구성여부: ${packageTypeText}\n\n${finalDescription}`;
+      const date = new Date().toISOString();
+      console.log(date);
+      // const now = new Date();
+      // const kstOffset = 9 * 60 * 60 * 1000; // 9시간(한국 시차)을 밀리초로 변환
+      // const kstDate = new Date(now.getTime() + kstOffset);
 
+      // const date = kstDate.toISOString().replace("Z", "+09:00");
+      // console.log(date); // 예: 2025-04-25T20:45:00+09:00
       // 상품 등록 API 호출
       const submissionData = {
         ...formData,
         description: finalDescription,
-        price: `${formData.price}0000`, // 만원 단위를 원 단위로 변환 (예: 67 -> 670000)
+        price: formData.price * 10000, // 만원 단위를 원 단위로 변환 (예: 67 -> 670000)
+        purchaseDate: purchaseDateString,
+        createdAt: date.toString(),
       };
 
-      const response = await registerGoods(submissionData);
+      // const response = await registerGoods(submissionData);
+      const response = await postGoods(submissionData);
 
       console.log("등록된 상품 정보:", response);
 
@@ -249,7 +264,7 @@ const GoodsRegistrationPage: React.FC = () => {
             <select
               id="packageType"
               name="packageType"
-              value={formData.packageType}
+              value={formData.configuration}
               onChange={handlePackageTypeChange}
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -257,7 +272,7 @@ const GoodsRegistrationPage: React.FC = () => {
               <option value="single">단품</option>
               <option value="partial">일부구성품</option>
             </select>
-            {formData.packageType === "partial" && (
+            {formData.configuration === 1 && (
               <p className="mt-1 text-sm text-red-500">
                 일부구성품을 선택하신 경우, 상품설명에 포함된 구성품을 자세히
                 적어주세요.
@@ -297,7 +312,7 @@ const GoodsRegistrationPage: React.FC = () => {
               rows={4}
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder={
-                formData.packageType === "partial"
+                formData.configuration === 1
                   ? "상품 설명을 입력하세요. 어떤 구성품이 포함되어 있는지 자세히 작성해주세요."
                   : "상품 설명을 입력하세요."
               }
@@ -305,7 +320,7 @@ const GoodsRegistrationPage: React.FC = () => {
           </div>
 
           {/* 사진 첨부 */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               사진 첨부
             </label>
@@ -331,10 +346,10 @@ const GoodsRegistrationPage: React.FC = () => {
                   : "이미지를 선택하세요"}
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* 선택된 이미지 미리보기 */}
-          {formData.images.length > 0 && (
+          {/* {formData.images.length > 0 && (
             <div className="grid grid-cols-3 gap-2 mt-2">
               {Array.from(formData.images).map((image, index) => (
                 <div key={index} className="relative h-24">
@@ -346,7 +361,7 @@ const GoodsRegistrationPage: React.FC = () => {
                 </div>
               ))}
             </div>
-          )}
+          )} */}
         </div>
       </div>
 

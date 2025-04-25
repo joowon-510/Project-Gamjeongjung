@@ -20,17 +20,14 @@ const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const fetchUser = async () => {
     const response = await getUserInfo();
-    console.log(response);
     if (!response) {
       return null;
     }
     return response;
   };
-  // console.log(fetchUser);
   useEffect(() => {
     const checkUser = async () => {
       const data = await fetchUser();
-      console.log("data: ", data);
 
       if (!data) {
         navigate("/login");
