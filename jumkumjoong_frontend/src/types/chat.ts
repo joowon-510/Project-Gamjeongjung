@@ -1,10 +1,25 @@
 // src/types/chat.ts
-export interface Message {
-  id: number;
-  text: string;
-  isMe: boolean;
-  userName: string;
-  timestamp: string;
+export enum MessageType {
+  MESSAGE = 'MESSAGE',
+  RECEIVE = 'RECEIVE'
+}
+
+export interface BaseWebSocketMessage {
+  type: MessageType;
+  roomId: number;
+  createdAt: string;
+}
+
+export interface SendWebSocketMessage extends BaseWebSocketMessage {
+  type: MessageType.MESSAGE;
+  sender: number;
+  message: string;
+}
+
+export interface ReceiveWebSocketMessage extends BaseWebSocketMessage {
+  type: MessageType.RECEIVE;
+  receiver: number;
+  receiveAt: string;
 }
 
 export interface ChatUser {
@@ -12,9 +27,13 @@ export interface ChatUser {
   name: string;
 }
 
-export interface WebSocketMessage {
-  roomId: number;
-  sender: number;
-  message: string;
-  createdAt?: string;
+export interface Message {
+  id: number;
+  text: string;
+  isMe: boolean;
+  userName: string;
+  timestamp: string;
+  read: boolean;
 }
+
+export type WebSocketMessage = SendWebSocketMessage | ReceiveWebSocketMessage;

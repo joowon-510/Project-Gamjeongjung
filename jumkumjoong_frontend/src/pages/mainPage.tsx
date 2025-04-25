@@ -17,30 +17,30 @@ import thumbnail4 from "../assets/goods/thumbnail4.png";
 import thumbnail5 from "../assets/goods/thumbnail5.png";
 
 const MainPage: React.FC = () => {
-  const navigate = useNavigate();
-  const fetchUser = async () => {
-    const response = await getUserInfo();
-    console.log(response);
-    if (!response) {
-      return null;
-    }
-    return response;
-  };
-  // console.log(fetchUser);
-  useEffect(() => {
-    const checkUser = async () => {
-      const data = await fetchUser();
-      console.log("data: ", data);
+  // const navigate = useNavigate();
+  // const fetchUser = async () => {
+  //   const response = await getUserInfo();
+  //   console.log(response);
+  //   if (!response) {
+  //     return null;
+  //   }
+  //   return response;
+  // };
+  // // console.log(fetchUser);
+  // useEffect(() => {
+  //   const checkUser = async () => {
+  //     const data = await fetchUser();
+  //     console.log("data: ", data);
 
-      if (!data) {
-        navigate("/login");
-      } else {
-        console.log("User: ", useAuthStore.getState());
-      }
-    };
+  //     if (!data) {
+  //       navigate("/login");
+  //     } else {
+  //       console.log("User: ", useAuthStore.getState());
+  //     }
+  //   };
 
-    checkUser();
-  }, []);
+  //   checkUser();
+  // }, []);
 
   return (
     <div className="container mx-auto text-first">

@@ -27,20 +27,20 @@ const AppRoutes = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const fetchUser = async () => {
-    const response = await getUserInfo();
-    return response;
-  };
+  // const fetchUser = async () => {
+  //   const response = await getUserInfo();
+  //   return response;
+  // };
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const user = await fetchUser();
-      if (!user && location.pathname !== "/login") {
-        navigate("/login");
-      }
-    };
-    checkUser();
-  }, [location.pathname]);
+  // useEffect(() => {
+  //   const checkUser = async () => {
+  //     const user = await fetchUser();
+  //     if (!user && location.pathname !== "/login") {
+  //       navigate("/login");
+  //     }
+  //   };
+  //   checkUser();
+  // }, [location.pathname]);
 
   return (
     // <ChatServiceProvider websocketUrl="ws://115.85.181.195:8080/ws">

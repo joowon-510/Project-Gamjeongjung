@@ -1,7 +1,13 @@
 // src/hooks/useChat.ts
 import { useState, useEffect, useCallback } from 'react';
-import { Message, WebSocketMessage } from '../types/chat';
-import { useChatService } from '../poviders/ChatServiceProvider'; // 경로 수정됨
+import { 
+  Message, 
+  WebSocketMessage, 
+  SendWebSocketMessage,
+  ReceiveWebSocketMessage,
+  MessageType 
+} from '../types/chat';
+import { useChatService } from '../poviders/ChatServiceProvider';
 import { getCurrentTime } from '../utils/chatUtils';
 import { useChatContext } from '../contexts/ChatContext';
 
@@ -13,70 +19,73 @@ interface UseChatOptions {
 
 export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [receivedMessages, setReceivedMessages] = useState<WebSocketMessage[]>([]);
+  const [lastProcessedMessage, setLastProcessedMessage] = useState<{sender: number, message: string} | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   
-  // 글로벌 ChatService 인스턴스 사용
   const chatService = useChatService();
-  
-  // ChatContext 사용
-  const chatContext = useChatContext();
+  const { updateLastReceivedMessage } = useChatContext();
 
-  // 웹소켓 연결 및 채팅방 구독
   useEffect(() => {
     console.log('useEffect: 웹소켓 설정 시작', roomId, userId);
     
-    // 연결 상태 업데이트
     const handleConnectionChange = () => {
       setIsConnected(chatService.isConnected());
       console.log('연결 상태 변경:', chatService.isConnected());
     };
 
-    // 메시지 수신 핸들러
     const handleMessage = (message: WebSocketMessage) => {
       console.log('메시지 수신 핸들러 실행:', message);
       
-      // 중복 메시지 체크 - 이미 받은 메시지인지 확인
-      const isDuplicate = receivedMessages.some(
-        (msg) => msg.sender === message.sender && msg.message === message.message
-      );
-      
-      if (isDuplicate) {
-        console.log('중복 메시지 무시:', message);
-        return;
-      }
-      
-      // 수신된 메시지 저장
-      setReceivedMessages(prev => {
-        console.log('이전 수신 메시지:', prev);
-        return [...prev, message];
-      });
+      // 메시지 타입에 따라 처리 방식 분기
+      if (message.type === MessageType.MESSAGE) {
+        // 자신이 보낸 메시지면 무시
+        if (message.sender === userId) {
+          console.log('자신이 보낸 메시지 무시');
+          return;
+        }
+        
+        // 동일한 메시지 중복 처리 방지
+        const isDuplicate = 
+          lastProcessedMessage?.sender === message.sender && 
+          lastProcessedMessage?.message === message.message;
+        
+        if (isDuplicate) {
+          console.log('중복 메시지 무시:', message);
+          return;
+        }
+        
+        // 마지막으로 처리된 메시지 업데이트
+        setLastProcessedMessage({
+          sender: message.sender,
+          message: message.message
+        });
+        
+        // 상대방 메시지만 UI에 추가
+        const newMsg: Message = {
+          id: Date.now(),
+          text: message.message,
+          isMe: false,
+          userName: recipientName,
+          timestamp: getCurrentTime(),
+          read: true
+        };
+        
+        console.log('UI에 메시지 추가:', newMsg);
+        setMessages(prevMessages => {
+          const updatedMessages = [...prevMessages, newMsg];
+          console.log('업데이트된 메시지 배열:', updatedMessages);
+          return updatedMessages;
+        });
 
-      // 자신이 보낸 메시지면 무시 (이미 UI에 표시됨)
-      if (message.sender === userId) {
-        console.log('자신이 보낸 메시지 무시');
-        return;
+        // 마지막 메시지 컨텍스트에 업데이트
+        updateLastReceivedMessage(roomId, message);
+      } else if (message.type === MessageType.RECEIVE) {
+        // 수신 메시지 처리 (예: 읽음 표시 등)
+        console.log('메시지 수신 확인:', message);
       }
-      
-      // 상대방 메시지만 UI에 추가
-      const newMsg: Message = {
-        id: Date.now(),
-        text: message.message,
-        isMe: false,
-        userName: recipientName,
-        timestamp: getCurrentTime(),
-      };
-      
-      console.log('UI에 메시지 추가:', newMsg);
-      setMessages(prevMessages => {
-        const updatedMessages = [...prevMessages, newMsg];
-        console.log('업데이트된 메시지 배열:', updatedMessages);
-        return updatedMessages;
-      });
     };
 
-    // 웹소켓 연결 및 구독 설정
     if (!chatService.isConnected()) {
       console.log('웹소켓 연결 시작');
       chatService.connect();
@@ -85,7 +94,6 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
     setIsConnected(chatService.isConnected());
     console.log('초기 연결 상태:', chatService.isConnected());
 
-    // 이벤트 리스너 등록
     const onConnectHandler = () => {
       console.log('연결 성공 이벤트');
       handleConnectionChange();
@@ -93,32 +101,28 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
       console.log('채팅방 구독:', roomId);
     };
 
-    // 이벤트 핸들러 설정
     chatService.setOnConnect(onConnectHandler);
     chatService.setOnError(() => {
       console.log('연결 오류 발생');
       handleConnectionChange();
     });
     
-    // 메시지 핸들러 중복 실행 방지
     console.log('메시지 핸들러 설정');
     chatService.setOnMessage(message => {
       console.log('소켓으로부터 메시지 수신:', message);
       handleMessage(message);
     });
 
-    // 채팅방 구독
     if (chatService.isConnected()) {
       console.log('이미 연결됨, 채팅방 구독:', roomId);
       chatService.subscribeToRoom(roomId);
     }
     
-    // 컴포넌트 언마운트 시 정리
     return () => {
       console.log('컴포넌트 언마운트, 구독 해제:', roomId);
       chatService.unsubscribeFromRoom(roomId);
     };
-  }, [roomId, userId, recipientName, chatService]); // receivedMessages 의존성 제거
+  }, [roomId, userId, recipientName, chatService]);
 
   // 메시지 전송 함수
   const sendMessage = useCallback(() => {
@@ -133,20 +137,22 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
       isMe: true,
       userName: '나',
       timestamp: getCurrentTime(),
+      read: false
     };
     
     console.log('로컬 UI에 메시지 추가:', localMsg);
     
-    // 로컬 UI에 메시지 추가
     setMessages(prevMessages => [...prevMessages, localMsg]);
     
     // 웹소켓으로 메시지 전송
-    const messageToSend: WebSocketMessage = {
+    const messageToSend: SendWebSocketMessage = {
+      type: MessageType.MESSAGE,
       roomId,
       sender: userId,
-      message: newMessage.trim()
+      message: newMessage.trim(),
+      createdAt: new Date().toISOString()
     };
-    
+
     console.log('웹소켓으로 전송:', messageToSend);
     chatService.sendMessage(messageToSend);
     
@@ -167,7 +173,7 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
     }
   }, [sendMessage]);
 
-  // 초기 메시지 설정 (이전 대화 기록 등)
+  // 초기 메시지 설정
   const setInitialMessages = useCallback((initialMessages: Message[]) => {
     console.log('초기 메시지 설정:', initialMessages);
     setMessages(initialMessages);
@@ -175,7 +181,6 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
 
   return {
     messages,
-    receivedMessages,
     newMessage,
     isConnected,
     sendMessage,

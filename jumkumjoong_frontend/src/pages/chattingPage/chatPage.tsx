@@ -4,12 +4,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import nologo from "../../assets/nologo.svg";
 import useChat from "../../hooks/useChat";
 import { ChatUser, Message } from "../../types/chat";
+import { useChatContext } from "../../contexts/ChatContext";
 
 const ChatPage: React.FC = () => {
   const { chatid } = useParams<{ chatid: string }>();
   const navigate = useNavigate();
   const [user, setUser] = useState<ChatUser | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // ChatContext 사용 (읽음 표시를 위해)
+  const { markRoomAsRead } = useChatContext();
   
   // 현재 사용자 ID (하드코딩, 실제로는 로그인한 사용자의 ID를 사용해야 함)
   const currentUserId = 1;
@@ -18,7 +22,6 @@ const ChatPage: React.FC = () => {
   // useChat 훅 사용
   const {
     messages,
-    receivedMessages,
     newMessage,
     isConnected,
     sendMessage,
@@ -28,8 +31,15 @@ const ChatPage: React.FC = () => {
   } = useChat({
     roomId,
     userId: currentUserId,
-    recipientName: user?.name || "상대방"
+    recipientName: user?.name || ""
   });
+
+  // 채팅방에 들어왔을 때 읽음 표시 처리
+  useEffect(() => {
+    if (isConnected && roomId) {
+      markRoomAsRead(roomId);
+    }
+  }, [isConnected, roomId, markRoomAsRead]);
 
   // 채팅 상대방 정보 불러오기 (샘플 데이터)
   useEffect(() => {
@@ -41,10 +51,9 @@ const ChatPage: React.FC = () => {
 
     setUser(userData);
 
-    // 웹소켓 메시지를 콘솔에 출력해 디버깅
-    console.log('Current messages:', messages);
-    console.log('Received websocket messages:', receivedMessages);
-  }, [chatid, messages, receivedMessages]);
+    // 웹소켓 메시지를 콘솔에 출력해 디버깅 - 의존성 제거
+    console.log('Current messages:', messages.length);
+  }, [chatid]); // messages와 receivedMessages 의존성 제거
 
   // 메시지 목록이 업데이트될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
@@ -120,7 +129,9 @@ const ChatPage: React.FC = () => {
       {/* 메시지 목록 */}
       <div className="flex-1 overflow-y-auto p-4 z-10">
         <div className="space-y-4">
-        {messages.map((message, index) => (
+          {messages
+            .filter(message => !(!message.isMe && message.userName === "상대방")) // "상대방" 닉네임 메시지 필터링
+            .map((message, index) => (
               <div
                 key={`${message.id}-${index}`}
                 className={`flex ${
@@ -152,7 +163,6 @@ const ChatPage: React.FC = () => {
                 </div>
               </div>
             ))}
-
           <div ref={messagesEndRef} />
         </div>
       </div>

@@ -1,6 +1,11 @@
 // src/services/chatService.ts
 import { Client, IMessage } from '@stomp/stompjs';
-import { WebSocketMessage } from '../types/chat';
+import { 
+  WebSocketMessage, 
+  SendWebSocketMessage, 
+  ReceiveWebSocketMessage,
+  MessageType 
+} from '../types/chat';
 
 export interface ChatServiceOptions {
   url: string;
@@ -126,12 +131,12 @@ class ChatService {
   }
 
   // 메시지 전송
-  sendMessage(message: WebSocketMessage): void {
+  sendMessage(message: SendWebSocketMessage): void {
     if (!this.client || !this.client.connected) {
       console.error('Cannot send message: Client not connected');
       return;
     }
-
+  
     console.log('Sending message:', message);
     
     this.client.publish({
