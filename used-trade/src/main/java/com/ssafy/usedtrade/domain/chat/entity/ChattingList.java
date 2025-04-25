@@ -1,15 +1,27 @@
 package com.ssafy.usedtrade.domain.chat.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
-
-import java.time.Instant;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "chatting_list")
 public class ChattingList {
     @Id
@@ -17,9 +29,8 @@ public class ChattingList {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @NotNull
-    @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    @OneToMany(mappedBy = "chattingList", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ChattingContent> chattingContentList;
 
     @NotNull
     @Column(name = "trader_id", nullable = false)
@@ -31,6 +42,5 @@ public class ChattingList {
 
     @NotNull
     @Column(name = "last_chat_time", nullable = false)
-    private Instant lastChatTime;
-
+    private LocalDateTime lastChatTime;
 }
