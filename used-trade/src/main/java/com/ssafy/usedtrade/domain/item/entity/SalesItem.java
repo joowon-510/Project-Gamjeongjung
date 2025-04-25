@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -34,11 +34,11 @@ public class SalesItem {
 
     @NotNull
     @Column(name = "price", nullable = false)
-    private Integer price;
+    private int price;
 
     @NotNull
     @Column(name = "purchase_date", nullable = false)
-    private Instant purchaseDate;
+    private String purchaseDate;
 
     @NotNull
     @Column(name = "grades", nullable = false)
@@ -46,14 +46,20 @@ public class SalesItem {
 
     @NotNull
     @Column(name = "status", nullable = false)
-    private Boolean status = false;
+    private Boolean status = true;
 
     @NotNull
     @Column(name = "configuration", nullable = false)
-    private Integer configuration;
+    private int configuration;
 
     @NotNull
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
+    @NotNull
+    @Column(name = "scratches_status", nullable = false)
+    private String scratchesStatus;
+
+    @Column(name = "serial_number",nullable = true)
+    private String serialNumber;
 }

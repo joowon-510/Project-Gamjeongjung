@@ -4,7 +4,7 @@ public interface ErrorCodeInterface {
 
     Integer getHttpStatusCode();
 
-    Integer getStausCode();
+    Integer getStatusCode();
 
     String getMessage();
 

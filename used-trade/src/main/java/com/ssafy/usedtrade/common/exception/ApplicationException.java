@@ -21,7 +21,7 @@ public class ApplicationException extends RuntimeException {
     }
 
     public int getErrorCodeValue() {
-        return errorCode.getStausCode();
+        return errorCode.getStatusCode();
     }
 }
 

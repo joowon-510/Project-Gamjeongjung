@@ -1,14 +1,16 @@
-package com.ssafy.usedtrade.common.error;
+package com.ssafy.usedtrade.domain.item.error;
 
-public enum ErrorCode implements ErrorCodeInterface {
+import com.ssafy.usedtrade.common.error.ErrorCodeInterface;
 
-    SERVER_ERROR(500, 500, "일시적인 서버에러가 발생했습니다. 잠시 후 다시 시도해주세요.");
+public enum ItemErrorCode implements ErrorCodeInterface {
+
+    ITEM_NOT_FOUND(500, 400, "물품 ID가 존재하지 않습니다.");
 
     private final Integer httpStatusCode;
     private final Integer statusCode;
     private final String message;
 
-    ErrorCode(Integer httpStatusCode, Integer statusCode, String message) {
+    ItemErrorCode(Integer httpStatusCode, Integer statusCode, String message) {
         this.httpStatusCode = httpStatusCode;
         this.statusCode = statusCode;
         this.message = message;
@@ -28,5 +30,4 @@ public enum ErrorCode implements ErrorCodeInterface {
     public String getMessage() {
         return this.message;
     }
-
 }
