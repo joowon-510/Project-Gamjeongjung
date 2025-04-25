@@ -3,6 +3,25 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatRelativeTime } from "../../utils/dateFormatter";
 
+export interface GoodsItemDetailProps {
+  configuration: number;
+  createdAt: string;
+  description: string;
+  grades: boolean;
+  itemId: number | null;
+  price: number;
+  purchaseDate: string;
+  scratchesStatus: string;
+  serialNumber: string | null;
+  status: false;
+  title: string;
+  userId: number;
+}
+export interface GoodsDetailProps {
+  userName: string;
+  item: GoodsItemDetailProps;
+}
+
 export interface GoodsItemProps {
   createdAt: string;
   itemId: number;

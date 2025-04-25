@@ -13,6 +13,7 @@ import SearchBar from "../../components/common/SearchBar";
 
 // api 호출 임포트
 import { getGoodsSearch } from "../../api/goods";
+import { Link } from "react-router-dom";
 
 const GoodsListPage: React.FC = () => {
   // 상품 데이터 상태
@@ -72,6 +73,9 @@ const GoodsListPage: React.FC = () => {
       setSearchTerm(""); // 검색창 닫을 때 검색어 초기화
     }
   };
+
+  // 상품 상세 페이지 클릭 이벤트
+  // const url = "/goods/detail/" +
 
   // 플러스 아이콘 SVG
   const plusIcon = (
@@ -134,17 +138,17 @@ const GoodsListPage: React.FC = () => {
           // 상품 목록 표시 - 마지막 아이템에 패딩 추가하여 하단 네비게이션 바와 겹치지 않게 함
           <ul className="divide-y divide-gray-200">
             {goods.length > 0 ? (
-              // [...goods]
-              // goods
-              //   .sort(
-              //     (a, b) =>
-              //       new Date(b.createdAt).getTime() -
-              //       new Date(a.createdAt).getTime()
-              //   )
-              //   .map((item, index) => (
-              goods.map((item, index) => (
-                <GoodsItem key={item.itemId} {...item} />
-              ))
+              [...goods]
+                // goods
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                )
+                .map((item, index) => (
+                  // goods.map((item, index) => (
+                  <GoodsItem key={item.itemId} {...item} />
+                ))
             ) : (
               <li className="p-4 text-center text-gray-500">
                 {searchTerm

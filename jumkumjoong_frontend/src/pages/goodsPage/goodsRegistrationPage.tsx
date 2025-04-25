@@ -140,7 +140,12 @@ const GoodsRegistrationPage: React.FC = () => {
       finalDescription = `구매일자: ${purchaseDateString}\n구성여부: ${packageTypeText}\n\n${finalDescription}`;
       const date = new Date().toISOString();
       console.log(date);
+      // const now = new Date();
+      // const kstOffset = 9 * 60 * 60 * 1000; // 9시간(한국 시차)을 밀리초로 변환
+      // const kstDate = new Date(now.getTime() + kstOffset);
 
+      // const date = kstDate.toISOString().replace("Z", "+09:00");
+      // console.log(date); // 예: 2025-04-25T20:45:00+09:00
       // 상품 등록 API 호출
       const submissionData = {
         ...formData,

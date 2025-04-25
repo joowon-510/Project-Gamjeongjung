@@ -58,7 +58,7 @@ const AppRoutes = () => {
 
       {/* 상품 관련 페이지 */}
       <Route path="/goods/list" element={<GoodsListPage />} />
-      <Route path="/goods/detail/:id" element={<GoodsDetailPage />} />
+      <Route path="/goods/detail/:itemId" element={<GoodsDetailPage />} />
       <Route path="/goods/register" element={<GoodsRegistrationPage />} />
 
       {/* 사용자 관련 페이지 */}

@@ -72,7 +72,7 @@ export const postGoods = async (itemData: ItemRegistParams): Promise<any> => {
 export const getGoodsDetail = async (itemId: number): Promise<any> => {
   try {
     const response = await axiosInstance.get("/items/item-info", {
-      params: itemId,
+      params: { itemId: itemId },
     });
 
     console.log("상품 상세 조회: ", response);
