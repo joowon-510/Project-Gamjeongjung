@@ -68,7 +68,7 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
           isMe: false,
           userName: recipientName,
           timestamp: getCurrentTime(),
-          read: true
+          read: false
         };
         
         console.log('UI에 메시지 추가:', newMsg);
@@ -78,11 +78,32 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
           return updatedMessages;
         });
 
+        // 메시지 수신 확인 메시지 전송
+        const receiveConfirmation: ReceiveWebSocketMessage = {
+          type: MessageType.RECEIVE,
+          roomId: message.roomId,
+          receiver: userId,
+          createdAt: new Date().toISOString(),
+          receiveAt: new Date().toISOString()
+        };
+
+        console.log('메시지 수신 확인 전송:', receiveConfirmation);
+        chatService.sendMessage(receiveConfirmation);
+
         // 마지막 메시지 컨텍스트에 업데이트
         updateLastReceivedMessage(roomId, message);
       } else if (message.type === MessageType.RECEIVE) {
-        // 수신 메시지 처리 (예: 읽음 표시 등)
+        // 메시지 읽음 처리 로직 (필요한 경우 추가)
         console.log('메시지 수신 확인:', message);
+        
+        // 읽음 상태 업데이트 로직 추가 가능
+        // 예: 해당 메시지의 read 상태 변경 등
+        setMessages(prevMessages => 
+          prevMessages.map(msg => ({
+            ...msg,
+            read: msg.isMe ? true : msg.read
+          }))
+        );
       }
     };
 

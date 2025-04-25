@@ -130,8 +130,8 @@ class ChatService {
     }
   }
 
-  // 메시지 전송
-  sendMessage(message: SendWebSocketMessage): void {
+  // 메시지 전송 (SendWebSocketMessage 또는 ReceiveWebSocketMessage 지원)
+  sendMessage(message: SendWebSocketMessage | ReceiveWebSocketMessage): void {
     if (!this.client || !this.client.connected) {
       console.error('Cannot send message: Client not connected');
       return;
@@ -139,8 +139,12 @@ class ChatService {
   
     console.log('Sending message:', message);
     
+    const destination = message.type === MessageType.MESSAGE 
+      ? `/chat/${message.roomId}` 
+      : `/receive/${message.roomId}`;
+    
     this.client.publish({
-      destination: `/chat/${message.roomId}`,
+      destination: destination,
       body: JSON.stringify(message)
     });
   }
