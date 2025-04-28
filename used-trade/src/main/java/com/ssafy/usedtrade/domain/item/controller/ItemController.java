@@ -1,5 +1,6 @@
 package com.ssafy.usedtrade.domain.item.controller;
 
+import com.ssafy.usedtrade.common.controller.BaseController;
 import com.ssafy.usedtrade.common.response.Api;
 import com.ssafy.usedtrade.domain.auth.entity.SecurityMemberDetails;
 import com.ssafy.usedtrade.domain.item.dto.ItemDto;
@@ -20,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
-public class ItemController {
+public class ItemController extends BaseController {
 
     private final ItemService itemService;
     private final UserService userService;
@@ -28,16 +29,14 @@ public class ItemController {
     //물품 등록
     @PostMapping("/regist-item")
     public Api<Void> registItem(@RequestBody ItemDto item,@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        Integer userId = memberDetails.getId();
-        item.setUserId(userId);
+        item.setUserId(getUserId(memberDetails));
         itemService.registItem(item);
         return Api.OK();
     }
     //물품 정보 수정
     @PostMapping("/edit-item")
     public Api<Void> editItem(@RequestBody ItemDto item, @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        Integer userId = memberDetails.getId();
-        item.setUserId(userId);
+        item.setUserId(getUserId(memberDetails));
         itemService.editItem(item);
         return Api.OK();
     }
@@ -67,21 +66,21 @@ public class ItemController {
 
     //상품 상세 조회
     @GetMapping("/item-info")
-    public Api<Map<String, Object>> getItemInfo(@RequestParam Integer itemId) {
+    public Api<Map<String, Object>> getItemInfo(@RequestParam Integer itemId,@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
         ItemDto item = itemService.getItemInfo(itemId);
         String userName = userService.getUserNameById(item.getUserId());
-
+        boolean isFavorite = itemService.isFavorite(itemId,getUserId(memberDetails));
         Map<String, Object> response = new HashMap<>();
         response.put("item", item);
         response.put("userName", userName);
+        response.put("isFavorite", isFavorite);
 
         return Api.OK(response);
     }
     //찜한 목록 조회
     @GetMapping("/wishlist")
     public Api<List<ItemListDto>> getWishList(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        Integer userId = memberDetails.getId();
-        List<ItemListDto> wishList= itemService.getWishList(userId);
+        List<ItemListDto> wishList= itemService.getWishList(getUserId(memberDetails));
         log.info("wish-list result:{}",wishList);
         return Api.OK(wishList);
     }
@@ -89,8 +88,7 @@ public class ItemController {
     //유저가 판매하는 상품 목록 조회
     @GetMapping("/item-list")
     public Api<List<ItemListDto>> getSalesItemList(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        Integer userId = memberDetails.getId();
-        List<ItemListDto> itemList = itemService.getSalesItemList(userId);
+        List<ItemListDto> itemList = itemService.getSalesItemList(getUserId(memberDetails));
         log.info("sales-item-list result:{}",itemList);
         return Api.OK(itemList);
     }
@@ -98,8 +96,7 @@ public class ItemController {
     //찜하기
     @PostMapping("/save-item/{itemId}")
     public Api<Void> saveItem(@PathVariable  Integer itemId,@AuthenticationPrincipal SecurityMemberDetails memberDetails ) {
-        Integer userId = memberDetails.getId();
-        itemService.saveItem(itemId,userId);
+        itemService.saveItem(itemId,getUserId(memberDetails));
         return Api.OK();
     }
 }
