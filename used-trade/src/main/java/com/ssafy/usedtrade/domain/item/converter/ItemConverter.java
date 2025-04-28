@@ -18,6 +18,7 @@ public class ItemConverter {
         salesItem.setConfiguration(item.getConfiguration());
         salesItem.setCreatedAt(item.getCreatedAt());
         salesItem.setScratchesStatus(item.getScratchesStatus());
+        salesItem.setSerialNumber(item.getSerialNumber());
         return salesItem;
     }
 
