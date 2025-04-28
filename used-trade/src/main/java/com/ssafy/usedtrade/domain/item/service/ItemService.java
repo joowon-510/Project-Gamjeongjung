@@ -119,7 +119,7 @@ public class ItemService {
     }
 
     public boolean isFavorite(Integer itemId,Integer userId) {
-        boolean isFavorite = saveItemRepository.existsInWishList(itemId,userId);
+        boolean isFavorite = saveItemRepository.existsByUserIdAndItemId(itemId,userId);
         return isFavorite;
     }
 }
