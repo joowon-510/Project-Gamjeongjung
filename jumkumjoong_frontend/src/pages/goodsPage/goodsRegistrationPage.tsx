@@ -8,6 +8,7 @@ import PriceInput from "../../components/goods/PriceInput";
 // Goods 타입 인터페이스 임포트
 import { ItemRegistParams } from "../../types/types";
 import { postGoods } from "../../api/goods";
+import SerialNumberInput from "../../components/goods/SerialNumberInput";
 
 // 구성여부 타입 정의
 type PackageType = "full" | "single" | "partial";
@@ -66,6 +67,14 @@ const GoodsRegistrationPage: React.FC = () => {
     }));
   };
 
+  // 시리얼 번호호 입력 처리
+  const handleSerialNumberChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      serialNumber: value,
+    }));
+  };
+
   // 구성여부 변경 처리
   const handlePackageTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = e.target.value as PackageType;
@@ -104,9 +113,10 @@ const GoodsRegistrationPage: React.FC = () => {
       !formData.title.trim() ||
       formData.price <= 0 ||
       // !formData.price.trim() ||
-      !formData.purchaseYear
+      !formData.purchaseYear ||
+      formData.serialNumber.trim().length === 0
     ) {
-      alert("상품명, 가격, 구매 년도는 필수 입력 항목입니다.");
+      alert("상품명, 가격, 구매 년도, 시리얼 번호는 필수 입력 항목입니다.");
       return;
     }
 
@@ -136,6 +146,8 @@ const GoodsRegistrationPage: React.FC = () => {
         partial: "일부구성품",
       }[formData.configuration];
 
+      console.log("formData.serialNumber:", formData.serialNumber);
+
       // 최종 설명에 구매일자와 구성여부 정보 포함
       finalDescription = `구매일자: ${purchaseDateString}\n구성여부: ${packageTypeText}\n\n${finalDescription}`;
       const date = new Date().toISOString();
@@ -153,7 +165,9 @@ const GoodsRegistrationPage: React.FC = () => {
         price: formData.price * 10000, // 만원 단위를 원 단위로 변환 (예: 67 -> 670000)
         purchaseDate: purchaseDateString,
         createdAt: date.toString(),
+        serialNumber: formData.serialNumber,
       };
+      console.log("submission: ", submissionData);
 
       // const response = await registerGoods(submissionData);
       const response = await postGoods(submissionData);
@@ -251,6 +265,29 @@ const GoodsRegistrationPage: React.FC = () => {
                 </select>
               </div>
             </div>
+          </div>
+
+          {/* 시리얼 넘버 입력 */}
+          <div>
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              시리얼 넘버
+            </label>
+            {/* <PriceInput
+              id="price"
+              name="price"
+              value={formData.price}
+              onChange={handlePriceChange}
+            /> */}
+            <SerialNumberInput
+              // type="text"
+              id="serialNumber"
+              name="serialNumber"
+              value={formData.serialNumber}
+              onChange={handleSerialNumberChange}
+            />
           </div>
 
           {/* 구성여부 선택 */}
