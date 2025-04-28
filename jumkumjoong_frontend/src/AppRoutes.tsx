@@ -22,10 +22,12 @@ import TransactionsPage from "./pages/TransactionPage/TransactionPage";
 import FavoritePage from "./pages/FavoritesPage/FavoritesPage";
 import MyPostsPage from "./pages/userPage/myPostPage";
 import { getUserInfo } from "./api/users";
+import { useChatService } from "./poviders/ChatServiceProvider"; // 추가
 
 const AppRoutes = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const chatService = useChatService(); // 추가
 
   const fetchUser = async () => {
     const response = await getUserInfo();

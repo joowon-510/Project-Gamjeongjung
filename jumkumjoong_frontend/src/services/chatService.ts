@@ -94,7 +94,7 @@ class ChatService {
       return;
     }
 
-    const destination = `/room/${roomId}`;
+    const destination = `/receive/${roomId}`;
 
     // 이미 구독 중이면 무시
     if (this.subscriptions[destination]) {
@@ -121,7 +121,7 @@ class ChatService {
 
   // 채팅방 구독 해제
   unsubscribeFromRoom(roomId: number): void {
-    const destination = `/room/${roomId}`;
+    const destination = `/receive/${roomId}`;
     
     if (this.subscriptions[destination]) {
       this.subscriptions[destination].id && 
@@ -140,7 +140,7 @@ class ChatService {
     console.log('Sending message:', message);
     
     const destination = message.type === MessageType.MESSAGE 
-      ? `/chat/${message.roomId}` 
+      ? `/send/${message.roomId}` 
       : `/receive/${message.roomId}`;
     
     this.client.publish({

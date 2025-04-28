@@ -1,5 +1,5 @@
 // src/components/common/NavigationBar.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import plusCircle from "../../assets/PlusCircle.svg";
 import heart from "../../assets/Heart.svg";
@@ -16,6 +16,11 @@ interface NavigationBarProps {
 const NavigationBar: React.FC<NavigationBarProps> = ({ activeMenu = 'home' }) => {
   // ChatContext에서 읽지 않은 메시지 수 가져오기
   const { unreadMessageCount } = useChatContext();
+
+  // 디버깅을 위한 로그 추가
+  useEffect(() => {
+    console.log('[NavigationBar] 읽지 않은 메시지 수:', unreadMessageCount);
+  }, [unreadMessageCount]);
 
   return (
     <footer className="sticky bottom-0 w-[100%] flex gap-2 shadow-[0_-3px_5px_rgba(0,0,0,0.15)] z-50 p-2 pb-3 bg-white">

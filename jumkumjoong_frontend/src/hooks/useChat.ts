@@ -24,7 +24,16 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
   const [newMessage, setNewMessage] = useState('');
   
   const chatService = useChatService();
-  const { updateLastReceivedMessage } = useChatContext();
+  const { 
+    updateLastReceivedMessage, 
+    processIncomingMessage,
+    updateLastAccessTime
+  } = useChatContext();
+
+  // 컴포넌트 마운트 시 마지막 접속 시간 업데이트
+  useEffect(() => {
+    updateLastAccessTime();
+  }, [updateLastAccessTime]);
 
   useEffect(() => {
     console.log('useEffect: 웹소켓 설정 시작', roomId, userId);
@@ -61,15 +70,9 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
           message: message.message
         });
         
-        // 상대방 메시지만 UI에 추가
-        const newMsg: Message = {
-          id: Date.now(),
-          text: message.message,
-          isMe: false,
-          userName: recipientName,
-          timestamp: getCurrentTime(),
-          read: false
-        };
+        // 메시지 처리 및 읽음 상태 결정
+        const newMsg = processIncomingMessage(message);
+        newMsg.userName = recipientName;
         
         console.log('UI에 메시지 추가:', newMsg);
         setMessages(prevMessages => {
@@ -95,15 +98,6 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
       } else if (message.type === MessageType.RECEIVE) {
         // 메시지 읽음 처리 로직 (필요한 경우 추가)
         console.log('메시지 수신 확인:', message);
-        
-        // 읽음 상태 업데이트 로직 추가 가능
-        // 예: 해당 메시지의 read 상태 변경 등
-        setMessages(prevMessages => 
-          prevMessages.map(msg => ({
-            ...msg,
-            read: msg.isMe ? true : msg.read
-          }))
-        );
       }
     };
 
@@ -143,7 +137,7 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
       console.log('컴포넌트 언마운트, 구독 해제:', roomId);
       chatService.unsubscribeFromRoom(roomId);
     };
-  }, [roomId, userId, recipientName, chatService]);
+  }, [roomId, userId, recipientName, chatService, processIncomingMessage, updateLastReceivedMessage]);
 
   // 메시지 전송 함수
   const sendMessage = useCallback(() => {
@@ -157,8 +151,9 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
       text: newMessage.trim(),
       isMe: true,
       userName: '나',
-      timestamp: getCurrentTime(),
-      read: false
+      timestamp: new Date().toISOString(),
+      read: true,
+      receivedAt: new Date().toISOString()
     };
     
     console.log('로컬 UI에 메시지 추가:', localMsg);
@@ -211,4 +206,4 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
   };
 };
 
-export default useChat;
+export default useChat; 

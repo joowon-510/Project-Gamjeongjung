@@ -1,6 +1,6 @@
 // src/App.tsx
 import { BrowserRouter as Router } from "react-router-dom";
-import AppRoutes from "./AppRoutes"; // 인증 + 라우팅 처리
+import AppRoutes from "./AppRoutes";
 import ChatProvider from "./contexts/ChatContext";
 import { ChatServiceProvider } from "./poviders/ChatServiceProvider";
 

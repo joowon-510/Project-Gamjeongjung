@@ -34,6 +34,7 @@ export interface Message {
   userName: string;
   timestamp: string;
   read: boolean;
+  receivedAt: string; // 메시지 수신 시간 추가
 }
 
 export type WebSocketMessage = SendWebSocketMessage | ReceiveWebSocketMessage;

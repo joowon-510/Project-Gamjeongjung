@@ -5,6 +5,7 @@ import nologo from "../../assets/nologo.svg";
 import useChat from "../../hooks/useChat";
 import { ChatUser, Message } from "../../types/chat";
 import { useChatContext } from "../../contexts/ChatContext";
+import { format, isToday, isYesterday } from 'date-fns';
 
 const ChatPage: React.FC = () => {
   const { chatid } = useParams<{ chatid: string }>();
@@ -18,6 +19,22 @@ const ChatPage: React.FC = () => {
   // 현재 사용자 ID (하드코딩, 실제로는 로그인한 사용자의 ID를 사용해야 함)
   const currentUserId = 1;
   const roomId = parseInt(chatid || "0");
+
+  // 날짜 포맷팅 함수
+  const formatMessageTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+      
+      if (isToday(date)) {
+        // 오늘이면 시간만 표시
+        return format(date, 'p');
+      } else if (isYesterday(date)) {
+        // 어제면 '어제' 표시
+        return format(date, '어제 p');
+      } else {
+        // 그 외의 경우 날짜와 시간 표시
+        return format(date, 'yy.MM.dd p');
+    }
+  };
 
   // useChat 훅 사용
   const {
@@ -134,8 +151,8 @@ const ChatPage: React.FC = () => {
             .map((message, index) => (
               <div
                 key={`${message.id}-${index}`}
-                className={`flex ${
-                  message.isMe ? "justify-end" : "justify-start"
+                className={`flex flex-col ${
+                  message.isMe ? "items-end" : "items-start"
                 }`}
               >
                 <div
@@ -159,6 +176,13 @@ const ChatPage: React.FC = () => {
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{message.text}</p>
+                  </div>
+
+                  {/* 메시지 시간 표시 */}
+                  <div className={`text-xs text-gray-500 mt-1 ${
+                    message.isMe ? "text-right" : "text-left"
+                  }`}>
+                    {formatMessageTime(message.timestamp)}
                   </div>
                 </div>
               </div>
