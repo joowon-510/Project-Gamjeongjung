@@ -118,4 +118,8 @@ public class ItemService {
         elasticSearchService.save(esItem);
     }
 
+    public boolean isFavorite(Integer itemId,Integer userId) {
+        boolean isFavorite = saveItemRepository.existsInWishList(itemId,userId);
+        return isFavorite;
+    }
 }
