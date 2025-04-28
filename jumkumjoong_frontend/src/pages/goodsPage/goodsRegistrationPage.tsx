@@ -253,6 +253,26 @@ const GoodsRegistrationPage: React.FC = () => {
             </div>
           </div>
 
+          {/* 시리얼 넘버 입력 */}
+          <div>
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              시리얼 넘버
+            </label>
+            {/* <PriceInput
+              id="price"
+              name="price"
+              value={formData.price}
+              onChange={handlePriceChange}
+            /> */}
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
           {/* 구성여부 선택 */}
           <div>
             <label
