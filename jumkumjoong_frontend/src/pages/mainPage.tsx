@@ -7,7 +7,9 @@ import NavigationBar from "../components/common/NavigationBar";
 import Header from "../components/common/Header";
 import { Link, useNavigate } from "react-router-dom";
 import { getUserInfo } from "../api/users";
-import { useAuthStore } from "../stores/useUserStore";
+
+// 상태관리 임포트
+import { useAuthStore, useWishItemStore } from "../stores/useUserStore";
 
 // 썸네일 이미지 임포트
 import thumbnail from "../assets/goods/thumbnail.png";
@@ -15,11 +17,19 @@ import thumbnail2 from "../assets/goods/thumbnail2.png";
 import thumbnail3 from "../assets/goods/thumbnail3.png";
 import thumbnail4 from "../assets/goods/thumbnail4.png";
 import thumbnail5 from "../assets/goods/thumbnail5.png";
+import { getGoodsFavorites } from "../api/goods";
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const fetchUser = async () => {
     const response = await getUserInfo();
+    if (!response) {
+      return null;
+    }
+    return response;
+  };
+  const fetchWish = async () => {
+    const response = await getGoodsFavorites();
     if (!response) {
       return null;
     }
@@ -33,6 +43,9 @@ const MainPage: React.FC = () => {
         navigate("/login");
       } else {
         console.log("User: ", useAuthStore.getState());
+        const wishItem = await fetchWish();
+        useWishItemStore.getState().setItems(wishItem);
+        console.log("Wish item: ", useWishItemStore.getState().items);
       }
     };
 
