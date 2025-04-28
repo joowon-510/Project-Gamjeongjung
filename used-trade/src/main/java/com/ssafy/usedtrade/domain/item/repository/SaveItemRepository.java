@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface SaveItemRepository extends JpaRepository<SaveItem, Integer> {
 
 
-    @Query("SELECT CASE WHEN COUNT(w) > 0 THEN true ELSE false END FROM SaveItem w WHERE w.userId = :userId AND w.itemId = :itemId")
-    boolean existsInWishList(@Param("userId") Integer userId, @Param("itemId") Integer itemId);
+    boolean existsByUserIdAndItemId(Integer userId, Integer itemId);
 
 }
