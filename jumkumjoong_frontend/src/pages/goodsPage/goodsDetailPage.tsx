@@ -56,7 +56,10 @@ const GoodsDetailPage: React.FC = () => {
 
         if (goodsData) {
           setGoods(goodsData.data.body);
+          const exits = goodsData.data.body.isFavorite;
           console.log("setGoods: ", goods);
+
+          setFavorite(exits);
         } else {
           setError("상품을 찾을 수 없습니다.");
         }
@@ -86,13 +89,13 @@ const GoodsDetailPage: React.FC = () => {
   const [favorite, setFavorite] = useState(false);
   const { items, addItem, removeItem } = useWishItemStore();
 
-  useEffect(() => {
-    if (!itemId) return;
+  // useEffect(() => {
+  //   if (!itemId) return;
 
-    // 현재 상품이 찜 목록에 있는지 확인
-    const exists = items.some((item) => item.itemId === parseInt(itemId));
-    setFavorite(exists);
-  }, [itemId, items]);
+  //   // 현재 상품이 찜 목록에 있는지 확인
+  //   const exists = items.some((item) => item.itemId === parseInt(itemId));
+  //   setFavorite(exists);
+  // }, [itemId, items]);
 
   // 찜하기 버튼 클릭 핸들러 (목업용)
   const handleFavoriteClick = async (e: React.MouseEvent) => {
