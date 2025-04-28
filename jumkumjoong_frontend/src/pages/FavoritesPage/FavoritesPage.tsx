@@ -62,28 +62,27 @@ const FavoritePage: React.FC = () => {
       <Header />
 
       {/* 찜한 목록 제목 */}
-      <div className="px-4 py-6 bg-white">
+      <div className="px-4 pt-6 bg-white">
         <h1 className="text-2xl font-bold">
           {userInfo.nickname ?? "user"} 님의 찜한 목록
         </h1>
       </div>
 
       {/* 찜한 상품 목록 */}
-      <ul className="mt-1 divide-y divide-gray-200">
+      <ul className="divide-y divide-gray-200">
         {items.length > 0 ? (
-          items.map((item: any) => (
-            <GoodsItem
-              key={item.id}
-              itemId={item.id}
-              itemName={item.title}
-              itemPrice={item.price}
-              createdAt={item.time}
-              itemStatus={item.itemStatus}
-              // seller={item.seller}
-              imageUrl={item.imageUrl}
-              isFavorite={item.isFavorite}
-            />
-          ))
+          [...items]
+
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+            )
+            .map((item, index) => (
+              // goods.map((item, index) => (
+              <GoodsItem key={`${item.itemId}-${index}`} {...item} />
+              // <GoodsItem key={item.itemId} {...item} />
+            ))
         ) : (
           <p className="p-4 text-center text-first/50">찜한 상품이 없습니다.</p>
         )}

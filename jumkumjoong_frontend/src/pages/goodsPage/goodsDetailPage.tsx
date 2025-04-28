@@ -221,6 +221,13 @@ const GoodsDetailPage: React.FC = () => {
           </p>
         </div>
 
+        {/* 시리얼 넘버 */}
+        <div className="p-4 border-b">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-700">시리얼 번호</span>
+            <span className="font-medium">{goods.item.serialNumber}</span>
+          </div>
+        </div>
         {/* 기종 정보 */}
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
