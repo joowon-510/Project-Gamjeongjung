@@ -63,5 +63,22 @@ public class ElasticSearchService {
         }
     }
 
+    public EsItemDto findById(Integer itemId) {
+        try {
+            var response = elasticsearchClient.get(g -> g
+                            .index("items")
+                            .id(itemId.toString()),
+                    EsItemDto.class
+            );
+
+            if (response.found()) {
+                return response.source();
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("failed to find item from elasticsearch: " + e.getMessage(), e);
+        }
+    }
 
 }

@@ -51,6 +51,12 @@ public class ItemService {
     //상품 상태 변경
     public void changeItemStatus(Integer itemId, Boolean status) {
         itemSalesRepository.changeItemStatusById(itemId,status);
+
+        EsItemDto esItem = elasticSearchService.findById(itemId);
+        if (esItem != null) {
+            esItem.setStatus(status);
+            elasticSearchService.save(esItem);
+        }
     }
 
     //상품 검색
