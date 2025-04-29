@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import { formatRelativeTime } from "../../utils/dateFormatter";
 import Heart from "../../assets/Heart.svg";
 import HeartEmpty from "../../assets/HeartEmpty.svg";
-import { postGoodsFavorites } from "../../api/goods";
+import check from "../../assets/icons/check.svg";
+import { postGoodsChangeStatus, postGoodsFavorites } from "../../api/goods";
 import { useWishItemStore, WishItemState } from "../../stores/useUserStore";
 
 export interface GoodsItemDetailProps {
@@ -24,9 +25,11 @@ export interface GoodsItemDetailProps {
 export interface GoodsDetailProps {
   userName: string;
   item: GoodsItemDetailProps;
+  isFavorite: boolean;
 }
 
 export interface GoodsItemProps {
+  // type: string;
   createdAt: string;
   itemId: number;
   itemName: string;
@@ -34,14 +37,10 @@ export interface GoodsItemProps {
   itemStatus: boolean;
   imageUrl?: string;
   isFavorite?: boolean;
+  canChangeStatus?: boolean; // ✅ 추가: 거래 상태 변경 가능 여부
 }
 
 const GoodsItem: React.FC<GoodsItemProps> = ({
-  // id,
-  // title,
-  // price,
-  // time,
-  // seller,
   createdAt,
   itemId,
   itemName,
@@ -49,10 +48,12 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   itemStatus,
   imageUrl,
   isFavorite = false,
+  canChangeStatus, // ✅ 기본값 false
 }) => {
   // 로컬 상태로 찜하기 여부 관리 (목업용)
   const [favorite, setFavorite] = useState(isFavorite);
   const { items, addItem, removeItem } = useWishItemStore();
+
   console.log("찜목록: ", items);
 
   useEffect(() => {
@@ -103,6 +104,41 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
     }
   };
 
+  // 거래 완료 버튼 클릭
+  const [status, setStatus] = useState<boolean>(itemStatus);
+  console.log("status: ", status);
+  console.log("itemStatus: ", itemStatus);
+
+  const handleTransaction = async (e: React.MouseEvent) => {
+    if (canChangeStatus) {
+      e.preventDefault(); // 링크 이동 방지
+      try {
+        if (!status) {
+          setStatus(true);
+          const response = await postGoodsChangeStatus(itemId, true);
+          if (response) {
+            console.log("거래 중 변경 성공: ", response);
+          }
+        } else if (status) {
+          setStatus(false);
+          const response = await postGoodsChangeStatus(itemId, false);
+          if (response) {
+            console.log("거래 완료 상태 변경 성공: ", response);
+          }
+        }
+      } catch (error) {
+        console.log("상태 변경 실패: ", error);
+        if (status) {
+          console.log(status);
+          setStatus(false);
+        } else {
+          console.log(status);
+          setStatus(true);
+        }
+      }
+    }
+  };
+
   // 기본 이미지 URL (public 폴더에 default_image.png 파일을 추가해야 함)
   const defaultImage = "/goods/default_image.png";
 
@@ -113,7 +149,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   // };
 
   return (
-    <li className="px-4 py-4 bg-white border-b last:border-b-0">
+    <li className="px-4 py-4 bg-white border-b last:border-b-0 text-first">
       <Link to={`/goods/detail/${itemId}`} className="flex space-x-4 relative">
         {/* 상품 이미지 */}
         <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded overflow-hidden relative">
@@ -128,7 +164,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
             }}
           />
         </div>
-        {/* 하트 버튼 (찜하기) - 이미지 위에 겹쳐서 표시 */}
+        {/* 하트 버튼 (찜하기) */}
         <button
           className="absolute top-0 right-1 p-1 rounded-full"
           onClick={handleFavoriteClick}
@@ -155,6 +191,20 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
             <span>{formatRelativeTime(createdAt)}</span>
           </div>
         </div>
+
+        <button
+          className="text-[#ffffff] self-end mb-1"
+          onClick={handleTransaction}
+        >
+          {status ? (
+            <span className="rounded-md bg-fifth p-1">거래 중</span>
+          ) : (
+            <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-1">
+              <p>거래 완료</p>
+              <img src={check} alt="check" className="w-5 h-5 " />
+            </div>
+          )}
+        </button>
       </Link>
     </li>
   );

@@ -82,14 +82,16 @@ const MyPostsPage: React.FC = () => {
             )
             .map((item, index) => (
               <GoodsItem
+                // type="post"
                 key={item.itemId}
                 itemId={item.itemId}
                 itemName={item.itemName}
                 itemPrice={item.itemPrice}
                 createdAt={item.createdAt}
                 // seller={item.seller}
-                itemStatus={false}
+                itemStatus={item.itemStatus}
                 imageUrl={item.imageUrl}
+                canChangeStatus={true} // ✅ 거래 상태 변경 가능
               />
             ))}
         </ul>

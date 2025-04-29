@@ -137,9 +137,14 @@ export const getGoodsSearch = async (itemName: string): Promise<any> => {
 };
 
 // 상품 상태 변경
-export const postGoodsChangeStatus = async (): Promise<any> => {
+export const postGoodsChangeStatus = async (
+  itemId: number,
+  status: boolean
+): Promise<any> => {
   try {
-    const response = await axiosInstance.post("/items/change-item-status");
+    const response = await axiosInstance.patch(`/items/${itemId}/status`, {
+      status: status,
+    });
 
     console.log("상품 상태 변경: ", response);
     return response;

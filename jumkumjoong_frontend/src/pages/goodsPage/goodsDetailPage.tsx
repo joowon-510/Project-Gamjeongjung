@@ -12,6 +12,7 @@ import Heart from "../../assets/Heart.svg";
 import HeartEmpty from "../../assets/HeartEmpty.svg";
 
 import { useWishItemStore, WishItemState } from "../../stores/useUserStore";
+import { formatDateManually } from "../../utils/dateFormatter";
 
 const GoodsDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
@@ -199,7 +200,7 @@ const GoodsDetailPage: React.FC = () => {
               </div>
               {/* 하트 버튼 (찜하기) - 이미지 위에 겹쳐서 표시 */}
               <button className=" rounded-full" onClick={handleFavoriteClick}>
-                {favorite ? (
+                {goods.isFavorite ? (
                   <img src={Heart} alt="heart" className="w-6 h-6" />
                 ) : (
                   <img src={HeartEmpty} alt="HeartEmpty" className="w-6 h-6" />
@@ -209,16 +210,20 @@ const GoodsDetailPage: React.FC = () => {
           </div>
         </div>
 
+        {/* 작성 일자 */}
+        <div className="p-4 border-b">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-700">작성 일자</span>
+            <span className="font-medium">
+              {formatDateManually(goods.item.createdAt).date}{" "}
+              {formatDateManually(goods.item.createdAt).time}
+            </span>
+          </div>
+        </div>
+
         {/* 상품 설명 */}
         <div className="p-4 border-b">
-          <p className="text-gray-800">
-            {/* 구매한지 1달 된 거의 새제품 팝니다.
-            <br />
-            이번에 맥북 선물받아서 파는 거라 제품에는 문제 없습니다.
-            <br />
-            홍플러스 앞에서 거래할게요 */}
-            {goods.item.description}
-          </p>
+          <p className="text-gray-800">{goods.item.description}</p>
         </div>
 
         {/* 시리얼 넘버 */}
