@@ -29,7 +29,6 @@ export interface GoodsDetailProps {
 }
 
 export interface GoodsItemProps {
-  // type: string;
   createdAt: string;
   itemId: number;
   itemName: string;
@@ -50,103 +49,68 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   isFavorite = false,
   canChangeStatus, // ✅ 기본값 false
 }) => {
-  // 로컬 상태로 찜하기 여부 관리 (목업용)
-  const [favorite, setFavorite] = useState(isFavorite);
   const { items, addItem, removeItem } = useWishItemStore();
-
-  console.log("찜목록: ", items);
+  const [favorite, setFavorite] = useState(isFavorite);
+  const [status, setStatus] = useState<boolean>(itemStatus);
 
   useEffect(() => {
-    if (!itemId) return;
-
-    // 현재 상품이 찜 목록에 있는지 확인
     const exists = items.some((item) => item.itemId === itemId);
-    // const exists = items.some((item) => item.itemId === parseInt(itemId));
     setFavorite(exists);
-  }, [itemId, items]);
+  }, [items, itemId]);
 
   // 찜하기 버튼 클릭 핸들러 (목업용)
-  const handleFavoriteClick = async (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault(); // 링크 이동 방지
 
     if (!itemId) {
       console.error("itemId가 없습니다.");
       return;
     }
-
     const exists = items.some((item) => item.itemId === itemId);
-
-    const wishItem: WishItemState = {
-      createdAt: createdAt,
-      itemId: itemId,
-      itemName: itemName,
-      itemPrice: itemPrice,
-      itemStatus: itemStatus,
-    };
-
-    // ✅ 하트 아이콘을 "바로" 바꾼다
     setFavorite(!exists);
 
-    // 찜 요청 api 연결
     try {
       if (exists) {
-        removeItem(wishItem.itemId);
-        console.log("찜 해제 요청 보내는 중...");
+        removeItem(itemId);
       } else {
-        console.log("찜 추가 요청 보내는 중...");
         await postGoodsFavorites(itemId);
+        const wishItem: WishItemState = {
+          createdAt,
+          itemId,
+          itemName,
+          itemPrice,
+          itemStatus: status,
+        };
         addItem(wishItem);
       }
     } catch (error) {
-      console.log("찜 요청 실패: ", error);
-
-      setFavorite(exists); // 실패했으면 다시 원래대로
+      console.error("찜 요청 실패:", error);
+      setFavorite(exists); // 실패 시 상태 복구
     }
   };
 
-  // 거래 완료 버튼 클릭
-  const [status, setStatus] = useState<boolean>(itemStatus);
-  console.log("status: ", status);
-  console.log("itemStatus: ", itemStatus);
+  const handleTransactionClick = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault();
 
-  const handleTransaction = async (e: React.MouseEvent) => {
-    if (canChangeStatus) {
-      e.preventDefault(); // 링크 이동 방지
-      try {
-        if (!status) {
-          setStatus(true);
-          const response = await postGoodsChangeStatus(itemId, true);
-          if (response) {
-            console.log("거래 중 변경 성공: ", response);
-          }
-        } else if (status) {
-          setStatus(false);
-          const response = await postGoodsChangeStatus(itemId, false);
-          if (response) {
-            console.log("거래 완료 상태 변경 성공: ", response);
-          }
-        }
-      } catch (error) {
-        console.log("상태 변경 실패: ", error);
-        if (status) {
-          console.log(status);
-          setStatus(false);
-        } else {
-          console.log(status);
-          setStatus(true);
-        }
+    if (!canChangeStatus) return;
+
+    try {
+      const newStatus = !status;
+      const response = await postGoodsChangeStatus(itemId, newStatus);
+      if (response) {
+        setStatus(newStatus);
       }
+    } catch (error) {
+      console.error("거래 상태 변경 실패:", error);
     }
   };
 
   // 기본 이미지 URL (public 폴더에 default_image.png 파일을 추가해야 함)
   const defaultImage = "/goods/default_image.png";
-
-  // 찜하기 버튼 클릭 핸들러 (목업용)
-  // const handleFavoriteClick = (e: React.MouseEvent) => {
-  //   e.preventDefault(); // 링크 이동 방지
-  //   setFavorite(!favorite);
-  // };
 
   return (
     <li className="px-4 py-4 bg-white border-b last:border-b-0 text-first">
@@ -176,6 +140,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
           )}
         </button>
 
+        {/* 상품 정보 */}
         <div className="flex-1 flex flex-col justify-between">
           {/* 상품 제목 */}
           <div className="text-lg font-medium text-gray-900">{itemName}</div>
@@ -187,24 +152,26 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
 
           {/* 등록 시간과 판매자 닉네임을 같은 행의 양 끝으로 배치 */}
           <div className="flex items-center justify-between text-sm text-gray-500 mt-1">
-            {/* <span>{createdAt}</span> */}
             <span>{formatRelativeTime(createdAt)}</span>
           </div>
         </div>
 
-        <button
-          className="text-[#ffffff] self-end mb-1"
-          onClick={handleTransaction}
-        >
-          {status ? (
-            <span className="rounded-md bg-fifth p-1">거래 중</span>
-          ) : (
-            <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-1">
-              <p>거래 완료</p>
-              <img src={check} alt="check" className="w-5 h-5 " />
-            </div>
-          )}
-        </button>
+        {/* 거래 상태 버튼 */}
+        {canChangeStatus && (
+          <button
+            className="text-[#ffffff] self-end mb-1"
+            onClick={handleTransactionClick}
+          >
+            {status ? (
+              <span className="rounded-md bg-fifth p-1">거래 중</span>
+            ) : (
+              <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-1">
+                <p>거래 완료</p>
+                <img src={check} alt="check" className="w-5 h-5" />
+              </div>
+            )}
+          </button>
+        )}
       </Link>
     </li>
   );

@@ -1,19 +1,12 @@
 // src/pages/goodsPage/goodsListPage.tsx
-import React, { useState, useEffect } from "react";
-
-// 컴포넌트 임포트
+import React, { useState, useEffect, useCallback } from "react";
 import GoodsItem, { GoodsItemProps } from "../../components/goods/GoodsItem";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import FloatingActionButton from "../../components/common/FloatingActionButton";
 import SearchBar from "../../components/common/SearchBar";
-
-// // 서비스 함수 임포트
-// import { getGoodsList } from "../../services/goodsService";
-
-// api 호출 임포트
 import { getGoodsSearch } from "../../api/goods";
-import { Link } from "react-router-dom";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const GoodsListPage: React.FC = () => {
   // 상품 데이터 상태
@@ -22,21 +15,11 @@ const GoodsListPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // 검색어 상태
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("노트북");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  // setSearchTerm("노트북");
-  // 초기 데이터 로딩
-  useEffect(() => {
-    loadGoods("노트북");
-  }, []);
-
-  // 검색어 상태가 변경될 때만 데이터 다시 로드
-  useEffect(() => {
-    loadGoods("노트북");
-  }, []);
 
   // 상품 데이터 로딩 함수
-  const loadGoods = async (search: string) => {
+  const fetchGoods = useCallback(async (search: string) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -58,7 +41,11 @@ const GoodsListPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchGoods(searchTerm);
+  }, [fetchGoods, searchTerm]);
 
   // 검색 실행 함수
   const handleSearch = (term: string) => {
@@ -73,9 +60,6 @@ const GoodsListPage: React.FC = () => {
       setSearchTerm(""); // 검색창 닫을 때 검색어 초기화
     }
   };
-
-  // 상품 상세 페이지 클릭 이벤트
-  // const url = "/goods/detail/" +
 
   // 플러스 아이콘 SVG
   const plusIcon = (
@@ -119,16 +103,13 @@ const GoodsListPage: React.FC = () => {
       {/* 상품 목록 - 안드로이드 네비게이션 바를 고려하여 여백 제거 */}
       <main className="flex-1 overflow-y-auto pb-0">
         {isLoading ? (
-          // 로딩 상태 표시
-          <div className="flex justify-center items-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
+          <LoadingSpinner />
         ) : error ? (
           // 오류 상태 표시
           <div className="p-4 text-center text-red-500">
             <p>{error}</p>
             <button
-              onClick={() => loadGoods(searchTerm)}
+              onClick={() => fetchGoods(searchTerm)}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               다시 시도
