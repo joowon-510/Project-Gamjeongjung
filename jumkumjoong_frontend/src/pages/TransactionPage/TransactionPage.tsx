@@ -43,7 +43,7 @@ const TransactionsPage: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50 pb-16">
       {/* 헤더 */}
-      <Header showBackButton={true} title="거래 내역" hideSearchButton={true} />
+      <Header showBackButton={true} title="거래 내역" />
 
       {/* 내가 작성한 글 목록 제목 */}
       <div className="px-4 pt-6 bg-white">

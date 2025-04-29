@@ -179,7 +179,7 @@ const GoodsDetailPage: React.FC = () => {
         <GoodsImage
           imageUrl="../../assets/goods/thumbnail.png"
           title={goods.item.title}
-          time={goods.item.createdAt}
+          canChangeStatus={goods.item.status}
           onGoBack={handleGoBack}
         />
 

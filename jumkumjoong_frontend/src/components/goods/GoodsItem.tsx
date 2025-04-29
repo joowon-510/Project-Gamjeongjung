@@ -94,9 +94,8 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   const handleTransactionClick = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
-    e.preventDefault();
-
     if (!canChangeStatus) return;
+    e.preventDefault();
 
     try {
       const newStatus = !status;
@@ -157,21 +156,21 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
         </div>
 
         {/* 거래 상태 버튼 */}
-        {canChangeStatus && (
-          <button
-            className="text-[#ffffff] self-end mb-1"
-            onClick={handleTransactionClick}
-          >
-            {status ? (
-              <span className="rounded-md bg-fifth p-1">거래 중</span>
-            ) : (
-              <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-1">
-                <p>거래 완료</p>
-                <img src={check} alt="check" className="w-5 h-5" />
-              </div>
-            )}
-          </button>
-        )}
+        {/* {canChangeStatus && ( */}
+        <button
+          className="text-[#ffffff] self-end mb-2"
+          onClick={handleTransactionClick}
+        >
+          {status ? (
+            <span className="rounded-md bg-fifth p-[6px]">거래 중</span>
+          ) : (
+            <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-[6px]">
+              <p>거래 완료</p>
+              <img src={check} alt="check" className="w-5 h-5" />
+            </div>
+          )}
+        </button>
+        {/* )} */}
       </Link>
     </li>
   );

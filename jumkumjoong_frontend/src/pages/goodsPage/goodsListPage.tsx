@@ -5,8 +5,8 @@ import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import FloatingActionButton from "../../components/common/FloatingActionButton";
 import SearchBar from "../../components/common/SearchBar";
-import { getGoodsSearch } from "../../api/goods";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { getGoodsSearch } from "../../api/goods";
 
 const GoodsListPage: React.FC = () => {
   // 상품 데이터 상태
@@ -128,7 +128,15 @@ const GoodsListPage: React.FC = () => {
                 )
                 .map((item, index) => (
                   // goods.map((item, index) => (
-                  <GoodsItem key={item.itemId} {...item} />
+                  <GoodsItem
+                    key={item.itemId}
+                    createdAt={item.createdAt}
+                    itemId={item.itemId}
+                    itemName={item.itemName}
+                    itemPrice={item.itemPrice}
+                    itemStatus={item.itemStatus}
+                    // canChangeStatus={true}
+                  />
                 ))
             ) : (
               <li className="p-4 text-center text-gray-500">

@@ -1,17 +1,18 @@
 // src/components/goods/GoodsImage.tsx
 import React from "react";
+import check from "../../assets/icons/check.svg";
 
 interface GoodsImageProps {
   imageUrl?: string;
   title: string;
-  time: string; // 'timeAgo'에 해당하는 속성
+  canChangeStatus: boolean;
   onGoBack: () => void;
 }
 
 const GoodsImage: React.FC<GoodsImageProps> = ({
   imageUrl,
   title,
-  time,
+  canChangeStatus,
   onGoBack,
 }) => {
   // 기본 이미지 경로
@@ -31,14 +32,20 @@ const GoodsImage: React.FC<GoodsImageProps> = ({
         }}
       />
 
-      {/* 상품 제목과 등록 시간 (이미지 위에 오버레이) */}
+      {/* 상품 제목과 거래 상태 (이미지 위에 오버레이) */}
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">{title}</h1>
-          {/* <span>{time}</span> */}
-          {/* <span>
-            {formatDateManually(time).date} {formatDateManually(time).time}
-          </span> */}
+          <span className="text-[#ffffff] self-end mb-1">
+            {canChangeStatus ? (
+              <span className="rounded-md bg-fifth p-[6px]">거래 중</span>
+            ) : (
+              <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-[6px]">
+                <p>거래 완료</p>
+                <img src={check} alt="check" className="w-5 h-5" />
+              </div>
+            )}
+          </span>
         </div>
       </div>
 
