@@ -1,23 +1,23 @@
-// src/hooks/useChat.ts
+// src/hooks/useChat.ts - 오류 수정한 버전
 import { useState, useEffect, useCallback } from 'react';
 import { 
   Message, 
   WebSocketMessage, 
   SendWebSocketMessage,
   ReceiveWebSocketMessage,
-  MessageType 
+  MessageType,
+  ChatHookParams
 } from '../types/chat';
 import { useChatService } from '../poviders/ChatServiceProvider';
 import { getCurrentTime } from '../utils/chatUtils';
 import { useChatContext } from '../contexts/ChatContext';
 
-interface UseChatOptions {
-  roomId: string;
-  userId: number;
-  recipientName: string;
-}
-
-export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
+export const useChat = ({ 
+  roomId, 
+  userId, 
+  recipientName,
+  processMessage // 이제 ChatHookParams에 정의됨
+}: ChatHookParams) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [lastProcessedMessage, setLastProcessedMessage] = useState<{sender: number, message: string} | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -26,7 +26,7 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
   const chatService = useChatService();
   const { 
     updateLastReceivedMessage, 
-    processIncomingMessage,
+    processIncomingMessage: contextProcessMessage,
     updateLastAccessTime
   } = useChatContext();
 
@@ -70,9 +70,23 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
           message: (message as SendWebSocketMessage).message
         });
         
-        // 메시지 처리 및 읽음 상태 결정
-        const newMsg = processIncomingMessage(message as SendWebSocketMessage);
-        newMsg.userName = recipientName;
+        // 커스텀 메시지 처리 함수가 있으면 사용, 없으면 기존 함수 사용
+        let newMsg: Message;
+        
+        if (processMessage) {
+          const processedMsg = processMessage(message);
+          if (processedMsg) {
+            newMsg = processedMsg;
+          } else {
+            // processMessage가 null을 반환한 경우 기존 함수 사용
+            newMsg = contextProcessMessage(message as SendWebSocketMessage);
+            newMsg.userName = recipientName;
+          }
+        } else {
+          // 기존 처리 방식
+          newMsg = contextProcessMessage(message as SendWebSocketMessage);
+          newMsg.userName = recipientName;
+        }
         
         console.log('UI에 메시지 추가:', newMsg);
         setMessages(prevMessages => {
@@ -137,7 +151,7 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
       console.log('컴포넌트 언마운트, 구독 해제:', roomId);
       chatService.unsubscribeFromRoom(roomId);
     };
-  }, [roomId, userId, recipientName, chatService, processIncomingMessage, updateLastReceivedMessage]);
+  }, [roomId, userId, recipientName, chatService, contextProcessMessage, updateLastReceivedMessage, processMessage]);
 
   // 메시지 전송 함수
   const sendMessage = useCallback(() => {
@@ -194,8 +208,8 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
     console.log('초기 메시지 설정:', initialMessages);
     setMessages(initialMessages);
   }, []);
-  
-  // 이전 메시지 추가 함수 (새로 추가된 함수)
+
+  // 이전 메시지 추가 함수
   const addOlderMessages = useCallback((olderMessages: Message[]) => {
     console.log('이전 메시지 추가:', olderMessages);
     setMessages(prevMessages => [...olderMessages, ...prevMessages]);
@@ -209,8 +223,7 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
     handleInputChange,
     handleKeyPress,
     setInitialMessages,
-    addOlderMessages, // 새로 추가된 함수
-
+    addOlderMessages,
   };
 };
 

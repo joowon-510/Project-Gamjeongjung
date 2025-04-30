@@ -1,4 +1,4 @@
-// src/pages/chattingPage/chatPage.tsx
+// src/pages/chattingPage/chatPage.tsx - 디버깅 코드 추가된 버전
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import nologo from "../../assets/nologo.svg";
@@ -8,9 +8,13 @@ import {
   Message, 
   ChatRouteState, 
   ChatMessageParams, 
-  ChatMessageDTO 
-} from '../../types/chat';  // 정확한 경로로 수정하세요
-import { getChatMessages } from '../../api/chat';  // 정확한 경로로 수정하세요
+  ChatMessageDTO,
+  WebSocketMessage,
+  MessageType,
+  SendWebSocketMessage,
+  ReceiveWebSocketMessage
+} from '../../types/chat';
+import { getChatMessages, getUserChatInfo } from '../../api/chat';
 import { useChatContext } from "../../contexts/ChatContext";
 import { format, isToday, isYesterday } from 'date-fns';
 
@@ -27,13 +31,48 @@ const ChatPage: React.FC = () => {
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [oldScrollHeight, setOldScrollHeight] = useState<number>(0);
+  
+  // 사용자 ID 상태 추가
+  const [currentUserId, setCurrentUserId] = useState<number | null>(() => {
+    // 로컬 스토리지에서 userId 초기값 설정
+    const storedUserId = localStorage.getItem('userId');
+    return storedUserId ? parseInt(storedUserId, 10) : null;
+  });
+  
+  // API 디버깅을 위한 상태 추가
+  const [apiStatus, setApiStatus] = useState<string>('아직 API 호출 전');
+  const [manualFetchResult, setManualFetchResult] = useState<string>('');
 
   // ChatContext 사용 (읽음 표시를 위해)
   const { markRoomAsRead } = useChatContext();
   
-  // 현재 사용자 ID (하드코딩, 실제로는 로그인한 사용자의 ID를 사용해야 함)
-  const currentUserId = 1;
   const roomId = 'UJ3KFeYtSwO2LALw080adg==';
+
+  // 사용자 ID 가져오기 - 향상된 디버깅
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const response = await getUserChatInfo();
+        
+        if (response.status_code === 200 && response.body) {
+          if (response.body.userId) {
+            const userId = parseInt(response.body.userId, 10);
+            
+            if (!isNaN(userId)) {
+              setCurrentUserId(userId);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("사용자 ID 요청 중 오류 발생:", error);
+      }
+    };
+    
+    // 로컬 스토리지에 userId가 없는 경우에만 API 호출
+    if (!localStorage.getItem('userId')) {
+      fetchUserId();
+    }
+  }, []);
 
   // 날짜 포맷팅 함수
   const formatMessageTime = (timestamp: string) => {
@@ -50,8 +89,55 @@ const ChatPage: React.FC = () => {
       return format(date, 'yy.MM.dd p');
     }
   };
+  
+  // 사용자 ID 수동 테스트 함수
+  const manualFetchUserId = async () => {
+    try {
+      setApiStatus('수동 API 호출 시작...');
+      const response = await getUserChatInfo();
+      console.log('수동 API 호출 결과:', response);
+      setApiStatus(`수동 API 호출 결과: ${JSON.stringify(response)}`);
+    } catch (error) {
+      console.error('수동 API 호출 오류:', error);
+      setApiStatus(`수동 API 호출 오류: ${error}`);
+    }
+  };
+  
+  // 웹소켓 메시지 처리 함수 - currentUserId와 비교하여 내 메시지인지 판단
+  const processWebSocketMessage = (message: WebSocketMessage): Message | null => {
+    // 메시지 타입이 MESSAGE인 경우만 처리
+    if (message.type === MessageType.MESSAGE) {
+      const messageData = message as SendWebSocketMessage;
+      
+      // 메시지 발신자가 현재 사용자인지 확인
+      const isMyMessage = messageData.sender === currentUserId;
+      
+      // 로깅 추가
+      console.log(`웹소켓 메시지 - sender: ${messageData.sender}, currentUserId: ${currentUserId}, isMyMessage: ${isMyMessage}`);
+      
+      // 상대방 닉네임 설정
+      const recipientName = user?.name || location.state?.chattingUserNickname || 
+        (chatid === "1" ? "AI의 신예훈" : 
+         chatid === "2" ? "재드래곤" : 
+         "맥북헤이터");
+      
+      // 메시지 객체 생성
+      return {
+        id: `ws_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        text: messageData.message,
+        timestamp: messageData.createdAt,
+        isMe: isMyMessage,
+        userName: isMyMessage ? '나' : recipientName,
+        read: isMyMessage, // 내가 보낸 메시지는 읽음 처리
+        receivedAt: messageData.createdAt
+      };
+    }
+    
+    // MESSAGE 타입이 아니면 null 반환
+    return null;
+  };
 
-  // useChat 훅 사용
+  // useChat 훅 사용 - currentUserId가 변경될 때 다시 초기화하고 processWebSocketMessage 함수 전달
   const {
     messages,
     newMessage,
@@ -63,21 +149,31 @@ const ChatPage: React.FC = () => {
     addOlderMessages
   } = useChat({
     roomId,
-    userId: currentUserId,
-    recipientName: user?.name || ""
+    userId: currentUserId ?? 0, // null일 경우 0 사용
+    recipientName: user?.name || "",
+    processMessage: processWebSocketMessage
   });
 
-  const convertToClientMessage = (dto: ChatMessageDTO, username: string): Message => {
-    // 현재는 senderId가 없으므로 toSend 필드를 기준으로 판단 
-    // (실제로는 백엔드에서 senderId를 제공하는 것이 좋음)
-    const isMe = dto.toSend === true;
+  // DTO를 클라이언트 메시지 형식으로 변환하는 함수
+  const convertToClientMessage = (dto: ChatMessageDTO): Message => {
+    // 메시지 발신자가 현재 사용자인지 확인
+    // senderId가 있으면 그걸 사용하고, 없으면 toSend 필드로 판단
+    const isMe = dto.senderId !== undefined 
+      ? dto.senderId === currentUserId 
+      : dto.toSend === true;
+    
+    // 상대방 닉네임 설정
+    const recipientName = user?.name || location.state?.chattingUserNickname || 
+      (chatid === "1" ? "AI의 신예훈" : 
+       chatid === "2" ? "재드래곤" : 
+       "맥북헤이터");
     
     return {
       id: `msg_${new Date(dto.createdAt).getTime()}_${Math.random().toString(36).substring(2, 9)}`,
       text: dto.message || '',
       timestamp: dto.createdAt,
       isMe: isMe,
-      userName: isMe ? '나' : username,
+      userName: isMe ? '나' : recipientName,
       read: true, // 기본적으로 읽은 상태로 설정
       receivedAt: dto.createdAt
     };
@@ -107,15 +203,23 @@ const ChatPage: React.FC = () => {
           response.body.content && 
           Array.isArray(response.body.content)) {
           
-        // 닉네임 추출 - 나중에 API에서 가져오도록 변경 필요
+        // 닉네임 추출 - location.state에서 chattingUserNickname을 우선적으로 사용
         const chattingUserNickname = location.state?.chattingUserNickname || 
           (chatid === "1" ? "AI의 신예훈" : 
            chatid === "2" ? "재드래곤" : 
            "맥북헤이터");
         
+        // 채팅 상대방 정보 설정
+        if (isInitialLoad && response.body.otherParticipant) {
+          setUser({
+            id: response.body.otherParticipant.userId,
+            name: response.body.otherParticipant.nickname || chattingUserNickname
+          });
+        }
+        
         // DTO를 클라이언트 메시지 형식으로 변환
         const formattedMessages: Message[] = response.body.content.map((dto: ChatMessageDTO) => 
-          convertToClientMessage(dto, chattingUserNickname)
+          convertToClientMessage(dto)
         );
         
         // 더 불러올 메시지가 있는지 확인 (last 필드로 판단)
@@ -149,9 +253,9 @@ const ChatPage: React.FC = () => {
         }
         
         // 초기 로드인 경우 사용자 정보 설정
-        if (isInitialLoad && user === null) {
+        if (isInitialLoad && user === null && !response.body.otherParticipant) {
           setUser({
-            id: 0, // API에서 참여자 정보를 제공하면 그걸 사용
+            id: 0,
             name: chattingUserNickname
           });
         }
@@ -202,10 +306,12 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  // 채팅방 초기 데이터 로드
+  // 채팅방 초기 데이터 로드 - userId가 로드된 후에 실행
   useEffect(() => {
-    loadMessages(true);
-  }, [chatid, location.state]);
+    if (currentUserId) {
+      loadMessages(true);
+    }
+  }, [chatid, location.state, currentUserId]); // currentUserId 의존성 추가
 
   // 스크롤 위치 관련 처리 (이전 메시지 로드 후)
   useEffect(() => {
@@ -307,6 +413,14 @@ const ChatPage: React.FC = () => {
           <div>Has More: {hasMore ? 'Yes' : 'No'}</div>
           <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
           <div>Current Page: {currentPage}</div>
+          <div className="mt-2 font-bold">API 상태: {apiStatus}</div>
+          <div className="mt-1">직접 fetch 결과: {manualFetchResult}</div>
+          <button 
+            onClick={manualFetchUserId}
+            className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs"
+          >
+            사용자 ID 수동 조회
+          </button>
         </div>
       )}
 

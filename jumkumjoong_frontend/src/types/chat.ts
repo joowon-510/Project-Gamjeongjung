@@ -1,4 +1,4 @@
-// src/types/chat.ts
+// src/types/chat.ts - 오류 수정한 버전
 export enum MessageType {
   MESSAGE = 'MESSAGE',
   RECEIVE = 'RECEIVE',
@@ -85,12 +85,26 @@ export interface PageResponse<T> {
   empty: boolean;
 }
 
+// 사용자 정보 응답 형식 (중복 제거)
+export interface UserChatInfoResponse {
+  body: {
+    userId: string;
+  };
+  status_code: number;
+}
+
+// 채팅 참가자 정보 인터페이스
+export interface ChatParticipant {
+  userId: number;
+  nickname: string;
+}
+
 // 채팅 메시지 DTO (백엔드 API 응답 형식)
 export interface ChatMessageDTO {
   toSend: boolean;
   message: string;
   createdAt: string;
-  senderId?: number; // 백엔드에서 제공하지 않을 경우 프론트에서 처리
+  senderId?: number; // 백엔드에서 제공하는 발신자 ID
 }
 
 // API 응답 형식
@@ -101,7 +115,12 @@ export interface ChatResponse<T = any> {
 
 // 채팅 메시지 API 응답 (Spring Page 형식)
 export interface ChatMessageResponse {
-  body: PageResponse<ChatMessageDTO>;
+  body: PageResponse<ChatMessageDTO> & {
+    otherParticipant?: {
+      userId: number;
+      nickname: string;
+    };
+  };
   status_code: number;
 }
 
@@ -142,11 +161,12 @@ export interface ChatMessageParams {
   lastMessageId?: string; // 마지막으로 가져온 메시지 ID (이전 버전 호환용)
 }
 
-// 채팅 훅 파라미터
+// 채팅 훅 파라미터 (processMessage 옵션 추가)
 export interface ChatHookParams {
   roomId: string;
   userId: number;
   recipientName: string;
+  processMessage?: (message: WebSocketMessage) => Message | null;
 }
 
 // 채팅방 라우트 상태
