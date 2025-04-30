@@ -48,7 +48,7 @@ class ChatService {
     if (this.client) {
       this.disconnect();
     }
-
+  
     this.client = new Client({
       brokerURL: this.options.url,
       debug: (str) => {
@@ -60,21 +60,28 @@ class ChatService {
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
     });
-
+  
     this.client.onConnect = () => {
       console.log('Connected to STOMP server');
       if (this.onConnectCallback) {
         this.onConnectCallback();
       }
     };
-
+  
     this.client.onStompError = (frame) => {
       console.error('STOMP Error:', frame.headers, frame.body);
       if (this.onErrorCallback) {
         this.onErrorCallback(frame);
       }
     };
-
+  
+    // WebSocket 연결이 닫힐 때 구독 정보 초기화
+    this.client.onWebSocketClose = () => {
+      console.log('WebSocket connection closed');
+      // 구독 정보 초기화
+      this.subscriptions = {};
+    };
+  
     this.client.activate();
   }
 
@@ -88,45 +95,51 @@ class ChatService {
   }
 
   // 특정 채팅방 구독
-  subscribeToRoom(roomId: number): void {
+  subscribeToRoom(roomId: string): void {
     if (!this.client || !this.client.connected) {
       console.error('Cannot subscribe: Client not connected');
       return;
     }
 
     const destination = `/receive/${roomId}`;
+    console.log(`Attempting to subscribe to: ${destination}`);
 
     // 이미 구독 중이면 무시
     if (this.subscriptions[destination]) {
+      console.log(`Already subscribed to: ${destination}`);
       return;
     }
 
     const subscription = this.client.subscribe(destination, (message: IMessage) => {
+      console.log(`Raw message received from ${destination}:`, message);
       if (message.body) {
         try {
           const parsedMessage = JSON.parse(message.body) as WebSocketMessage;
-          console.log('Received message:', parsedMessage);
+          console.log('Parsed message:', parsedMessage);
           
           if (this.onMessageCallback) {
             this.onMessageCallback(parsedMessage);
           }
         } catch (e) {
-          console.error('Error parsing message:', e);
+          console.error('Error parsing message:', e, 'Raw message:', message.body);
         }
       }
     });
 
+    console.log(`Successfully subscribed to: ${destination}, subscription ID: ${subscription.id}`);
     this.subscriptions[destination] = subscription;
   }
 
   // 채팅방 구독 해제
-  unsubscribeFromRoom(roomId: number): void {
+  unsubscribeFromRoom(roomId: string): void {
     const destination = `/receive/${roomId}`;
     
     if (this.subscriptions[destination]) {
+      console.log(`Unsubscribing from: ${destination}`);
       this.subscriptions[destination].id && 
         this.client?.unsubscribe(this.subscriptions[destination].id);
       delete this.subscriptions[destination];
+      console.log(`Unsubscribed from: ${destination}`);
     }
   }
 
@@ -137,15 +150,23 @@ class ChatService {
       return;
     }
   
-    console.log('Sending message:', message);
+    // 메시지 형식 단순화 - 필요한 필드만 포함
+    const simplifiedMessage = {
+      type: message.type,
+      message: message.type === MessageType.MESSAGE ? (message as SendWebSocketMessage).message : '',
+      sender: message.type === MessageType.MESSAGE ? (message as SendWebSocketMessage).sender : null,
+      roomId: message.roomId,
+      createdAt: message.createdAt
+    };
+  
+    console.log('Sending simplified message:', simplifiedMessage);
     
-    const destination = message.type === MessageType.MESSAGE 
-      ? `/send/${message.roomId}` 
-      : `/receive/${message.roomId}`;
+    const destination = `/send/${message.roomId}`;
     
     this.client.publish({
       destination: destination,
-      body: JSON.stringify(message)
+      body: JSON.stringify(simplifiedMessage),
+      headers: { 'content-type': 'application/json' }
     });
   }
 

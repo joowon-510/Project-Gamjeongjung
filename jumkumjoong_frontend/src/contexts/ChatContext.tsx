@@ -11,10 +11,10 @@ interface ChatContextType {
   unreadMessageCount: number;
   lastAccessTime: Date | null;
   updateLastAccessTime: () => void;
-  unreadMessagesByRoom: Record<number, number>;
-  lastReceivedMessages: Record<number, SendWebSocketMessage>;
-  updateLastReceivedMessage: (roomId: number, message: WebSocketMessage) => void;
-  markRoomAsRead: (roomId: number) => void;
+  unreadMessagesByRoom: Record<string, number>;
+  lastReceivedMessages: Record<string, SendWebSocketMessage>;
+  updateLastReceivedMessage: (roomId: string, message: WebSocketMessage) => void;
+  markRoomAsRead: (roomId: string) => void;
   processIncomingMessage: (message: SendWebSocketMessage) => Message;
 }
 
@@ -27,8 +27,8 @@ interface ChatProviderProps {
 const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [lastAccessTime, setLastAccessTime] = useState<Date | null>(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState<number>(0);
-  const [unreadMessagesByRoom, setUnreadMessagesByRoom] = useState<Record<number, number>>({});
-  const [lastReceivedMessages, setLastReceivedMessages] = useState<Record<number, SendWebSocketMessage>>({});
+  const [unreadMessagesByRoom, setUnreadMessagesByRoom] = useState<Record<string, number>>({});
+  const [lastReceivedMessages, setLastReceivedMessages] = useState<Record<string, SendWebSocketMessage>>({});
 
   // 앱 로드 시 마지막 접속 시간 복원
   useEffect(() => {
@@ -50,7 +50,7 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   // 받은 메시지를 처리하여 Message 객체로 변환
   const processIncomingMessage = useCallback((message: SendWebSocketMessage): Message => {
     return {
-      id: Date.now(), // 임시 ID, 실제 백엔드 ID로 대체 가능
+      id: Date.now().toString(), // number를 string으로 변환
       text: message.message,
       isMe: false,
       userName: '', // 발신자 이름은 별도로 처리 필요
@@ -61,12 +61,15 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   }, []);
 
   // 새 메시지가 도착했을 때 마지막 메시지 업데이트 및 읽지 않은 메시지 카운트 증가
-  const updateLastReceivedMessage = useCallback((roomId: number, message: WebSocketMessage) => {
+  const updateLastReceivedMessage = useCallback((roomId: string, message: WebSocketMessage) => {
     // 메시지 타입이 MESSAGE인 경우에만 처리
     if (message.type === MessageType.MESSAGE) {
+      // SendWebSocketMessage로 타입 단언
+      const messageData = message as SendWebSocketMessage;
+      
       setLastReceivedMessages(prev => ({
         ...prev,
-        [roomId]: message
+        [roomId]: messageData
       }));
 
       // 해당 방의 읽지 않은 메시지 수 증가
@@ -81,7 +84,7 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   }, []);
 
   // 채팅방을 읽음 상태로 표시
-  const markRoomAsRead = useCallback((roomId: number) => {
+  const markRoomAsRead = useCallback((roomId: string) => {
     if (unreadMessagesByRoom[roomId]) {
       // 해당 방의 읽지 않은 메시지 수를 0으로 설정
       setUnreadMessagesByRoom(prev => {

@@ -1,38 +1,40 @@
 // src/pages/chattingPage/chatPage.tsx
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import nologo from "../../assets/nologo.svg";
 import useChat from "../../hooks/useChat";
 import { ChatUser, Message } from "../../types/chat";
+import { ChatRouteState, getChatMessages } from "../../api/chat";
 import { useChatContext } from "../../contexts/ChatContext";
 import { format, isToday, isYesterday } from 'date-fns';
 
 const ChatPage: React.FC = () => {
   const { chatid } = useParams<{ chatid: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<ChatUser | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   // ChatContext 사용 (읽음 표시를 위해)
   const { markRoomAsRead } = useChatContext();
   
   // 현재 사용자 ID (하드코딩, 실제로는 로그인한 사용자의 ID를 사용해야 함)
   const currentUserId = 1;
-  const roomId = parseInt(chatid || "0");
+  const roomId = 'UJ3KFeYtSwO2LALw080adg=='; // string을 number로 변환
 
   // 날짜 포맷팅 함수
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
       
-      if (isToday(date)) {
-        // 오늘이면 시간만 표시
-        return format(date, 'p');
-      } else if (isYesterday(date)) {
-        // 어제면 '어제' 표시
-        return format(date, '어제 p');
-      } else {
-        // 그 외의 경우 날짜와 시간 표시
-        return format(date, 'yy.MM.dd p');
+    if (isToday(date)) {
+      // 오늘이면 시간만 표시
+      return format(date, 'p');
+    } else if (isYesterday(date)) {
+      // 어제면 '어제' 표시
+      return format(date, '어제 p');
+    } else {
+      // 그 외의 경우 날짜와 시간 표시
+      return format(date, 'yy.MM.dd p');
     }
   };
 
@@ -51,26 +53,76 @@ const ChatPage: React.FC = () => {
     recipientName: user?.name || ""
   });
 
+  // 채팅방 초기 데이터 로드
+  useEffect(() => {
+    const loadInitialChatData = async () => {
+      try {
+        // 타입 단언을 사용하여 state 접근
+        const state = location.state as ChatRouteState;
+        
+        // 닉네임 추출 로직 - location.state에서 chattingUserNickname을 우선적으로 사용
+        const chattingUserNickname = state?.chattingUserNickname || 
+          (chatid === "1" ? "AI의 신예훈" : 
+           chatid === "2" ? "재드래곤" : 
+           "맥북헤이터");
+  
+        // roomId를 문자열로 변환하여 API 호출
+        const response = await getChatMessages(roomId.toString());
+        
+        if (response && response.status_code === 200) {
+          // 초기 메시지 설정 - 모든 id를 string으로 처리
+          const formattedMessages: Message[] = response.body.messages.map(msg => ({
+            id: msg.messageId || `msg_${Date.now().toString()}_${Math.random().toString(36).substring(2, 9)}`, // 기본값 제공
+            text: msg.text || '', // 기본값 제공
+            timestamp: msg.timestamp || new Date().toISOString(), // 기본값 제공
+            isMe: msg.senderId === currentUserId, 
+            userName: msg.senderId === currentUserId ? '나' : chattingUserNickname,
+            read: msg.isRead !== undefined ? msg.isRead : true, // 기본값 제공
+            receivedAt: new Date().toISOString() // 항상 현재 시간 사용
+          }));
+          
+          setInitialMessages(formattedMessages);
+          
+          // 채팅 상대방 정보 설정 - 전달된 닉네임을 우선 사용
+          setUser({
+            id: response.body.participant.userId,
+            name: chattingUserNickname
+          });
+        } else {
+          // API 호출 실패 시 기본 데이터 사용
+          setUser({
+            id: 0,
+            name: chattingUserNickname // 전달된 닉네임 사용
+          });
+        }
+      } catch (error) {
+        console.error('채팅방 초기 데이터 로드 실패:', error);
+        
+        // state에서 전달된 chattingUserNickname 사용
+        const state = location.state as ChatRouteState;
+        const chattingUserNickname = state?.chattingUserNickname || 
+          (chatid === "1" ? "AI의 신예훈" : 
+           chatid === "2" ? "재드래곤" : 
+           "맥북헤이터");
+        
+        // 샘플 데이터
+        const userData = {
+          id: 0,
+          name: chattingUserNickname // 전달된 닉네임 사용
+        };
+        setUser(userData);
+      }
+    };
+  
+    loadInitialChatData();
+  }, [chatid, currentUserId, location.state, roomId]);
+
   // 채팅방에 들어왔을 때 읽음 표시 처리
   useEffect(() => {
     if (isConnected && roomId) {
       markRoomAsRead(roomId);
     }
   }, [isConnected, roomId, markRoomAsRead]);
-
-  // 채팅 상대방 정보 불러오기 (샘플 데이터)
-  useEffect(() => {
-    // 실제로는 API 호출로 대체될 부분
-    const userData = {
-      id: parseInt(chatid || "0"),
-      name: chatid === "1" ? "AI의 신예훈" : chatid === "2" ? "재드래곤" : "맥북헤이터",
-    };
-
-    setUser(userData);
-
-    // 웹소켓 메시지를 콘솔에 출력해 디버깅 - 의존성 제거
-    console.log('Current messages:', messages.length);
-  }, [chatid]); // messages와 receivedMessages 의존성 제거
 
   // 메시지 목록이 업데이트될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
@@ -103,6 +155,7 @@ const ChatPage: React.FC = () => {
         className="absolute w-[216px] h-[216px] top-1/3 left-1/4 opacity-40 pointer-events-none z-0"
       />
 
+      {/* 헤더 */}
       {/* 헤더 */}
       <header className="sticky top-0 z-10 bg-white border-b">
         <div className="flex items-center h-16 px-4">

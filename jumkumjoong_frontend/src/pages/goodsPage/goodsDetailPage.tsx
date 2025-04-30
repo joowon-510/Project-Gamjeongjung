@@ -13,6 +13,7 @@ import HeartEmpty from "../../assets/HeartEmpty.svg";
 
 import { useWishItemStore, WishItemState } from "../../stores/useUserStore";
 
+import ChatButton from "../../components/chat/chatButton";
 const GoodsDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();
@@ -280,12 +281,18 @@ const GoodsDetailPage: React.FC = () => {
           <span className="text-gray-700 mr-2">가격:</span>
           <span className="text-xl font-bold">{goods.item.price}</span>
         </div>
-        <button
-          onClick={handleChat}
-          className="px-6 py-2 bg-blue-400 text-white font-medium rounded-md"
-        >
-          채팅하기
-        </button>
+        <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
+          <div className="flex-1">
+            <span className="text-gray-700 mr-2">가격:</span>
+            <span className="text-xl font-bold">{goods.item.price}</span>
+          </div>
+          <ChatButton 
+            sellerId={goods.item.userId}
+            itemId={goods.item.itemId}
+            sellerName={goods.userName}
+            itemTitle={goods.item.title} // 상품 제목 추가
+          />
+        </div>
       </div>
 
       {/* 하단 네비게이션 바 */}
