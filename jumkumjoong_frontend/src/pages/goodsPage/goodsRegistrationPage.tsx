@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import Header from "../../components/common/Header";
 import PriceInput from "../../components/goods/PriceInput";
+import CameraModal from "../../components/goods/CameraModal";
 
 // Goods 타입 인터페이스 임포트
 import { ItemRegistParams } from "../../types/types";
@@ -103,6 +104,12 @@ const GoodsRegistrationPage: React.FC = () => {
   //     }));
   //   }
   // };
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  // 이미지 캡처 콜백
+  const handleImageCapture = (imageDataUrl: string) => {
+    setCapturedImages((prev) => [...prev, imageDataUrl]);
+  };
 
   // 폼 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
@@ -357,33 +364,38 @@ const GoodsRegistrationPage: React.FC = () => {
           </div>
 
           {/* 사진 첨부 */}
-          {/* <div>
+          <div className="flex justify-between items-baseline">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              사진 첨부
+              사진 촬영하기
             </label>
             <div className="flex items-center">
-              <input
-                type="file"
-                id="images"
-                name="images"
-                accept="image/*"
-                multiple
-                onChange={handleImageChange}
-                className="hidden"
-              />
-              <label
-                htmlFor="images"
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md cursor-pointer text-sm"
+              <button
+                onClick={() => setIsCameraOpen(true)}
+                className="px-3 py-2 rounded-md bg-second/60 text-white test-sm"
               >
-                찾아보기
-              </label>
-              <span className="ml-2 text-sm text-gray-500">
-                {formData.images.length > 0
-                  ? `${formData.images.length}개의 이미지 선택됨`
-                  : "이미지를 선택하세요"}
-              </span>
+                촬영하기
+              </button>
             </div>
-          </div> */}
+          </div>
+          {capturedImages.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              {capturedImages.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`captured-${index}`}
+                  className="h-24 rounded"
+                />
+              ))}
+            </div>
+          )}
+
+          {isCameraOpen && (
+            <CameraModal
+              onClose={() => setIsCameraOpen(false)}
+              onCapture={handleImageCapture}
+            />
+          )}
 
           {/* 선택된 이미지 미리보기 */}
           {/* {formData.images.length > 0 && (
