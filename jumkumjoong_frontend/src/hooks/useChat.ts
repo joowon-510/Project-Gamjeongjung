@@ -194,6 +194,12 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
     console.log('초기 메시지 설정:', initialMessages);
     setMessages(initialMessages);
   }, []);
+  
+  // 이전 메시지 추가 함수 (새로 추가된 함수)
+  const addOlderMessages = useCallback((olderMessages: Message[]) => {
+    console.log('이전 메시지 추가:', olderMessages);
+    setMessages(prevMessages => [...olderMessages, ...prevMessages]);
+  }, []);
 
   return {
     messages,
@@ -203,6 +209,8 @@ export const useChat = ({ roomId, userId, recipientName }: UseChatOptions) => {
     handleInputChange,
     handleKeyPress,
     setInitialMessages,
+    addOlderMessages, // 새로 추가된 함수
+
   };
 };
 

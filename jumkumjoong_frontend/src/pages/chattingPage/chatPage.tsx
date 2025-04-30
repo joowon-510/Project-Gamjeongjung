@@ -3,8 +3,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import nologo from "../../assets/nologo.svg";
 import useChat from "../../hooks/useChat";
-import { ChatUser, Message } from "../../types/chat";
-import { ChatRouteState, getChatMessages } from "../../api/chat";
+import { 
+  ChatUser, 
+  Message, 
+  ChatRouteState, 
+  ChatMessageParams, 
+  ChatMessageDTO 
+} from '../../types/chat';  // 정확한 경로로 수정하세요
+import { getChatMessages } from '../../api/chat';  // 정확한 경로로 수정하세요
 import { useChatContext } from "../../contexts/ChatContext";
 import { format, isToday, isYesterday } from 'date-fns';
 
@@ -14,13 +20,20 @@ const ChatPage: React.FC = () => {
   const location = useLocation();
   const [user, setUser] = useState<ChatUser | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // 페이지네이션 관련 상태
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [oldScrollHeight, setOldScrollHeight] = useState<number>(0);
 
   // ChatContext 사용 (읽음 표시를 위해)
   const { markRoomAsRead } = useChatContext();
   
   // 현재 사용자 ID (하드코딩, 실제로는 로그인한 사용자의 ID를 사용해야 함)
   const currentUserId = 1;
-  const roomId = 'UJ3KFeYtSwO2LALw080adg=='; // string을 number로 변환
+  const roomId = 'UJ3KFeYtSwO2LALw080adg==';
 
   // 날짜 포맷팅 함수
   const formatMessageTime = (timestamp: string) => {
@@ -46,76 +59,165 @@ const ChatPage: React.FC = () => {
     sendMessage,
     handleInputChange,
     handleKeyPress,
-    setInitialMessages
+    setInitialMessages,
+    addOlderMessages
   } = useChat({
     roomId,
     userId: currentUserId,
     recipientName: user?.name || ""
   });
 
-  // 채팅방 초기 데이터 로드
-  useEffect(() => {
-    const loadInitialChatData = async () => {
-      try {
-        // 타입 단언을 사용하여 state 접근
-        const state = location.state as ChatRouteState;
-        
-        // 닉네임 추출 로직 - location.state에서 chattingUserNickname을 우선적으로 사용
-        const chattingUserNickname = state?.chattingUserNickname || 
+  const convertToClientMessage = (dto: ChatMessageDTO, username: string): Message => {
+    // 현재는 senderId가 없으므로 toSend 필드를 기준으로 판단 
+    // (실제로는 백엔드에서 senderId를 제공하는 것이 좋음)
+    const isMe = dto.toSend === true;
+    
+    return {
+      id: `msg_${new Date(dto.createdAt).getTime()}_${Math.random().toString(36).substring(2, 9)}`,
+      text: dto.message || '',
+      timestamp: dto.createdAt,
+      isMe: isMe,
+      userName: isMe ? '나' : username,
+      read: true, // 기본적으로 읽은 상태로 설정
+      receivedAt: dto.createdAt
+    };
+  };
+
+  // 이전 메시지 불러오기 함수
+  const loadMessages = async (isInitialLoad = false) => {
+    if (isLoading || (!hasMore && !isInitialLoad)) return;
+    
+    setIsLoading(true);
+    
+    try {
+      // 페이지네이션 파라미터 설정
+      const params: ChatMessageParams = {
+        page: isInitialLoad ? 0 : currentPage + 1,  // 초기 로드는 0페이지, 이후는 다음 페이지
+        size: 20,                                   // 한 번에 가져올 메시지 수
+        sort: 'createdAt,desc'                      // 최신 메시지부터 정렬
+      };
+      
+      // API 호출
+      const response = await getChatMessages(roomId, params);
+      
+      // API 응답 확인 및 안전한 접근
+      if (response && 
+          response.status_code === 200 && 
+          response.body && 
+          response.body.content && 
+          Array.isArray(response.body.content)) {
+          
+        // 닉네임 추출 - 나중에 API에서 가져오도록 변경 필요
+        const chattingUserNickname = location.state?.chattingUserNickname || 
           (chatid === "1" ? "AI의 신예훈" : 
            chatid === "2" ? "재드래곤" : 
            "맥북헤이터");
-  
-        // roomId를 문자열로 변환하여 API 호출
-        const response = await getChatMessages(roomId.toString());
         
-        if (response && response.status_code === 200) {
-          // 초기 메시지 설정 - 모든 id를 string으로 처리
-          const formattedMessages: Message[] = response.body.messages.map(msg => ({
-            id: msg.messageId || `msg_${Date.now().toString()}_${Math.random().toString(36).substring(2, 9)}`, // 기본값 제공
-            text: msg.text || '', // 기본값 제공
-            timestamp: msg.timestamp || new Date().toISOString(), // 기본값 제공
-            isMe: msg.senderId === currentUserId, 
-            userName: msg.senderId === currentUserId ? '나' : chattingUserNickname,
-            read: msg.isRead !== undefined ? msg.isRead : true, // 기본값 제공
-            receivedAt: new Date().toISOString() // 항상 현재 시간 사용
-          }));
+        // DTO를 클라이언트 메시지 형식으로 변환
+        const formattedMessages: Message[] = response.body.content.map((dto: ChatMessageDTO) => 
+          convertToClientMessage(dto, chattingUserNickname)
+        );
+        
+        // 더 불러올 메시지가 있는지 확인 (last 필드로 판단)
+        setHasMore(!response.body.last && formattedMessages.length > 0);
+        
+        // 다음 페이지 번호 업데이트
+        if (!isInitialLoad) {
+          setCurrentPage(response.body.number);
+        }
+        
+        // 메시지가 있는 경우만 처리
+        if (formattedMessages.length > 0) {
+          // 시간 역순으로 정렬된 메시지를 시간순으로 재정렬 (필요한 경우)
+          const timeOrderedMessages = [...formattedMessages].reverse();
           
-          setInitialMessages(formattedMessages);
-          
-          // 채팅 상대방 정보 설정 - 전달된 닉네임을 우선 사용
+          if (isInitialLoad) {
+            // 초기 로드인 경우 메시지 설정
+            setInitialMessages(timeOrderedMessages);
+          } else {
+            // 이전 메시지 로드인 경우 스크롤 위치 저장
+            if (messagesContainerRef.current) {
+              setOldScrollHeight(messagesContainerRef.current.scrollHeight);
+            }
+            
+            // 이전 메시지 추가
+            addOlderMessages(timeOrderedMessages);
+          }
+        } else {
+          // 메시지가 없으면 더 불러올 메시지가 없음
+          setHasMore(false);
+        }
+        
+        // 초기 로드인 경우 사용자 정보 설정
+        if (isInitialLoad && user === null) {
           setUser({
-            id: response.body.participant.userId,
+            id: 0, // API에서 참여자 정보를 제공하면 그걸 사용
             name: chattingUserNickname
           });
-        } else {
-          // API 호출 실패 시 기본 데이터 사용
+        }
+      } else {
+        console.log('API 응답 형식이 예상과 다릅니다:', response);
+        // API 응답이 정상이 아닌 경우
+        setHasMore(false);
+        
+        if (isInitialLoad) {
+          // 빈 메시지 배열 설정
+          setInitialMessages([]);
+          
+          // 닉네임 설정
+          const chattingUserNickname = location.state?.chattingUserNickname || 
+            (chatid === "1" ? "AI의 신예훈" : 
+             chatid === "2" ? "재드래곤" : 
+             "맥북헤이터");
+          
+          // 기본 사용자 정보 설정
           setUser({
             id: 0,
-            name: chattingUserNickname // 전달된 닉네임 사용
+            name: chattingUserNickname
           });
         }
-      } catch (error) {
-        console.error('채팅방 초기 데이터 로드 실패:', error);
+      }
+    } catch (error) {
+      console.error('채팅 메시지 로드 오류:', error);
+      setHasMore(false);
+      
+      if (isInitialLoad) {
+        // 빈 메시지 배열 설정
+        setInitialMessages([]);
         
-        // state에서 전달된 chattingUserNickname 사용
-        const state = location.state as ChatRouteState;
-        const chattingUserNickname = state?.chattingUserNickname || 
+        // 닉네임 설정
+        const chattingUserNickname = location.state?.chattingUserNickname || 
           (chatid === "1" ? "AI의 신예훈" : 
            chatid === "2" ? "재드래곤" : 
            "맥북헤이터");
         
-        // 샘플 데이터
-        const userData = {
+        // 오류 발생 시 기본 사용자 정보 설정
+        setUser({
           id: 0,
-          name: chattingUserNickname // 전달된 닉네임 사용
-        };
-        setUser(userData);
+          name: chattingUserNickname
+        });
       }
-    };
-  
-    loadInitialChatData();
-  }, [chatid, currentUserId, location.state, roomId]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 채팅방 초기 데이터 로드
+  useEffect(() => {
+    loadMessages(true);
+  }, [chatid, location.state]);
+
+  // 스크롤 위치 관련 처리 (이전 메시지 로드 후)
+  useEffect(() => {
+    if (oldScrollHeight > 0 && messagesContainerRef.current) {
+      const newScrollHeight = messagesContainerRef.current.scrollHeight;
+      const scrollDiff = newScrollHeight - oldScrollHeight;
+      messagesContainerRef.current.scrollTop = scrollDiff;
+      
+      // 스크롤 위치 조정 후 상태 초기화
+      setOldScrollHeight(0);
+    }
+  }, [messages, oldScrollHeight]);
 
   // 채팅방에 들어왔을 때 읽음 표시 처리
   useEffect(() => {
@@ -124,9 +226,12 @@ const ChatPage: React.FC = () => {
     }
   }, [isConnected, roomId, markRoomAsRead]);
 
-  // 메시지 목록이 업데이트될 때마다 스크롤을 맨 아래로 이동
+  // 메시지 목록이 업데이트될 때 스크롤을 맨 아래로 이동 (초기 로드 또는 새 메시지 수신 시)
   useEffect(() => {
-    scrollToBottom();
+    // 이전 메시지 로드 중이 아닐 때만 스크롤 아래로 이동
+    if (!oldScrollHeight) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   const scrollToBottom = () => {
@@ -138,12 +243,19 @@ const ChatPage: React.FC = () => {
     navigate("/chat/list");
   };
 
-  // 메시지 전송 버튼 핸들러 - 디버깅을 위해 로그 추가
+  // 메시지 전송 버튼 핸들러
   const handleSendButtonClick = () => {
     console.log('Sending message:', newMessage);
     sendMessage();
-    // 스크롤을 아래로 내립니다
+    // 스크롤을 아래로 내림
     setTimeout(scrollToBottom, 100);
+  };
+
+  // 이전 메시지 더 불러오기 버튼 핸들러
+  const handleLoadMoreMessages = () => {
+    if (!isLoading && hasMore) {
+      loadMessages(false);
+    }
   };
 
   return (
@@ -155,7 +267,6 @@ const ChatPage: React.FC = () => {
         className="absolute w-[216px] h-[216px] top-1/3 left-1/4 opacity-40 pointer-events-none z-0"
       />
 
-      {/* 헤더 */}
       {/* 헤더 */}
       <header className="sticky top-0 z-10 bg-white border-b">
         <div className="flex items-center h-16 px-4">
@@ -193,11 +304,44 @@ const ChatPage: React.FC = () => {
           <div>User ID: {currentUserId}</div>
           <div>Connection: {isConnected ? 'Connected' : 'Disconnected'}</div>
           <div>Messages Count: {messages.length}</div>
+          <div>Has More: {hasMore ? 'Yes' : 'No'}</div>
+          <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
+          <div>Current Page: {currentPage}</div>
         </div>
       )}
 
       {/* 메시지 목록 */}
-      <div className="flex-1 overflow-y-auto p-4 z-10">
+      <div 
+        className="flex-1 overflow-y-auto p-4 z-10"
+        ref={messagesContainerRef}
+        onScroll={(e) => {
+          // 스크롤이 상단에 가까워지면 이전 메시지 로드
+          const { scrollTop } = e.currentTarget;
+          if (scrollTop < 50 && hasMore && !isLoading) {
+            handleLoadMoreMessages();
+          }
+        }}
+      >
+        {/* 로딩 인디케이터 */}
+        {isLoading && (
+          <div className="text-center py-2">
+            <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-blue-500 border-r-transparent"></div>
+            <p className="text-sm text-gray-500 mt-1">이전 메시지 불러오는 중...</p>
+          </div>
+        )}
+        
+        {/* 더 불러오기 버튼 */}
+        {hasMore && !isLoading && messages.length > 0 && (
+          <div className="text-center mb-4">
+            <button 
+              onClick={handleLoadMoreMessages}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300"
+            >
+              이전 메시지 더 불러오기
+            </button>
+          </div>
+        )}
+
         <div className="space-y-4">
           {messages
             .filter(message => !(!message.isMe && message.userName === "상대방")) // "상대방" 닉네임 메시지 필터링

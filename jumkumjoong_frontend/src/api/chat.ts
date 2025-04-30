@@ -1,5 +1,13 @@
 // src/api/chat.ts
 import axios from 'axios';
+import {
+  ChatResponse,
+  ChatRoom,
+  ChatMessageResponse,
+  ChatMessageParams,
+  PageResponse,
+  ChatMessageDTO
+} from '../types/chat';
 
 const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 
@@ -7,111 +15,6 @@ const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 interface CreateChatRoomRequest {
   sellerId: number;
   itemId: number;
-}
-
-export interface Message {
-  id: string;  // Changed from number to string to match API response
-  text: string;
-  timestamp: string;
-  isMe: boolean;
-  userName: string;
-  read?: boolean;
-  receivedAt?: string;
-}
-
-export interface ChatUser {
-  id: number;
-  name: string;
-}
-
-export interface ChatHookParams {
-  roomId: number;  // Keep as number for internal use
-  userId: number;
-  recipientName: string;
-}
-
-// 채팅방 생성 응답 타입
-export interface ChatResponse<T = any> {
-  body: T;
-  status_code: number;
-}
-
-// 채팅방 정보 타입
-export interface ChatRoom {
-  // 기본 식별자
-  id?: number;
-  roomId: number;
-  
-  // 사용자 관련 정보
-  sellerId?: number;
-  buyerId?: number;
-  sellerName?: string;
-  buyerName?: string;
-  
-  // 상품 관련 정보
-  itemId?: number;
-  itemName?: string;
-  itemPrice?: number;
-  itemStatus?: boolean;
-  itemDescription?: string;
-  itemCategory?: string;
-  
-  // 시간 관련 정보
-  createdAt?: string;
-  lastMessage?: string;
-  lastMessageTime?: string;
-  updatedAt?: string;
-  
-  // 채팅방 상태 관련 정보
-  isDeleted?: boolean;
-  nonReadCount?: number;
-  
-  // 참여자 정보
-  participants?: {
-    userId: number;
-    nickname: string;
-    profileImage?: string;
-  }[];
-  
-  // 거래 관련 정보
-  tradeStatus?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED';
-  
-  // 채팅 메타데이터
-  totalMessageCount?: number;
-  lastMessageType?: 'TEXT' | 'IMAGE' | 'FILE';
-  
-  // 추가 메타데이터
-  isBlocked?: boolean;
-  blockedBy?: number;
-  
-  // 기타 필요한 필드
-  extras?: {
-    [key: string]: any;
-  };
-}
-
-export interface ChatMessageResponse {
-  body: {
-    roomId: string; // roomId를 string으로 변경
-    messages: ChatMessage[];
-    participant: {
-      userId: number;
-      nickname: string;
-    };
-  };
-  status_code: number;
-}
-
-export interface ChatRouteState {
-  chattingUserNickname?: string;
-}
-
-export interface ChatMessage {
-  messageId: string;
-  text: string;
-  senderId: number;
-  timestamp: string;
-  isRead: boolean;
 }
 
 // 채팅방 생성
@@ -136,14 +39,73 @@ export const getChatRooms = async () => {
   }
 };
 
-// 특정 채팅방의 메시지 조회
-export const getChatMessages = async (roomId: string) => {
+// 특정 채팅방의 메시지 조회 (페이지네이션 지원)
+export const getChatMessages = async (roomId: string, params?: ChatMessageParams) => {
   try {
-    const response = await axios.get<ChatMessageResponse>(`${BASE_URL}/chatting/${roomId}`);
+    // Spring Page 형식에 맞게 파라미터 조정
+    const queryParams = {
+      page: params?.page || 0,
+      size: params?.size || 20,
+      sort: params?.sort || 'createdAt,desc' // 최신 메시지부터 정렬
+    };
+
+    const response = await axios.get<ChatMessageResponse>(`${BASE_URL}/chatting/${roomId}`, {
+      params: queryParams
+    });
+    
+    // 응답 확인 및 안전한 접근을 위한 처리
+    if (!response.data || !response.data.body || !response.data.body.content) {
+      console.error('API 응답 구조가 예상과 다릅니다:', response);
+      // 빈 응답 반환
+      return {
+        status_code: response.status || 500,
+        body: {
+          content: [],
+          pageable: {
+            pageNumber: 0,
+            pageSize: 0,
+            sort: { empty: true, sorted: false, unsorted: true },
+            offset: 0,
+            paged: true, 
+            unpaged: false
+          },
+          size: 0,
+          number: 0,
+          sort: { empty: true, sorted: false, unsorted: true },
+          numberOfElements: 0,
+          first: true,
+          last: true,
+          empty: true
+        }
+      } as ChatMessageResponse;
+    }
+    
     return response.data;
   } catch (error) {
     console.error('채팅 메시지 조회 오류:', error);
-    throw error;
+    
+    // 에러 발생 시 기본 응답 반환
+    return {
+      status_code: 500,
+      body: {
+        content: [],
+        pageable: {
+          pageNumber: 0,
+          pageSize: 0,
+          sort: { empty: true, sorted: false, unsorted: true },
+          offset: 0,
+          paged: true, 
+          unpaged: false
+        },
+        size: 0,
+        number: 0,
+        sort: { empty: true, sorted: false, unsorted: true },
+        numberOfElements: 0,
+        first: true,
+        last: true,
+        empty: true
+      }
+    } as ChatMessageResponse;
   }
 };
 
