@@ -4,55 +4,55 @@ import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import ReviewItem, { Review } from "../../components/review/ReviewItem";
 import { Link } from "react-router-dom";
+import { useReviewStore } from "../../stores/useReviewStore";
 
 const ReviewListPage: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const reviewInfo = useReviewStore();
 
   // 샘플 리뷰 데이터를 가져오는 함수 (실제로는 API 호출)
   useEffect(() => {
     // 실제 구현에서는 API 호출로 대체
-    const sampleReviews: Review[] = [
-      {
-        id: 1,
-        content: "물건을 빨리 주셔서 좋았어요~!!",
-        rating: 4.5,
-        date: "2025년 1월 21일",
-      },
-      {
-        id: 2,
-        content: "물건을 빨리",
-        rating: 5,
-        date: "2025년 1월 5일",
-      },
-      {
-        id: 3,
-        content: "좋은 물건을 싸게 팔아서 너무 감사해요!!!",
-        rating: 4,
-        date: "2024년 11월 21일",
-      },
-      {
-        id: 4,
-        content: "배송이 조금 늦었지만 물건은 좋아요",
-        rating: 3.5,
-        date: "2024년 10월 15일",
-      },
-      {
-        id: 5,
-        content: "판매자분이 너무 친절해요! 다음에 또 거래하고 싶어요",
-        rating: 5,
-        date: "2024년 9월 30일",
-      },
-    ];
-
+    // const sampleReviews: Review[] = [
+    //   {
+    //     id: 1,
+    //     content: "물건을 빨리 주셔서 좋았어요~!!",
+    //     rating: 4.5,
+    //     date: "2025년 1월 21일",
+    //   },
+    //   {
+    //     id: 2,
+    //     content: "물건을 빨리",
+    //     rating: 5,
+    //     date: "2025년 1월 5일",
+    //   },
+    //   {
+    //     id: 3,
+    //     content: "좋은 물건을 싸게 팔아서 너무 감사해요!!!",
+    //     rating: 4,
+    //     date: "2024년 11월 21일",
+    //   },
+    //   {
+    //     id: 4,
+    //     content: "배송이 조금 늦었지만 물건은 좋아요",
+    //     rating: 3.5,
+    //     date: "2024년 10월 15일",
+    //   },
+    //   {
+    //     id: 5,
+    //     content: "판매자분이 너무 친절해요! 다음에 또 거래하고 싶어요",
+    //     rating: 5,
+    //     date: "2024년 9월 30일",
+    //   },
+    // ];
     // 날짜 기준 내림차순 정렬 (최신순)
-    const sortedReviews = [...sampleReviews].sort((a, b) => {
-      return (
-        new Date(b.date.replace(/년|월|일/g, "")).getTime() -
-        new Date(a.date.replace(/년|월|일/g, "")).getTime()
-      );
-    });
-
-    setReviews(sortedReviews);
+    // const sortedReviews = [...reviewInfo.content].sort((a, b) => {
+    //   return (
+    //     new Date(b.createdAt.replace(/년|월|일/g, "")).getTime() -
+    //     new Date(a.createdAt.replace(/년|월|일/g, "")).getTime()
+    //   );
+    // });
+    // setReviews(reviewInfo.content);
   }, []);
 
   return (
@@ -65,18 +65,18 @@ const ReviewListPage: React.FC = () => {
           <div className="flex justify-between items-baseline">
             <h1 className="text-2xl font-bold mb-4">나의 리뷰</h1>
 
-            {/* <Link
+            <Link
               to={"/reviews/register"}
               className="border rounded-md bg-third text-white px-3 py-2"
             >
               리뷰 작성
-            </Link> */}
+            </Link>
           </div>
 
-          {reviews.length > 0 ? (
+          {reviewInfo.content.length > 0 ? (
             <div className="space-y-3">
-              {reviews.map((review) => (
-                <ReviewItem key={review.id} review={review} />
+              {reviewInfo.content.map((review) => (
+                <ReviewItem key={review.createdAt} review={review} />
               ))}
             </div>
           ) : (
