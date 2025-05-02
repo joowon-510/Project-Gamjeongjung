@@ -8,6 +8,7 @@ public class ItemConverter {
 
     public static SalesItem dtoToEntity(ItemDto item) {
         SalesItem salesItem = new SalesItem();
+        salesItem.setId(item.getItemId());
         salesItem.setUserId(item.getUserId());
         salesItem.setTitle(item.getTitle());
         salesItem.setDescription(item.getDescription());
@@ -24,6 +25,7 @@ public class ItemConverter {
 
     public static ItemDto entityToDto(SalesItem salesItem) {
         ItemDto itemDto = new ItemDto();
+        itemDto.setItemId(salesItem.getId());
         itemDto.setUserId(salesItem.getUserId());
         itemDto.setTitle(salesItem.getTitle());
         itemDto.setDescription(salesItem.getDescription());
