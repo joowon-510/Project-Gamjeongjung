@@ -7,6 +7,8 @@ import com.ssafy.usedtrade.domain.chat.dto.ChatListResponse;
 import com.ssafy.usedtrade.domain.chat.dto.ChatRoomCreateRequest;
 import com.ssafy.usedtrade.domain.chat.service.ChatService;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -25,6 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ChatController {
     private final ChatService chatService;
+
+    @GetMapping("/userId")
+    public Api<Map<String, String>> returnUserId(
+            @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
+
+        Map<String, String> map = new HashMap<>();
+        map.put("userId", String.valueOf(memberDetails.getId()));
+        return Api.OK(map);
+    }
 
     @PostMapping
     public Api<Void> createChatRoom(
@@ -49,18 +60,18 @@ public class ChatController {
     // roomid 암호화
     @GetMapping("/{roomId}")
     public Api<Slice<ChatContentResponse>> findMyChat(
+            @PathVariable String roomId,
+            @AuthenticationPrincipal SecurityMemberDetails memberDetails,
             @RequestParam(value = "created-at", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime createdAt,
-            @PathVariable Integer roomId,
-            @AuthenticationPrincipal SecurityMemberDetails memberDetails
+            LocalDateTime createdAt
     ) {
         return Api.OK(chatService.findAllMyChat(memberDetails.getId(), roomId, createdAt));
     }
 
     @DeleteMapping("/{roomId}")
     public Api<Void> deleteChatRoom(
-            @PathVariable Integer roomId,
+            @PathVariable String roomId,
             @AuthenticationPrincipal SecurityMemberDetails memberDetails
     ) {
         chatService.deleteMyChatRoom(memberDetails.getId(), roomId);

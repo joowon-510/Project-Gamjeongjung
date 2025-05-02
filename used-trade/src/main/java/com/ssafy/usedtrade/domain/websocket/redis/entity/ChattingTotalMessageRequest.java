@@ -1,4 +1,4 @@
-package com.ssafy.usedtrade.domain.chat.dto;
+package com.ssafy.usedtrade.domain.websocket.redis.entity;
 
 import java.time.LocalDateTime;
 import lombok.Builder;
@@ -6,8 +6,8 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ChannelTotalMessageRequest {
-    private String channel;
+public class ChattingTotalMessageRequest {
+    private String chattingRoomId;
     private String messageId;
     private LocalDateTime timestamp;
 }

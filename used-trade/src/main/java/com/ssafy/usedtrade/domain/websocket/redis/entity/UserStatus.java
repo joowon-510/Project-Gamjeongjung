@@ -1,4 +1,4 @@
-package com.ssafy.usedtrade.domain.chat.entity;
+package com.ssafy.usedtrade.domain.websocket.redis.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

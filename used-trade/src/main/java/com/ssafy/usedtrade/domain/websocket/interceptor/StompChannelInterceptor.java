@@ -1,12 +1,22 @@
 package com.ssafy.usedtrade.domain.websocket.interceptor;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.usedtrade.common.encryption.AESUtil;
 import com.ssafy.usedtrade.common.jwt.JwtTokenProvider;
 import com.ssafy.usedtrade.domain.chat.service.ChattingContentService;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatReadDto;
+import com.ssafy.usedtrade.domain.websocket.redis.entity.ChattingReadPointRequest;
+import com.ssafy.usedtrade.domain.websocket.redis.entity.ChattingTotalMessageRequest;
+import com.ssafy.usedtrade.domain.websocket.redis.entity.MessageDetail;
+import com.ssafy.usedtrade.domain.websocket.redis.entity.WebsocketSession;
+import com.ssafy.usedtrade.domain.websocket.redis.service.ChattingReadPointService;
+import com.ssafy.usedtrade.domain.websocket.redis.service.ChattingTotalMessageService;
+import com.ssafy.usedtrade.domain.websocket.redis.service.MessageDetailService;
+import com.ssafy.usedtrade.domain.websocket.redis.service.UserWebsocketSessionService;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +35,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class StompChannelInterceptor implements ChannelInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper;
     private final ChattingContentService chattingContentService;
+    private final ChattingReadPointService chattingReadPointService;
+    private final UserWebsocketSessionService userWebsocketSessionService;
+    private final MessageDetailService messageDetailService;
+    private final ChattingTotalMessageService chattingTotalMessageService;
+
+    private final AESUtil aesUtil;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -43,47 +59,103 @@ public class StompChannelInterceptor implements ChannelInterceptor {
         }
 
         switch (accessor.getCommand()) {
-            case CONNECT -> handleConnect(accessor);
-            case SEND -> handleSend(accessor, message);
-            case DISCONNECT -> handleDisconnect(accessor);
+            case CONNECT -> {
+                handleConnect(accessor);
+            }
+            case SEND -> {
+                message = handleSend(accessor, message);
+            }
+            case DISCONNECT -> {
+                handleDisconnect(accessor);
+            }
         }
-
         return message;
     }
 
     private void handleDisconnect(StompHeaderAccessor accessor) {
         log.info("Disconnect({})", accessor.getSessionId());
+
+        // TODO: session delete
     }
 
-    private void handleSend(StompHeaderAccessor accessor, Message<?> message) {
+    private Message<?> handleSend(StompHeaderAccessor accessor, Message<?> message) {
         log.info("Send({})", accessor.getSessionId());
 
-        try {
-            // payload → JSON string으로 캐스팅 (보통 byte[] or String으로 들어옴)
-            String payloadJson = new String((byte[]) message.getPayload(), StandardCharsets.UTF_8);
-            System.out.println("📦 Payload: " + payloadJson);
+        // payload → JSON string으로 캐스팅 (보통 byte[] or String으로 들어옴)
+        String payloadJson =
+                new String((byte[]) message.getPayload(), StandardCharsets.UTF_8);
 
-            // JSON → DTO 변환
-            Map<String, Object> map =
-                    objectMapper.readValue(payloadJson, new TypeReference<>() {
-                    });
+        // JSON → DTO 변환
+        Map<String, Object> map =
+                transToDto(payloadJson, HashMap.class);
 
-            switch ((String) map.get("type")) {
-                case "MESSAGE" -> {
-                    chattingContentService.saveMessage(
-                            objectMapper.readValue(payloadJson, ChatMessageDto.class));
-                }
-                case "RECEIVE" -> {
-                    // TODO: 읽음여부 판단 구현
-                    log.info("receive");
+        switch ((String) map.get("type")) {
+            // TODO: 세션으로 받는 게 더 안전할 듯?
+            case "MESSAGE" -> {
+                ChatMessageDto chatMessageDto =
+                        transToDto(payloadJson, ChatMessageDto.class);
 
-                    ChatReadDto chatReadDto =
-                            objectMapper.readValue(payloadJson, ChatReadDto.class);
-                }
+                // TODO: RDB 저장은 추후 Redis에서 일괄 저장하는 느낌으로 하기
+                chattingContentService.saveMessage(chatMessageDto);
+
+                // read 시간 update
+                chattingReadPointService.save_update(
+                        ChattingReadPointRequest.builder()
+                                .channelId(aesUtil.decrypt(chatMessageDto.roomId()))
+                                .userId(chatMessageDto.sender())
+                                .createdAt(chatMessageDto.createdAt())
+                                .build());
+
+                // session 만료시간 초기화
+                userWebsocketSessionService.saveSessionFor10(
+                        WebsocketSession.builder()
+                                .userId(chatMessageDto.sender())
+                                .sessionId(accessor.getSessionId())
+                                .build());
+
+                // 메세지 내용
+                messageDetailService.save(MessageDetail.builder()
+                        .messageId(String.valueOf(chatMessageDto.createdAt()))
+                        .message(chatMessageDto)
+                        .build());
+
+                // 채팅 방 전체 메세지 key 저장
+                chattingTotalMessageService.save(
+                        ChattingTotalMessageRequest.builder()
+                                .chattingRoomId(chatMessageDto.roomId())
+                                .messageId(String.valueOf(chatMessageDto.createdAt()))
+                                .timestamp(chatMessageDto.createdAt())
+                                .build());
+
+                return message;
             }
-        } catch (Exception e) {
-            log.error("❌ 메시지 파싱 실패", e);
+            case "RECEIVE" -> {
+                ChatReadDto chatReadDto =
+                        transToDto(payloadJson, ChatReadDto.class);
+
+                // read 시간 update
+                chattingReadPointService.save_update(
+                        ChattingReadPointRequest.builder()
+                                .channelId(aesUtil.decrypt(chatReadDto.roomId()))
+                                .userId(chatReadDto.receiver())
+                                .createdAt(chatReadDto.receiveAt())
+                                .build());
+
+                // session 만료시간 초기화
+                userWebsocketSessionService.saveSessionFor10(
+                        WebsocketSession.builder()
+                                .userId(chatReadDto.receiver())
+                                .sessionId(accessor.getSessionId())
+                                .build()
+                );
+
+                log.info("receive");
+
+                return message;
+            }
         }
+
+        return null;
     }
 
     private void handleConnect(StompHeaderAccessor accessor) {
@@ -91,11 +163,29 @@ public class StompChannelInterceptor implements ChannelInterceptor {
             String token = accessor.getFirstNativeHeader("Authorization");
 
             if (token != null && token.startsWith("Bearer ") && jwtTokenProvider.validate(token.substring(7))) {
-                Authentication authentication = jwtTokenProvider.decode(token.substring(7));
+                Authentication authentication =
+                        jwtTokenProvider.decode(token.substring(7));
                 accessor.setUser(authentication);
             }
 
-            log.info("[ws]({}) Connected", accessor.getSessionId());
+            // 자신의 websocket 세션 만료시간 setting
+            userWebsocketSessionService.saveSessionFor10(
+                    WebsocketSession.builder()
+                            .sessionId(accessor.getSessionId())
+                            .userId(jwtTokenProvider.getUserIdFromToken(token.substring(7)))
+                            .build());
+        }
+        log.info("[ws]({}) Connected", accessor.getSessionId());
+    }
+
+    // 특정 class로 trans
+    private <T> T transToDto(String payloadJson, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(payloadJson, clazz);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("변환 과정 중 에러가 생겼습니다.");
         }
     }
 }
+
+
