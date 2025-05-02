@@ -403,13 +403,13 @@ const GoodsRegistrationPage: React.FC = () => {
       </div>
 
       {/* 하단 버튼 영역 - sticky로 변경하여 스크롤과 무관하게 항상 표시 */}
-      <div className="flex-1 px-3 py-7 bg-white flex gap-2 ">
+      <div className="flex-1 px-3 py-7 bg-white flex gap-2 grid grid-cols-6">
         {/* <div className="sticky bottom-14 left-0 right-0 p-4 bg-white border-t flex space-x-2 z-10"> */}
         <button
           type="button"
           onClick={handleCancel}
           disabled={isLoading}
-          className="flex-1 py-3 bg-fifth text-white font-medium rounded-md hover:bg-red-600 disabled:bg-red-300"
+          className="col-span-2 flex-1 py-3 bg-first/60 text-white font-medium rounded-md"
         >
           취소하기
         </button>
@@ -417,7 +417,7 @@ const GoodsRegistrationPage: React.FC = () => {
           type="button"
           onClick={handleSubmit}
           disabled={isLoading}
-          className="flex-1 py-3 bg-second text-white font-medium rounded-md hover:bg-gray-700 disabled:bg-gray-400"
+          className="col-span-4 flex-1 py-3 bg-second text-white font-medium rounded-md"
         >
           {isLoading ? "등록 중..." : "등록하기"}
         </button>
