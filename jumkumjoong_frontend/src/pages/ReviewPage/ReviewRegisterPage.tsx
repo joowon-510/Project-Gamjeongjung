@@ -7,6 +7,7 @@ import starFilled from "../../assets/icons/starFilled.svg";
 import starEmpty from "../../assets/icons/starEmpty.svg";
 import starHalf from "../../assets/icons/starHalf.svg";
 import { postReviewRegist } from "../../api/reviews";
+import { useReviewStore } from "../../stores/useReviewStore";
 // import PriceInput from "../../components/goods/PriceInput";
 
 // Goods 타입 인터페이스 임포트
@@ -80,8 +81,16 @@ const ReviewRegisterPage: React.FC = () => {
 
       console.log("등록된 상품 정보:", response);
 
-      // 성공 시 상품 목록 페이지로 이동
-      alert("상품이 등록되었습니다.");
+      if (response.status_code === 200) {
+        useReviewStore.getState().addContent({
+          content: submissionData.content,
+          stars: submissionData.stars,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      // 성공 시 리뷰 페이지로 이동
+      alert("리뷰가 등록되었습니다.");
       navigate("/reviews");
     } catch (error) {
       console.error("리뷰 등록 오류:", error);

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ReviewState, useReviewStore } from "../../stores/useReviewStore";
 import { formatDateManually } from "../../utils/dateFormatter";
+import star from "../../assets/icons/starFilled.svg";
 
 const ReviewSection: React.FC = () => {
   const [reviews, setReviews] = useState<ReviewState[]>([]);
@@ -26,14 +27,26 @@ const ReviewSection: React.FC = () => {
       <div className="space-y-3">
         {reviews.length > 0 ? (
           reviews.map((review) => (
-            <div key={review.createdAt} className="py-2">
-              <div>
-                {review.createdAt ? (
-                  formatDateManually(review.createdAt).date
-                ) : (
-                  <p>--</p>
-                )}
-              </div>
+            <div
+              key={review.createdAt}
+              className="py-2 border-b flex flex-col gap-2"
+            >
+              {review.createdAt ? (
+                <div className="flex justify-between pppp">
+                  {/* 별점 */}
+                  <div className="flex gap-1 items-center">
+                    <img src={star} alt="star" className="w-5 h-5" />
+                    <p className="font-semibold">{review.stars}</p>
+                  </div>
+                  {/* 작성 일자 */}
+                  <div className="flex gap-1">
+                    <p>{formatDateManually(review.createdAt).date}</p>
+                    <p>{formatDateManually(review.createdAt).time}</p>
+                  </div>
+                </div>
+              ) : (
+                <p>--</p>
+              )}
               <div className="text-gray-800">{review.content}</div>
             </div>
           ))

@@ -17,8 +17,10 @@ export const postReviewRegist = async (review: ReviewRegistProps) => {
     });
 
     console.log("리뷰 등록: ", response);
+    return response.data;
   } catch (error) {
     console.log("리뷰 등록 실패: ", error);
+    return null;
   }
 };
 

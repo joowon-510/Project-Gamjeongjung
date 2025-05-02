@@ -1,6 +1,6 @@
 // src/components/goods/GoodsItem.tsx
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatRelativeTime } from "../../utils/dateFormatter";
 import Heart from "../../assets/Heart.svg";
 import HeartEmpty from "../../assets/HeartEmpty.svg";
@@ -49,6 +49,8 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   isFavorite = false,
   canChangeStatus, // ✅ 기본값 false
 }) => {
+  const navigate = useNavigate();
+
   const { items, addItem, removeItem } = useWishItemStore();
   const [favorite, setFavorite] = useState(isFavorite);
   const [status, setStatus] = useState<boolean>(itemStatus);
@@ -108,6 +110,10 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
     }
   };
 
+  const handlePressReview = () => {
+    navigate("/reviews/register");
+  };
+
   // 기본 이미지 URL (public 폴더에 default_image.png 파일을 추가해야 함)
   const defaultImage = "/goods/default_image.png";
 
@@ -156,13 +162,12 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
         </div>
 
         {/* 거래 상태 버튼 */}
-        {/* {canChangeStatus && ( */}
         <button
           className="text-[#ffffff] self-end mb-2"
           onClick={handleTransactionClick}
         >
           {status ? (
-            <span className="rounded-md bg-fifth p-[6px]">거래 중</span>
+            <span></span>
           ) : (
             <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-[6px]">
               <p>거래 완료</p>
@@ -170,8 +175,17 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
             </div>
           )}
         </button>
-        {/* )} */}
       </Link>
+      {/* 리뷰 작성 */}
+      {!status && canChangeStatus ? (
+        <button className="w-full mt-4" onClick={handlePressReview}>
+          <div className="flex gap-1 justify-center items-center rounded-md bg-fifth p-[6px]">
+            <p className="text-white text-center">리뷰 작성</p>
+          </div>
+        </button>
+      ) : (
+        <div></div>
+      )}
     </li>
   );
 };

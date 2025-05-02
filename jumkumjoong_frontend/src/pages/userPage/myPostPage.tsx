@@ -71,7 +71,7 @@ const MyPostsPage: React.FC = () => {
                   createdAt={item.createdAt}
                   itemStatus={item.itemStatus}
                   imageUrl={item.imageUrl}
-                  canChangeStatus={true} // ✅ 거래 상태 변경 가능
+                  // canChangeStatus={true} // ✅ 거래 상태 변경 가능
                 />
               ))}
           </ul>
