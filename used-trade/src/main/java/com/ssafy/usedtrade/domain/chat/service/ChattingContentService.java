@@ -1,5 +1,6 @@
 package com.ssafy.usedtrade.domain.chat.service;
 
+import com.ssafy.usedtrade.common.encryption.AESUtil;
 import com.ssafy.usedtrade.domain.chat.entity.ChattingContent;
 import com.ssafy.usedtrade.domain.chat.entity.ChattingList;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingContentRepository;
@@ -12,14 +13,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ChattingContentService {
     private final ChattingContentRepository chattingContentRepository;
+    private final AESUtil aesUtil;
 
     public void saveMessage(ChatMessageDto chatMessageDto) {
         chattingContentRepository.save(
                 ChattingContent.builder()
-                        .userId(Integer.parseInt(chatMessageDto.sender()))
-                        .chattingList(ChattingList.builder()
-                                .id(Integer.parseInt(chatMessageDto.roomId()))
-                                .build())
+                        .userId(Integer.parseInt(aesUtil.decrypt(chatMessageDto.sender())))
+                        .chattingList(
+                                ChattingList.builder()
+                                        .id(Integer.parseInt(aesUtil.decrypt(chatMessageDto.roomId())))
+                                        .build()
+                        )
                         .contents(chatMessageDto.message())
                         .createdAt(LocalDateTime.now())
                         .build());

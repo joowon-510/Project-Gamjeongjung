@@ -1,6 +1,7 @@
-package com.ssafy.usedtrade.domain.chat.service;
+package com.ssafy.usedtrade.domain.websocket.redis.service;
 
-import com.ssafy.usedtrade.domain.chat.entity.UserStatus;
+import com.ssafy.usedtrade.domain.websocket.redis.entity.UserStatus;
+import com.ssafy.usedtrade.domain.websocket.redis.repository.UserStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserStatusService {
-    private final com.ssafy.usedtrade.domain.chat.repository.UserStatusRepository userStatusRepository;
+    private final UserStatusRepository userStatusRepository;
 
     public boolean findUserStatus(Integer userId) {
         return userStatusRepository.findById(userId)

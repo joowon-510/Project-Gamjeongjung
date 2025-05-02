@@ -183,6 +183,11 @@ public class JwtTokenProvider implements InitializingBean {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+    public String getUserIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getSubject(); // subject = userId (String)
+    }
 }
 
 

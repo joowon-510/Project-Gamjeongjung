@@ -1,6 +1,6 @@
-package com.ssafy.usedtrade.domain.chat.service;
+package com.ssafy.usedtrade.domain.websocket.redis.service;
 
-import com.ssafy.usedtrade.domain.chat.dto.ChattingReadPointRequest;
+import com.ssafy.usedtrade.domain.websocket.redis.entity.ChattingReadPointRequest;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,13 +22,7 @@ public class ChattingReadPointService {
         return LocalDateTime.parse(data);
     }
 
-    public void save(ChattingReadPointRequest chattingReadPointRequest) {
-        redisTemplate.opsForValue().set(
-                getKey(chattingReadPointRequest),
-                String.valueOf(LocalDateTime.now()));
-    }
-
-    public void update(ChattingReadPointRequest chattingReadPointRequest) {
+    public void save_update(ChattingReadPointRequest chattingReadPointRequest) {
         redisTemplate.opsForValue().set(
                 getKey(chattingReadPointRequest),
                 String.valueOf(LocalDateTime.now()));
