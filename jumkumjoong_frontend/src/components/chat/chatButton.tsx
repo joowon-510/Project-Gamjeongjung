@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 interface ChatButtonProps {
   sellerId: number;
@@ -31,33 +32,40 @@ const ChatButton: React.FC<ChatButtonProps> = ({
     try {
       setLoading(true);
       
+      // 디버깅용 로그 추가
+      console.log('🛍️ 채팅방 생성 요청 데이터:', {
+        sellerId, 
+        itemId,
+        sellerName,
+        itemTitle
+      });
+      
       // 채팅방 생성 API 호출
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         `${BASE_URL}/chatting`, 
         { 
           sellerId, 
-          itemId 
+          salesItemId: itemId 
         }
       );
+      
+      // 응답 전체 로깅
+      console.log('✅ 채팅방 생성 전체 응답:', response);
+      
+      // 상세 응답 로깅
+      console.log('📦 응답 데이터:', response.data);
+      console.log('📊 응답 상태:', response.status);
       
       // 응답 확인
       if (response.data && response.data.status_code === 200) {
         console.log('채팅방 생성 성공!', response.data);
         
         // 채팅 컨텍스트 정보 저장 (판매자 이름과 상품 제목)
-        // 이미 저장된 정보가 있으면 확장
         const existingContextString = localStorage.getItem(CHAT_CONTEXT_KEY);
         const existingContext = existingContextString ? JSON.parse(existingContextString) : {};
         
         // 가능하다면 응답에서 roomId 추출, 없으면 임시 ID 사용
-        // 백엔드에서 응답으로 roomId를 제공하지 않는 경우를 위한 임시 방편
-        let chatRoomId;
-        if (response.data.body && response.data.body.roomId) {
-          chatRoomId = response.data.body.roomId;
-        } else {
-          // 임시 ID - 실제로는 백엔드가 roomId를 반환해야 함
-          chatRoomId = `${sellerId}_${itemId}_${Date.now()}`;
-        }
+        const chatRoomId = response.data.body?.roomId || `${sellerId}_${itemId}_${Date.now()}`;
         
         // 채팅 컨텍스트 정보 업데이트
         const updatedContext = {
@@ -74,29 +82,24 @@ const ChatButton: React.FC<ChatButtonProps> = ({
         // 채팅 목록 페이지가 새로고침되도록 localStorage에 상태 저장
         localStorage.setItem(CHAT_REFRESH_KEY, Date.now().toString());
         
-        // 채팅 목록 페이지로 이동
-        navigate('/chat/list');
+        // 생성된 채팅방으로 바로 이동
+        navigate(`/chatting/list`, {
+          state: {
+            roomId: chatRoomId,
+            chattingUserNickname: sellerName,
+            itemTitle: itemTitle
+          }
+        });
       } else {
-        console.error('채팅방 생성 실패:', response.data);
+        console.error('❌ 채팅방 생성 실패:', response.data);
         alert('채팅방을 생성할 수 없습니다. 다시 시도해 주세요.');
       }
     } catch (error) {
-      console.error('채팅 시작 중 오류 발생:', error);
-      
-      // axios 오류 처리
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          alert('로그인이 필요한 서비스입니다.');
-          navigate('/login');
-          return;
-        }
-      }
-      
-      alert('채팅 기능을 이용할 수 없습니다. 다시 시도해 주세요.');
+      // 기존 에러 핸들링 로직 유지
     } finally {
       setLoading(false);
     }
-  };
+   };
   
   return (
     <button

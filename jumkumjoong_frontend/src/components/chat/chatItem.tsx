@@ -1,10 +1,7 @@
-// src/components/chat/ChatItem.tsx
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { formatRelativeTime } from '../../utils/dateFormatter';
-import { getChatMessages } from '../../api/chat';
+// src/components/chat/chatItem.tsx
+import React, { useEffect } from 'react';
+import { format, isToday, isYesterday } from 'date-fns';
 
-// ChatItem 컴포넌트의 Props 인터페이스
 interface ChatItemProps {
   roomId: string;
   chattingUserNickname: string;
@@ -14,8 +11,8 @@ interface ChatItemProps {
   createdAt?: string;
   lastUpdatedAt?: string;
   isSelected?: boolean;
-  onSelect?: () => void;
-  onDelete?: () => void;
+  onSelect?: (roomId: string) => void;
+  onDelete?: (event?: React.MouseEvent) => void;
 }
 
 const ChatItem: React.FC<ChatItemProps> = ({
@@ -30,113 +27,164 @@ const ChatItem: React.FC<ChatItemProps> = ({
   onSelect,
   onDelete
 }) => {
-  const navigate = useNavigate();
-
-  const handleLongPress = () => {
-    if (onSelect) {
-      onSelect();
+  // 날짜 포맷팅 함수
+  const formatTime = (timestamp?: string) => {
+    if (!timestamp) return '';
+    
+    const date = new Date(timestamp);
+    
+    if (isToday(date)) {
+      // 오늘이면 시간만 표시
+      return format(date, 'p');
+    } else if (isYesterday(date)) {
+      // 어제면 '어제' 표시
+      return '어제';
+    } else {
+      // 그 외에는 날짜만 표시
+      return format(date, 'yy.MM.dd');
     }
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // 링크 이동 방지
-    if (onDelete) {
-      onDelete();
-    }
-  };
-
-  // src/components/chat/ChatItem.tsx (이미 구현되어 있음)
-  const handleChatRoomEnter = async () => {
+  // 컴포넌트가 마운트될 때 한 번만 실행
+  useEffect(() => {
+    // 닉네임 유효성 확인
+    const validNickname = chattingUserNickname || '알 수 없음';
+    
+    // 디버깅을 위한 로그
+    console.log('📋 ChatItem에서 확인한 정보:', {
+      roomId,
+      nickname: validNickname,
+      postTitle
+    });
+    
+    // 로컬 스토리지에 채팅방 정보 미리 저장 (임시 데이터)
     try {
-      // 채팅방 메시지 조회 API 호출
-      const response = await getChatMessages(roomId);
+      // 로컬 스토리지에 임시 데이터 저장
+      const chatContextKey = 'chatContextInfo';
+      const existingContextString = localStorage.getItem(chatContextKey);
+      const existingContext = existingContextString ? JSON.parse(existingContextString) : {};
       
-      if (response && response.status_code === 200) {
-        // 채팅방 페이지로 이동 (메시지 정보와 함께)
-        navigate(`/chat/${roomId}`, {
-          state: {
-            chattingUserNickname: chattingUserNickname
-          }
-        });
-      } else {
-        // 닉네임만 전달
-        navigate(`/chat/${roomId}`, {
-          state: {
-            chattingUserNickname
-          }
-        });
-      }
+      // 기존 컨텍스트 정보에 현재 채팅방 정보 추가
+      existingContext[roomId] = {
+        sellerName: validNickname,
+        itemTitle: postTitle || '알 수 없는 상품',
+        createdAt: new Date().toISOString()
+      };
+      
+      // 업데이트된 컨텍스트 정보 저장
+      localStorage.setItem(chatContextKey, JSON.stringify(existingContext));
     } catch (error) {
-      console.error('채팅방 입장 중 오류:', error);
-      // 오류 발생 시에도 닉네임 전달
-      navigate(`/chat/${roomId}`, {
-        state: {
-          chattingUserNickname
-        }
-      });
+      console.error('로컬스토리지 저장 오류:', error);
+    }
+  }, [roomId, chattingUserNickname, postTitle]);
+
+  // 채팅방 선택 핸들러
+  const handleSelect = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // 유효한 닉네임 확인
+    const validNickname = chattingUserNickname || '알 수 없음';
+    
+    // 로컬 스토리지에 현재 선택한 채팅방 정보 저장
+    try {
+      console.log('💾 ChatItem에서 저장할 닉네임:', validNickname);
+      
+      // 선택한 채팅방 정보 저장
+      localStorage.setItem('currentRoomId', roomId);
+      localStorage.setItem('currentChatUserNickname', validNickname);
+      localStorage.setItem('currentPostTitle', postTitle || '');
+      
+      // 토큰 정보도 저장
+      const currentToken = localStorage.getItem('accessToken');
+      if (currentToken) {
+        localStorage.setItem(`token_${roomId}`, currentToken);
+      }
+      
+      // 저장 확인
+      setTimeout(() => {
+        const storedNickname = localStorage.getItem('currentChatUserNickname');
+        console.log('✅ ChatItem에서 저장 확인:', {
+          저장한닉네임: validNickname,
+          확인한닉네임: storedNickname,
+          성공여부: storedNickname === validNickname ? '성공' : '실패'
+        });
+      }, 50);
+    } catch (error) {
+      console.error('채팅방 선택 중 로컬스토리지 저장 오류:', error);
+    }
+    
+    // 상위 컴포넌트에 선택 이벤트 전달
+    if (onSelect) {
+      onSelect(roomId);
+    }
+  };
+  
+  // 채팅방 삭제 핸들러
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDelete && typeof onDelete === 'function') {
+      onDelete(e);
     }
   };
 
   return (
     <li 
-      className={`px-4 py-3 border-b hover:bg-gray-50 transition-colors relative ${isSelected ? 'bg-blue-50' : ''}`}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        handleLongPress();
-      }}
-      onClick={handleChatRoomEnter}
+      className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+        isSelected ? 'bg-blue-50' : ''
+      }`}
+      onClick={handleSelect}
     >
-      <div className="flex items-center space-x-4">
-        {/* 프로필 이미지 (임시: 기본 아바타) */}
-        <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
-          <span className="text-white font-bold">
-            {chattingUserNickname ? chattingUserNickname[0] : '?'}
-          </span>
+      <div className="flex items-start">
+        {/* 왼쪽 영역: 프로필 또는 아이콘 */}
+        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+          {chattingUserNickname?.charAt(0) || '?'}
         </div>
-
-        {/* 채팅 정보 */}
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center">
-            {/* 상대방 닉네임 */}
-            <h3 className="text-base font-medium text-gray-900 truncate">
+        
+        {/* 중앙 영역: 사용자명, 메시지, 게시글 제목 */}
+        <div className="ml-3 flex-1 min-w-0">
+          <div className="flex items-center">
+            <p className="font-medium text-gray-900 truncate">
               {chattingUserNickname || '알 수 없음'}
-            </h3>
-
-            {/* 마지막 메시지 시간 */}
-            <span className="text-xs text-gray-500">
-              {lastUpdatedAt ? formatRelativeTime(lastUpdatedAt) : ''}
-            </span>
-          </div>
-
-          {/* 마지막 메시지와 상품 제목 */}
-          <div className="flex justify-between items-center mt-1">
-            <p className="text-sm text-gray-600 truncate flex-1 mr-2">
-              {lastMessage || '새로운 채팅이 시작되었습니다.'}
             </p>
-
-            {/* 안 읽은 메시지 개수 */}
+            
+            {/* 안 읽은 메시지 수 표시 */}
             {nonReadCount > 0 && (
-              <div className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
                 {nonReadCount}
-              </div>
+              </span>
             )}
           </div>
-
-          {/* 상품 제목 */}
-          <p className="text-xs text-gray-500 mt-1 truncate">
-            {postTitle || '알 수 없는 상품'}
+          
+          {/* 마지막 메시지 */}
+          <p className="text-sm text-gray-500 truncate mt-1">
+            {lastMessage || '메시지가 없습니다.'}
+          </p>
+          
+          {/* 게시글 제목 */}
+          <p className="text-xs text-gray-400 truncate mt-1">
+            {postTitle || '알 수 없는 게시글'}
           </p>
         </div>
-
-        {/* 삭제 버튼 (선택된 경우에만 표시) */}
-        {isSelected && (
-          <button 
-            onClick={handleDelete}
-            className="absolute right-4 top-1/2 -translate-y-1/ text-black px-3 py-1 rounded-md text-sm hover:bg-red-600 transition-colors"
-          >
-            삭제
-          </button>
-        )}
+        
+        {/* 오른쪽 영역: 시간 및 액션 버튼 */}
+        <div className="ml-3 flex flex-col items-end">
+          {/* 마지막 업데이트 시간 */}
+          <p className="text-xs text-gray-400">
+            {formatTime(lastUpdatedAt || createdAt)}
+          </p>
+          
+          {/* 액션 버튼 영역 */}
+          <div className="flex mt-2">
+            {/* 삭제 버튼 */}
+            <button 
+              onClick={handleDelete}
+              className="ml-2 p-1 text-red-500 hover:bg-red-100 rounded"
+            >
+              삭제
+            </button>
+          </div>
+        </div>
       </div>
     </li>
   );

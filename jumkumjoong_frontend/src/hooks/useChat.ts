@@ -22,7 +22,8 @@ export const useChat = ({
   const [lastProcessedMessage, setLastProcessedMessage] = useState<{sender: number, message: string} | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [newMessage, setNewMessage] = useState('');
-  
+  const localStorageUserId = Number(localStorage.getItem('userId'));
+
   const chatService = useChatService();
   const { 
     updateLastReceivedMessage, 
@@ -36,11 +37,15 @@ export const useChat = ({
   }, [updateLastAccessTime]);
 
   useEffect(() => {
-    console.log('useEffect: 웹소켓 설정 시작', roomId, userId, 'roomId type:', typeof roomId);
+    console.log('useEffect: 웹소켓 설정 시작', roomId, userId);
+    
+    let isComponentMounted = true; // 컴포넌트 마운트 상태 추적
     
     const handleConnectionChange = () => {
-      setIsConnected(chatService.isConnected());
-      console.log('연결 상태 변경:', chatService.isConnected());
+      if (isComponentMounted) {
+        setIsConnected(chatService.isConnected());
+        console.log('연결 상태 변경:', chatService.isConnected());
+      }
     };
 
     const handleMessage = (message: WebSocketMessage) => {
@@ -48,19 +53,23 @@ export const useChat = ({
       
       // 메시지 타입에 따라 처리 방식 분기
       if (message.type === MessageType.MESSAGE) {
-        // 자신이 보낸 메시지면 무시
-        if ((message as SendWebSocketMessage).sender === userId) {
-          console.log('자신이 보낸 메시지 무시');
-          return;
+        const msg = message as SendWebSocketMessage;
+      
+        // 숫자 타입으로 명확히 비교 (문자열/숫자 혼동 방지)
+        if (Number(msg.sender) === Number(localStorageUserId)) {
+          console.log('내 메시지 무시 - 로컬에 이미 추가됨');
+          return; // 내가 보낸 메시지는 이미 UI에 추가되었으므로 무시
         }
         
-        // 동일한 메시지 중복 처리 방지
-        const isDuplicate = 
-          lastProcessedMessage?.sender === (message as SendWebSocketMessage).sender && 
-          lastProcessedMessage?.message === (message as SendWebSocketMessage).message;
+        // 메시지 ID 기반 중복 체크 추가
+        const isDuplicate = messages.some(existingMsg => 
+          existingMsg.id === `ws_${new Date(msg.createdAt).getTime()}_${msg.sender}` ||
+          (existingMsg.text === msg.message && 
+           existingMsg.timestamp === msg.createdAt)
+        );
         
         if (isDuplicate) {
-          console.log('중복 메시지 무시:', message);
+          console.log('중복 메시지 감지:', message);
           return;
         }
         
@@ -149,7 +158,13 @@ export const useChat = ({
     
     return () => {
       console.log('컴포넌트 언마운트, 구독 해제:', roomId);
+      isComponentMounted = false; // 마운트 상태 업데이트
       chatService.unsubscribeFromRoom(roomId);
+      
+      // 핸들러 등록 초기화
+      chatService.setOnMessage(() => {});
+      chatService.setOnConnect(() => {});
+      chatService.setOnError(() => {});
     };
   }, [roomId, userId, recipientName, chatService, contextProcessMessage, updateLastReceivedMessage, processMessage]);
 
@@ -178,7 +193,7 @@ export const useChat = ({
     const messageToSend: SendWebSocketMessage = {
       type: MessageType.MESSAGE,
       roomId: roomId,
-      sender: userId,
+      sender: localStorageUserId,
       message: newMessage.trim(),
       createdAt: new Date().toISOString()
     };

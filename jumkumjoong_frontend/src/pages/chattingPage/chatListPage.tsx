@@ -5,7 +5,8 @@ import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import chatting from "../../assets/message-chat.svg";
 import ChatItem from "../../components/chat/chatItem";
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios'; // axios와 isAxiosError import
+import { axiosInstance } from '../../api/axios'; // axiosInstance import 경로 확인
 
 // API 임포트
 import { deleteChatRoom } from "../../api/chat";
@@ -98,13 +99,24 @@ const ChatListPage: React.FC = () => {
   };
 
   // 채팅방 목록 로드 함수
-  const loadChatRooms = async (page: number = 0) => {
+  const loadChatRooms = async (page: number = 0, retryCount: number = 0) => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log(`채팅방 목록 조회 API 호출 (페이지: ${page})...`);
-      const response = await axios.get<ApiResponse>(`${BASE_URL}/chatting?page=${page}&size=10`);
+      // 현재 액세스 토큰 가져오기
+      const accessToken = localStorage.getItem('accessToken');
+      console.log(`채팅방 목록 조회 API 호출 (페이지: ${page})...`, {
+        hasToken: !!accessToken
+      });
+      
+      // API 호출 
+      const response = await axios.get<ApiResponse>(`${BASE_URL}/chatting?page=${page}&size=10`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken || ''}`
+        }
+      });
       
       if (response.data && response.data.status_code === 200) {
         console.log('채팅방 목록 조회 성공:', response.data);
@@ -143,11 +155,6 @@ const ChatListPage: React.FC = () => {
           // 페이징 정보 업데이트
           setIsLastPage(responseBody.last);
           setPageNumber(responseBody.number);
-        } else {
-          console.error('채팅방 목록이 없거나 예상치 못한 형식:', responseBody);
-          if (page === 0) {
-            setChatRooms([]);
-          }
         }
       } else {
         console.error('채팅방 목록 조회 실패:', response.data);
@@ -158,38 +165,102 @@ const ChatListPage: React.FC = () => {
       setError("채팅방 목록을 불러오는 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
-      
-      // API 호출 후 localStorage 키 제거 (다음 방문 시를 위해)
       localStorage.removeItem(CHAT_REFRESH_KEY);
     }
   };
 
   // 채팅방 삭제 함수
-  const handleDeleteChatRoom = async (roomId: string) => {
-    try {
-      // 채팅방 삭제 API 호출
-      const response = await deleteChatRoom(roomId);
-      
-      if (response && response.status_code === 200) {
-        // 성공적으로 삭제된 경우 로컬 상태에서 제거
-        setChatRooms(prev => prev.filter(room => room.roomId !== roomId));
-        
-        // 선택 상태 초기화
-        setSelectedRoomId(null);
-        
-        // localStorage의 채팅 컨텍스트에서도 제거
-        const chatContext = getChatContext();
-        delete chatContext[roomId];
-        localStorage.setItem(CHAT_CONTEXT_KEY, JSON.stringify(chatContext));
-      } else {
-        console.error('채팅방 삭제 실패:', response);
-        alert('채팅방 삭제에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error("채팅방 삭제 오류:", error);
-      alert('채팅방 삭제 중 오류가 발생했습니다.');
+  // chatListPage.tsx의 handleDeleteChatRoom 함수 전체 코드
+// chatListPage.tsx의 handleDeleteChatRoom 함수 수정
+const handleDeleteChatRoom = async (roomId: string, event?: React.MouseEvent) => {
+  try {
+    // 이벤트 전파 중지 (Link 클릭 방지) - event가 있는 경우에만
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
     }
-  };
+    
+    // 사용자 확인
+    if (!window.confirm('정말로 이 채팅방을 삭제하시겠습니까?')) {
+      return;
+    }
+    
+    // 현재 액세스 토큰 가져오기
+    const accessToken = localStorage.getItem('accessToken');
+    console.log('🔍 채팅방 삭제 요청:', {
+      roomId: roomId,
+      type: typeof roomId,
+      hasToken: !!accessToken
+    });
+
+    // 로딩 상태 추가
+    setLoading(true);
+    
+    // 채팅방 삭제 API 호출
+    const response = await axiosInstance.delete(`/chatting/${roomId}`, {
+      // 추가 디버깅을 위한 설정
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken || ''}`
+      }
+    });
+    
+    console.log('🎉 채팅방 삭제 응답:', response);
+
+    if (response.status === 200) {
+      // 성공적으로 삭제된 경우 로컬 상태에서 제거
+      setChatRooms(prev => prev.filter(room => room.roomId !== roomId));
+      
+      // 선택 상태 초기화
+      setSelectedRoomId(null);
+      
+      // localStorage에서 해당 채팅방 관련 정보 제거
+      localStorage.removeItem(`token_${roomId}`);
+      
+      // 현재 활성화된 룸 ID가 삭제한 룸 ID와 같으면 제거
+      if (localStorage.getItem('currentRoomId') === roomId) {
+        localStorage.removeItem('currentRoomId');
+        localStorage.removeItem('currentChatUserNickname');
+        localStorage.removeItem('currentPostTitle');
+      }
+      
+      // localStorage의 채팅 컨텍스트에서도 제거
+      const chatContext = getChatContext();
+      delete chatContext[roomId];
+      localStorage.setItem(CHAT_CONTEXT_KEY, JSON.stringify(chatContext));
+      
+      // 성공 메시지 표시
+      alert('채팅방이 삭제되었습니다.');
+    } else {
+      console.error('채팅방 삭제 실패:', response);
+      alert('채팅방 삭제에 실패했습니다.');
+    }
+  } catch (error) {
+    // Axios 오류의 경우 더 자세한 정보 로깅
+    if (axios.isAxiosError(error)) {
+      console.error('❌ 채팅방 삭제 오류:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers
+      });
+      
+      // 토큰 만료 오류인 경우
+      if (error.response?.status === 401) {
+        alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+        // 필요한 경우 로그인 페이지로 리다이렉트
+        // window.location.href = '/login';
+        return;
+      }
+    } else {
+      console.error('❌ 일반 오류:', error);
+    }
+
+    alert('채팅방 삭제 중 오류가 발생했습니다.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 채팅방 선택 핸들러
   const handleSelectChatRoom = (roomId: string) => {
@@ -250,19 +321,58 @@ const ChatListPage: React.FC = () => {
         {chatRooms.length > 0 ? (
           <ul className="divide-y divide-gray-200">
             {chatRooms.map((chat) => (
-              <ChatItem
-                key={chat.roomId}
-                roomId={chat.roomId}
-                chattingUserNickname={chat.chattingUserNickname}
-                nonReadCount={chat.nonReadCount}
-                lastMessage={chat.lastMessage}
-                postTitle={chat.postTitle}
-                createdAt={chat.createdAt}
-                lastUpdatedAt={chat.lastUpdatedAt}
-                isSelected={chat.roomId === selectedRoomId}
-                onSelect={() => handleSelectChatRoom(chat.roomId)}
-                onDelete={() => handleDeleteChatRoom(chat.roomId)}
-              />
+  <Link 
+    key={chat.roomId}
+    to={`/chatting/${chat.roomId}`} 
+    state={{
+      roomId: chat.roomId,
+      chattingUserNickname: chat.chattingUserNickname, // Make sure this is properly passed
+      postTitle: chat.postTitle,
+      accessToken: localStorage.getItem('accessToken')
+    }}
+    onClick={(e) => {
+      // 디버깅 로그 추가
+      console.log('💾 전달할 닉네임 확인:', chat.chattingUserNickname);
+      
+      // 로컬 스토리지에 정확한 값 저장
+      try {
+        localStorage.setItem('currentRoomId', chat.roomId);
+        localStorage.setItem('currentChatUserNickname', chat.chattingUserNickname);
+        localStorage.setItem('currentPostTitle', chat.postTitle || '');
+        
+        // 현재 액세스 토큰 저장
+        const currentToken = localStorage.getItem('accessToken');
+        if (currentToken) {
+          localStorage.setItem(`token_${chat.roomId}`, currentToken);
+        }
+        
+        // 저장 후 확인 로그
+        const storedNickname = localStorage.getItem('currentChatUserNickname');
+        console.log('💾 저장된 정보 확인:', {
+          roomId: chat.roomId,
+          nickname: storedNickname,
+          postTitle: chat.postTitle,
+          저장성공여부: storedNickname === chat.chattingUserNickname ? '✅ 성공' : '❌ 실패'
+        });
+      } catch (error) {
+        console.error('로컬스토리지 저장 중 오류:', error);
+      }
+    }}
+  >
+    <ChatItem
+      key={chat.roomId}
+      roomId={chat.roomId}
+      chattingUserNickname={chat.chattingUserNickname}
+      nonReadCount={chat.nonReadCount}
+      lastMessage={chat.lastMessage}
+      postTitle={chat.postTitle}
+      createdAt={chat.createdAt}
+      lastUpdatedAt={chat.lastUpdatedAt}
+      isSelected={chat.roomId === selectedRoomId}
+      onSelect={(roomId) => handleSelectChatRoom(roomId)}
+      onDelete={(e) => handleDeleteChatRoom(chat.roomId, e)}
+    />
+  </Link>
             ))}
           </ul>
         ) : !loading && !error ? (

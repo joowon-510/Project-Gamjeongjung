@@ -46,21 +46,31 @@ const GoodsDetailPage: React.FC = () => {
   useEffect(() => {
     const loadGoodsDetail = async () => {
       if (!itemId) return;
-
+  
       try {
         setIsLoading(true);
         setError(null);
         const goodsId = parseInt(itemId);
         const goodsData = await getGoodsDetail(goodsId);
-
-        console.log(goodsData);
-
+  
+        console.log('🌐 API 전체 응답:', goodsData);
+        console.log('📦 API 응답 body:', goodsData.data.body);
+  
         if (goodsData) {
-          setGoods(goodsData.data.body);
+          // itemId를 명시적으로 설정
+          const updatedGoodsData = {
+            ...goodsData.data.body,
+            item: {
+              ...goodsData.data.body.item,
+              itemId: goodsId // 라우트의 itemId 사용
+            }
+          };
+  
+          setGoods(updatedGoodsData);
           const exits = goodsData.data.body.isFavorite;
-          console.log("setGoods: ", goods);
-
           setFavorite(exits);
+  
+          console.log('🔍 업데이트된 상품 데이터:', updatedGoodsData);
         } else {
           setError("상품을 찾을 수 없습니다.");
         }
@@ -71,7 +81,7 @@ const GoodsDetailPage: React.FC = () => {
         setIsLoading(false);
       }
     };
-
+  
     loadGoodsDetail();
   }, [itemId]);
 
@@ -170,7 +180,15 @@ const GoodsDetailPage: React.FC = () => {
       </div>
     );
   }
-
+  // GoodsDetailPage 컴포넌트 내부
+  console.log('🔍 상품 상세 데이터:', {
+    goodsData: goods,
+    item: goods.item,
+    itemId: goods.item.itemId,
+    userId: goods.item.userId,
+    userName: goods.userName,
+    itemTitle: goods.item.title
+  });
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* 스크롤 가능한 컨텐츠 영역 */}
@@ -286,12 +304,12 @@ const GoodsDetailPage: React.FC = () => {
             <span className="text-gray-700 mr-2">가격:</span>
             <span className="text-xl font-bold">{goods.item.price}</span>
           </div>
-          <ChatButton 
-            sellerId={goods.item.userId}
-            itemId={goods.item.itemId}
-            sellerName={goods.userName}
-            itemTitle={goods.item.title} // 상품 제목 추가
-          />
+  <ChatButton 
+    sellerId={goods.item.userId}
+    itemId={goods.item.itemId || parseInt(itemId!, 10)} // 명시적으로 itemId 전달
+    sellerName={goods.userName}
+    itemTitle={goods.item.title}
+  />
         </div>
       </div>
 

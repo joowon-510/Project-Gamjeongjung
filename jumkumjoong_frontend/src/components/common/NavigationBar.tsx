@@ -52,7 +52,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ activeMenu = 'home' }) =>
         <p className="font-semibold text-first/70">MY</p>
       </Link>
       {/* 채팅 */}
-      <Link to="/chat/list" className="w-full gap-2 justify-items-center pt-2 relative">
+      <Link to="/chatting/list" className="w-full gap-2 justify-items-center pt-2 relative">
         <div className="relative flex flex-col items-center">
           <img src={messageChat} alt="messageChat" className="w-[40px]" />
           

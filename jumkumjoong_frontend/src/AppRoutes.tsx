@@ -55,8 +55,8 @@ const AppRoutes = () => {
       <Route path="/login" element={<LoginPage />} />
 
       {/* 채팅 관련 페이지 */}
-      <Route path="/chat/list" element={<ChatListPage />} />
-      <Route path="/chat/:chatid" element={<ChatPage />} />
+      <Route path="/chatting/list" element={<ChatListPage />} />
+      <Route path="/chatting/:chatid" element={<ChatPage />} />
 
       {/* 상품 관련 페이지 */}
       <Route path="/goods/list" element={<GoodsListPage />} />

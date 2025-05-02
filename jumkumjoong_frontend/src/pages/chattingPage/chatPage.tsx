@@ -19,10 +19,36 @@ import { useChatContext } from "../../contexts/ChatContext";
 import { format, isToday, isYesterday } from 'date-fns';
 
 const ChatPage: React.FC = () => {
-  const { chatid } = useParams<{ chatid: string }>();
+const { chatid } = useParams<{ chatid: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState<ChatUser | null>(null);
+  const [user, setUser] = useState<ChatUser | null>(() => {
+    // 1. location.state에서 chattingUserNickname 확인 (최우선)
+    const stateNickname = location.state?.chattingUserNickname;
+    
+    // 2. localStorage에서 nickname 확인 (두번째 우선순위)
+    const storedNickname = localStorage.getItem('currentChatUserNickname');
+    
+    console.log('🔍 ChatPage 닉네임 데이터 확인:', {
+      stateNickname,
+      storedNickname,
+      locationState: location.state,
+      allLocalStorage: Object.keys(localStorage).map(key => ({
+        key,
+        value: localStorage.getItem(key)
+      }))
+    });
+    
+    // 닉네임 결정 (우선순위: state > localStorage > 기본값)
+    const finalNickname = stateNickname || storedNickname || '채팅 상대';
+    console.log('✅ 최종 사용할 닉네임:', finalNickname);
+    
+    return {
+      id: 0, // ID는 API 응답에서 업데이트 예정
+      name: finalNickname
+    };
+  });
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -46,32 +72,59 @@ const ChatPage: React.FC = () => {
   // ChatContext 사용 (읽음 표시를 위해)
   const { markRoomAsRead } = useChatContext();
   
-  const roomId = 'UJ3KFeYtSwO2LALw080adg==';
-
+  const [roomId, setRoomId] = useState<string>(() => {
+    // 1. URL 파라미터에서 roomId 확인 (최우선) - chatid는 항상 있어야 함
+    const urlRoomId = chatid;
+    
+    // 2. location state에서 roomId 확인
+    const stateRoomId = location.state?.roomId;
+    
+    // 3. localStorage에서 roomId 확인
+    const storedRoomId = localStorage.getItem('currentRoomId');
+    
+    console.log('🔍 ChatPage 마운트 시 roomId 설정:', {
+      urlRoomId,
+      stateRoomId,
+      storedRoomId
+    });
+    
+    // 우선순위 순서: URL > state > localStorage
+    let finalRoomId = '';
+    
+    if (urlRoomId) {
+      console.log('✅ URL 파라미터에서 roomId 사용:', urlRoomId);
+      finalRoomId = urlRoomId;
+    } else if (stateRoomId) {
+      console.log('✅ location.state에서 roomId 사용:', stateRoomId);
+      finalRoomId = stateRoomId;
+    } else if (storedRoomId) {
+      console.log('✅ localStorage에서 roomId 사용:', storedRoomId);
+      finalRoomId = storedRoomId;
+    } else {
+      console.error('❌ roomId를 찾을 수 없음! 채팅 목록으로 리다이렉트합니다.');
+      // 비동기로 리다이렉트 처리
+      setTimeout(() => { navigate('/chatting'); }, 100);
+    }
+    
+    // 최종 선택된 roomId를 localStorage에 저장
+    if (finalRoomId) {
+      localStorage.setItem('currentRoomId', finalRoomId);
+    }
+    
+    return finalRoomId;
+  });
+  
   // 사용자 ID 가져오기 - 향상된 디버깅
   useEffect(() => {
     const fetchUserId = async () => {
       try {
         const response = await getUserChatInfo();
-        
-        if (response.status_code === 200 && response.body) {
-          if (response.body.userId) {
-            const userId = parseInt(response.body.userId, 10);
-            
-            if (!isNaN(userId)) {
-              setCurrentUserId(userId);
-            }
-          }
-        }
+        // 성공 시 로컬 스토리지에 저장 (아래 2번 참조)
       } catch (error) {
-        console.error("사용자 ID 요청 중 오류 발생:", error);
+        console.error("사용자 ID 요청 실패:", error);
       }
     };
-    
-    // 로컬 스토리지에 userId가 없는 경우에만 API 호출
-    if (!localStorage.getItem('userId')) {
-      fetchUserId();
-    }
+    fetchUserId(); // 조건문 제거 → 무조건 실행
   }, []);
 
   // 날짜 포맷팅 함수
@@ -105,35 +158,27 @@ const ChatPage: React.FC = () => {
   
   // 웹소켓 메시지 처리 함수 - currentUserId와 비교하여 내 메시지인지 판단
   const processWebSocketMessage = (message: WebSocketMessage): Message | null => {
-    // 메시지 타입이 MESSAGE인 경우만 처리
     if (message.type === MessageType.MESSAGE) {
       const messageData = message as SendWebSocketMessage;
       
-      // 메시지 발신자가 현재 사용자인지 확인
       const isMyMessage = messageData.sender === currentUserId;
       
-      // 로깅 추가
-      console.log(`웹소켓 메시지 - sender: ${messageData.sender}, currentUserId: ${currentUserId}, isMyMessage: ${isMyMessage}`);
+      // user?.name을 우선적으로 사용하고, 없거나 '상대방'인 경우 location.state에서 가져옴
+      const recipientName = user?.name && user.name !== "상대방" && user.name !== "채팅 상대" 
+        ? user.name 
+        : location.state?.chattingUserNickname || localStorage.getItem('currentChatUserNickname') || "채팅 상대";
       
-      // 상대방 닉네임 설정
-      const recipientName = user?.name || location.state?.chattingUserNickname || 
-        (chatid === "1" ? "AI의 신예훈" : 
-         chatid === "2" ? "재드래곤" : 
-         "맥북헤이터");
-      
-      // 메시지 객체 생성
       return {
         id: `ws_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         text: messageData.message,
         timestamp: messageData.createdAt,
         isMe: isMyMessage,
         userName: isMyMessage ? '나' : recipientName,
-        read: isMyMessage, // 내가 보낸 메시지는 읽음 처리
+        read: isMyMessage,
         receivedAt: messageData.createdAt
       };
     }
     
-    // MESSAGE 타입이 아니면 null 반환
     return null;
   };
 
@@ -148,7 +193,7 @@ const ChatPage: React.FC = () => {
     setInitialMessages,
     addOlderMessages
   } = useChat({
-    roomId,
+    roomId: roomId || '', // null인 경우 빈 문자열 전달
     userId: currentUserId ?? 0, // null일 경우 0 사용
     recipientName: user?.name || "",
     processMessage: processWebSocketMessage
@@ -161,12 +206,11 @@ const ChatPage: React.FC = () => {
     const isMe = dto.senderId !== undefined 
       ? dto.senderId === currentUserId 
       : dto.toSend === true;
-    
-    // 상대방 닉네임 설정
-    const recipientName = user?.name || location.state?.chattingUserNickname || 
-      (chatid === "1" ? "AI의 신예훈" : 
-       chatid === "2" ? "재드래곤" : 
-       "맥북헤이터");
+      
+    // 상대방 닉네임 설정 - 우선순위: user?.name > location.state > localStorage
+    const recipientName = user?.name && user.name !== "상대방" && user.name !== "채팅 상대"
+      ? user.name
+      : location.state?.chattingUserNickname || localStorage.getItem('currentChatUserNickname') || "채팅 상대";
     
     return {
       id: `msg_${new Date(dto.createdAt).getTime()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -211,10 +255,21 @@ const ChatPage: React.FC = () => {
         
         // 채팅 상대방 정보 설정
         if (isInitialLoad && response.body.otherParticipant) {
+          // API 응답에서 받은 상대방 정보로 user 업데이트
+          const apiNickname = response.body.otherParticipant.nickname;
+          console.log('📱 API에서 받은 상대방 닉네임:', apiNickname);
+          
+          // API 응답의 닉네임을 우선 사용하고, localStorage 값을 다시 업데이트
           setUser({
             id: response.body.otherParticipant.userId,
-            name: response.body.otherParticipant.nickname || chattingUserNickname
+            name: apiNickname || location.state?.chattingUserNickname || '상대방'
           });
+          
+          // API에서 받은 닉네임으로 localStorage 업데이트
+          if (apiNickname) {
+            console.log('🔄 localStorage의 닉네임 업데이트:', apiNickname);
+            localStorage.setItem('currentChatUserNickname', apiNickname);
+          }
         }
         
         // DTO를 클라이언트 메시지 형식으로 변환
@@ -346,7 +401,7 @@ const ChatPage: React.FC = () => {
 
   // 뒤로가기 처리
   const handleGoBack = () => {
-    navigate("/chat/list");
+    window.history.back();
   };
 
   // 메시지 전송 버튼 핸들러
@@ -458,7 +513,8 @@ const ChatPage: React.FC = () => {
 
         <div className="space-y-4">
           {messages
-            .filter(message => !(!message.isMe && message.userName === "상대방")) // "상대방" 닉네임 메시지 필터링
+            // Remove this filter entirely - don't filter out any messages
+            // .filter(message => !(!message.isMe && message.userName === "상대방"))
             .map((message, index) => (
               <div
                 key={`${message.id}-${index}`}
@@ -466,38 +522,38 @@ const ChatPage: React.FC = () => {
                   message.isMe ? "items-end" : "items-start"
                 }`}
               >
+              <div
+                className={`max-w-[70%] ${
+                  message.isMe ? "order-1" : "order-2"
+                }`}
+              >
+                {/* 상대방 메시지인 경우 닉네임 표시 */}
+                {!message.isMe && (
+                  <div className="ml-1 text-xs text-gray-600 mb-1">
+                    {user?.name || message.userName}
+                  </div>
+                )}
+
+                {/* 메시지 말풍선 */}
                 <div
-                  className={`max-w-[70%] ${
-                    message.isMe ? "order-1" : "order-2"
+                  className={`rounded-xl px-4 py-2 max-w-[100%] ml-auto whitespace-pre-wrap ${
+                    message.isMe
+                      ? "bg-blue-500 text-white rounded-tr-none"
+                      : "bg-gray-200 text-gray-800 rounded-tl-none"
                   }`}
                 >
-                  {/* 상대방 메시지인 경우 닉네임 표시 */}
-                  {!message.isMe && (
-                    <div className="ml-1 text-xs text-gray-600 mb-1">
-                      {message.userName}
-                    </div>
-                  )}
+                  <p className="whitespace-pre-wrap">{message.text}</p>
+                </div>
 
-                  {/* 메시지 말풍선 - 내용만 표시 */}
-                  <div
-                    className={`rounded-xl px-4 py-2 max-w-[100%] ml-auto whitespace-pre-wrap ${
-                      message.isMe
-                        ? "bg-blue-500 text-white rounded-tr-none"
-                        : "bg-gray-200 text-gray-800 rounded-tl-none"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{message.text}</p>
-                  </div>
-
-                  {/* 메시지 시간 표시 */}
-                  <div className={`text-xs text-gray-500 mt-1 ${
-                    message.isMe ? "text-right" : "text-left"
-                  }`}>
-                    {formatMessageTime(message.timestamp)}
-                  </div>
+                {/* 메시지 시간 표시 */}
+                <div className={`text-xs text-gray-500 mt-1 ${
+                  message.isMe ? "text-right" : "text-left"
+                }`}>
+                  {formatMessageTime(message.timestamp)}
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
           <div ref={messagesEndRef} />
         </div>
       </div>

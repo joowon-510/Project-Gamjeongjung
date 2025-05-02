@@ -12,15 +12,32 @@ export const axiosInstance = axios.create({
 // 요청 시마다 상태에서 accessToken을 가져와서 헤더에 추가
 axiosInstance.interceptors.request.use(
   (config) => {
-    const { accessToken } = useAuthStore.getState();
+    // 먼저 스토어에서 토큰 확인
+    const storeToken = useAuthStore.getState().accessToken;
+    // 스토어에 없으면 로컬 스토리지에서 확인
+    const localToken = localStorage.getItem('accessToken');
     
-    console.log('🔑 현재 Access Token:', accessToken);
+    // 사용할 토큰 결정 (스토어 우선)
+    const tokenToUse = storeToken || localToken;
     
-    if (accessToken) {
-      config.headers["Authorization"] = `Bearer ${accessToken}`;
-      console.log('✅ 토큰이 요청 헤더에 추가되었습니다.');
+    console.log('🔑 토큰 확인:', {
+      스토어: storeToken ? '있음' : '없음',
+      로컬스토리지: localToken ? '있음' : '없음'
+    });
+    
+    if (tokenToUse) {
+      config.headers["Authorization"] = `Bearer ${tokenToUse}`;
+      console.log('✅ 토큰으로 인증 헤더 설정 완료');
+      
+      // 스토어에 토큰이 없지만 로컬 스토리지에는 있는 경우, 스토어 업데이트
+      if (!storeToken && localToken) {
+        console.log('🔄 로컬 스토리지 토큰으로 스토어 업데이트');
+        useAuthStore.getState().setAccessToken(localToken);
+      }
     } else {
       console.warn('⚠️ 액세스 토큰이 없습니다.');
+      
+      // 개발 환경에서 테스트용 토큰 사용 (선택사항
     }
     
     return config;

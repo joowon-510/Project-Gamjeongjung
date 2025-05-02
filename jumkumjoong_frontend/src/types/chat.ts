@@ -178,7 +178,7 @@ export interface ChatRouteState {
 export interface ChatRoom {
   id?: number;
   roomId: string | number;
-  
+  chattingUserNickname: string; // 추가된 필드
   // 사용자 관련 정보
   sellerId?: number;
   buyerId?: number;
