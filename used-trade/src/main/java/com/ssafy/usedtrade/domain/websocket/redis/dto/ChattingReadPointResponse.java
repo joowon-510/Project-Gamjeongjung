@@ -1,4 +1,4 @@
-package com.ssafy.usedtrade.domain.chat.dto;
+package com.ssafy.usedtrade.domain.websocket.redis.dto;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;

@@ -33,8 +33,12 @@ public class ChattingList {
     private List<ChattingContent> chattingContentList;
 
     @NotNull
-    @Column(name = "trader_id", nullable = false)
-    private Integer traderId;
+    @Column(name = "seller_id", nullable = false)
+    private Integer sellerId;
+
+    @NotNull
+    @Column(name = "buyer_id", nullable = false)
+    private Integer buyerId;
 
     @NotNull
     @Column(name = "post_id", nullable = false)

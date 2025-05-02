@@ -1,8 +1,8 @@
-package com.ssafy.usedtrade.domain.chat.service;
+package com.ssafy.usedtrade.domain.websocket.redis.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ssafy.usedtrade.domain.chat.entity.MessageDetail;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
+import com.ssafy.usedtrade.domain.websocket.redis.entity.MessageDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;

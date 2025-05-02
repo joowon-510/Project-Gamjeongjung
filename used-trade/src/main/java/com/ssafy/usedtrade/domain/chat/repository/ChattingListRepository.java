@@ -8,9 +8,9 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ChattingListRepository extends JpaRepository<ChattingList, Integer> {
-    Slice<ChattingList> findByTraderIdOrPostId(@NotNull Integer traderId, @NotNull Integer postId, Pageable pageable);
+    Slice<ChattingList> findByBuyerIdOrSellerId(@NotNull Integer traderId, @NotNull Integer postId, Pageable pageable);
 
-    Slice<ChattingList> findByTraderIdOrPostIdAndLastChatTimeLessThan(
+    Slice<ChattingList> findByBuyerIdOrSellerIdAndLastChatTimeLessThan(
             Integer trader, Integer poster,
             LocalDateTime lastChatTime, Pageable pageable);
 }
