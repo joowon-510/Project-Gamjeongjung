@@ -23,6 +23,7 @@ import FavoritePage from "./pages/FavoritesPage/FavoritesPage";
 import MyPostsPage from "./pages/userPage/myPostPage";
 import { getUserInfo } from "./api/users";
 import ReviewRegisterPage from "./pages/ReviewPage/ReviewRegisterPage";
+import MenuModal from "./components/common/MenuModal";
 
 const AppRoutes = () => {
   const navigate = useNavigate();
@@ -52,6 +53,9 @@ const AppRoutes = () => {
       <Route path="/" element={<MainPage />} />
       {/* 로그인 페이지 */}
       <Route path="/login" element={<LoginPage />} />
+
+      {/* 메뉴 모달 (임시) */}
+      {/* <Route path="/menu" element={<MenuModal />} /> */}
 
       {/* 채팅 관련 페이지 */}
       <Route path="/chat/list" element={<ChatListPage />} />
