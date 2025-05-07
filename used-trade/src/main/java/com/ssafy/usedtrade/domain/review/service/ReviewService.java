@@ -8,7 +8,9 @@ import com.ssafy.usedtrade.domain.review.entity.Review;
 import com.ssafy.usedtrade.domain.review.repository.ReviewRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,8 +35,25 @@ public class ReviewService {
         );
     }
 
-    public Slice<ReviewResponse> findAllReview(Integer id) {
-        return reviewRepository.findAllBySellerIdOrderByCreatedAtDesc(id)
+    public Slice<ReviewResponse> findAllReview(Integer id, LocalDateTime createdAt) {
+        PageRequest pageable =
+                PageRequest.of(
+                        0,
+                        10,
+                        Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        if (createdAt == null) {
+            return reviewRepository.findAllBySellerIdOrderByCreatedAtDesc(id, pageable)
+                    .map(entity -> {
+                        return ReviewResponse.builder()
+                                .content(entity.content())
+                                .stars(entity.stars())
+                                .createdAt(entity.createdAt())
+                                .build();
+                    });
+        }
+
+        return reviewRepository.findAllBySellerIdAndCreatedAtBeforeOrderByCreatedAtDesc(id, createdAt, pageable)
                 .map(entity -> {
                     return ReviewResponse.builder()
                             .content(entity.content())
