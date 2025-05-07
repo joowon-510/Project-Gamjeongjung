@@ -10,10 +10,10 @@ import com.ssafy.usedtrade.domain.chat.repository.ChattingContentRepository;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingListRepository;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
+import com.ssafy.usedtrade.domain.item.service.SalesItemService;
 import com.ssafy.usedtrade.domain.user.service.UserService;
 import com.ssafy.usedtrade.domain.websocket.redis.entity.ChattingReadPointRequest;
 import com.ssafy.usedtrade.domain.websocket.redis.service.ChattingReadPointService;
-import com.ssafy.usedtrade.domain.item.service.SalesItemService;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -157,6 +157,7 @@ public class ChatService {
          * TODO:
          *  - 일단 Test 기본 값으로 구현
          *  - 필수
+         *  1. chatRoomId 복호화
          *  2. Mysql -> Redis 사용
          *  3. Test 값 -> Redis 적용으로 동적으로
          *  4. front에서 시간을 비교해서 적용가능하도록 구현
@@ -225,7 +226,7 @@ public class ChatService {
         // 암호화 userId -> 복호화
         Integer decryptRoomId = Integer.parseInt(aesUtil.decrypt(roomId));
 
-        ChattingList chattingList = chattingListRepository.findById(userId)
+        ChattingList chattingList = chattingListRepository.findById(decryptRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 방이 없습니다."));
 
         if (chattingList.getSellerId() != userId && chattingList.getBuyerId() != userId) {

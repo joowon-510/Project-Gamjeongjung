@@ -1,21 +1,28 @@
 package com.ssafy.usedtrade.domain.websocket.controller;
 
+import com.ssafy.usedtrade.domain.websocket.redis.service.UserWebsocketSessionService;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 @Controller
+@RequiredArgsConstructor
 public class WebsocketController {
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final UserWebsocketSessionService websocketSessionService;
 
-    @MessageMapping("/{roomId}") // 클라이언트가 보내는 주소 (/api/send/번호)
-    @SendTo("/receive/{roomId}") // 구독 주소 (자동 전달)
-    public Map<String, String> send(
+    @MessageMapping("/{roomId}")
+    public void send(
             @Payload Map<String, String> message,
-            @DestinationVariable("roomId") String roomId
+            @DestinationVariable("roomId") String roomId,
+            @Header("simpSessionId") String sessionId
     ) {
-        return message; // 브로커가 이 메시지를 그대로 전달
+        simpMessagingTemplate.convertAndSend(
+                "/receive/" + roomId, message);
     }
 }

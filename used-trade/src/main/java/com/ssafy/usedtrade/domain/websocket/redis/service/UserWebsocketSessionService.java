@@ -23,7 +23,7 @@ public class UserWebsocketSessionService {
     public void saveSessionFor10(WebsocketSession websocketSession) {
         redisTemplate.opsForValue().set(
                 getKey(websocketSession),
-                "1",
+                websocketSession.userId(),
                 Duration.ofMinutes(TTL));
     }
 
@@ -39,6 +39,6 @@ public class UserWebsocketSessionService {
     }
 
     private static String getKey(WebsocketSession websocketSession) {
-        return "session:" + websocketSession.userId() + ":" + websocketSession.sessionId();
+        return "session:" + websocketSession.sessionId();
     }
 }
