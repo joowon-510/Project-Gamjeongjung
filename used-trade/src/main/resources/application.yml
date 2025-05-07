@@ -47,7 +47,7 @@ jwt:
 
 server:
   servlet:
-    context-path: ${CONTEXT_PATH}
+    context-path: /
 
 elasticsearch:
   host: localhost
