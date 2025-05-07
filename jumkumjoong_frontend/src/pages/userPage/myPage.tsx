@@ -1,5 +1,5 @@
 // src/pages/MyPage.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import ProfileSection from "../../components/mypage/ProfileSection";
@@ -7,9 +7,41 @@ import PriceSection from "../../components/mypage/PriceSection";
 import ReviewSection from "../../components/mypage/ReviewSection";
 import ActionSection from "../../components/mypage/ActionSection";
 import { useAuthStore } from "../../stores/useUserStore";
+import { useReviewStore } from "../../stores/useReviewStore";
+import { getReview, getReviewStars } from "../../api/reviews";
 
 const MyPage: React.FC = () => {
   const userInfo = useAuthStore();
+  const reviewInfo = useReviewStore();
+  const [rating, setRating] = useState<number>(3);
+
+  useEffect(() => {
+    const fetchStar = async () => {
+      try {
+        const response = await getReviewStars();
+        console.log("response: ", response?.data.body);
+        if (!response) {
+          setRating(3);
+          return;
+        }
+        setRating(response.data.body);
+      } catch (error) {
+        console.log("error: ", error);
+      }
+    };
+    const fetchReviewsList = async () => {
+      try {
+        const response = await getReview();
+        console.log("getReview: ", response);
+        reviewInfo.setContent(response);
+      } catch (error) {
+        console.log("리뷰 조회 실패: ", error);
+      }
+    };
+    fetchReviewsList();
+    console.log("reviewInfo: ", reviewInfo);
+    fetchStar();
+  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -22,11 +54,11 @@ const MyPage: React.FC = () => {
           {/* 프로필 섹션 */}
           <ProfileSection
             username={userInfo.nickname ? userInfo.nickname : "user123"}
-            rating={4.5}
+            rating={rating}
           />
 
           {/* 가격 섹션 */}
-          <PriceSection price={340000} />
+          {/* <PriceSection price={340000} /> */}
 
           {/* 리뷰 섹션 */}
           <ReviewSection />

@@ -74,7 +74,7 @@ const TransactionsPage: React.FC = () => {
                   new Date(a.createdAt).getTime()
               )
               .map((item) => (
-                <GoodsItem key={item.itemId} {...item} />
+                <GoodsItem key={item.itemId} {...item} canChangeStatus={true} />
               ))}
             <li className="h-14 bg-transparent border-none" />
           </ul>
