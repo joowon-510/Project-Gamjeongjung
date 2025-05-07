@@ -106,7 +106,7 @@ const GoodsDetailPage: React.FC = () => {
 
   // 뒤로가기 처리
   const handleGoBack = () => {
-    navigate(-1);
+    navigate("/goods/list");
   };
 
   // 삭제하기 처리

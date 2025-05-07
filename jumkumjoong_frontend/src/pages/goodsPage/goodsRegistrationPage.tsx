@@ -59,7 +59,7 @@ const GoodsRegistrationPage: React.FC = () => {
       return {
         title: editItem.title,
         description: editItem.description,
-        price: editItem.price,
+        price: editItem.price / 10000,
         purchaseDate: editItem.purchaseDate,
         grades: editItem.grades,
         status: editItem.status,
@@ -218,10 +218,15 @@ const GoodsRegistrationPage: React.FC = () => {
 
         try {
           const goodsId = parseInt(editItem.itemId);
+          console.log("submissionData: ", {
+            ...submissionData,
+            itemId: goodsId,
+          });
           const response = await postGoodsEdit({
             ...submissionData,
             itemId: goodsId,
           });
+          alert("상품 수정이 완료되었습니다.");
           console.log("response: ", response);
           navigate(`/goods/detail/${editItem.itemId}`);
         } catch (error) {
