@@ -22,7 +22,11 @@ import TransactionsPage from "./pages/TransactionPage/TransactionPage";
 import FavoritePage from "./pages/FavoritesPage/FavoritesPage";
 import MyPostsPage from "./pages/userPage/myPostPage";
 import { getUserInfo } from "./api/users";
+
+import ReviewRegisterPage from "./pages/ReviewPage/ReviewRegisterPage";
+
 import { useChatService } from "./poviders/ChatServiceProvider"; // 추가
+
 
 const AppRoutes = () => {
   const navigate = useNavigate();
@@ -67,6 +71,7 @@ const AppRoutes = () => {
       <Route path="/user/login" element={<LoginPage />} />
       <Route path="/mypage" element={<MyPage />} />
       <Route path="/reviews" element={<ReviewListPage />} />
+      <Route path="/reviews/register" element={<ReviewRegisterPage />} />
       <Route path="/transactions" element={<TransactionsPage />} />
       <Route path="/favorites" element={<FavoritePage />} />
       <Route path="/my-posts" element={<MyPostsPage />} />
