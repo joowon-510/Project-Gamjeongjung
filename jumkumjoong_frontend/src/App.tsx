@@ -1,12 +1,12 @@
 // src/App.tsx
 import { BrowserRouter as Router } from "react-router-dom";
-import AppRoutes from "./AppRoutes"; // 인증 + 라우팅 처리
+import AppRoutes from "./AppRoutes";
 import ChatProvider from "./contexts/ChatContext";
 import { ChatServiceProvider } from "./poviders/ChatServiceProvider";
 
 function App() {
   return (
-    <ChatServiceProvider websocketUrl="ws://115.85.181.195:8080/ws">
+    <ChatServiceProvider websocketUrl="http://localhost:8080/api/ws">
       <ChatProvider>
         <Router>
           <AppRoutes />
