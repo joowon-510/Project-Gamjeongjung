@@ -4,14 +4,24 @@ import { useParams, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsImage from "../../components/goods/GoodsImage";
 import GoodsStatus from "../../components/goods/GoodsStatus";
-// import { getGoodsDetail } from "../../services/goodsService";
-import { GoodsDetailProps } from "../../components/goods/GoodsItem";
-import { getGoodsDetail, postGoodsFavorites } from "../../api/goods";
+import {
+  GoodsDetailProps,
+  GoodsItemDetailProps,
+} from "../../components/goods/GoodsItem";
+import {
+  deleteGoods,
+  getGoodsDetail,
+  postGoodsFavorites,
+} from "../../api/goods";
 
 import Heart from "../../assets/Heart.svg";
 import HeartEmpty from "../../assets/HeartEmpty.svg";
 
-import { useWishItemStore, WishItemState } from "../../stores/useUserStore";
+import {
+  useWishItemStore,
+  WishItemState,
+  useAuthStore,
+} from "../../stores/useUserStore";
 import { formatDateManually } from "../../utils/dateFormatter";
 
 const GoodsDetailPage: React.FC = () => {
@@ -20,6 +30,8 @@ const GoodsDetailPage: React.FC = () => {
   const [goods, setGoods] = useState<GoodsDetailProps | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { nickname } = useAuthStore();
+  const [edit, setEdit] = useState(false);
 
   // 상품 평점 (하드코딩)
   const [rating] = useState("4.5");
@@ -56,11 +68,12 @@ const GoodsDetailPage: React.FC = () => {
         console.log(goodsData);
 
         if (goodsData) {
-          setGoods(goodsData.data.body);
-          const exits = goodsData.data.body.isFavorite;
+          const item = goodsData.data.body;
+          setGoods(item);
+          // const exits = goodsData.data.body.isFavorite;
           console.log("setGoods: ", goods);
 
-          setFavorite(exits);
+          setFavorite(item.isFavorite);
         } else {
           setError("상품을 찾을 수 없습니다.");
         }
@@ -75,9 +88,41 @@ const GoodsDetailPage: React.FC = () => {
     loadGoodsDetail();
   }, [itemId]);
 
+  useEffect(() => {
+    if (goods?.userName && nickname === goods.userName) {
+      setEdit(true);
+    }
+  }, [goods, nickname]);
+
   // 뒤로가기 처리
   const handleGoBack = () => {
     navigate(-1);
+  };
+
+  // 삭제하기 처리
+  const handleDelete = async () => {
+    try {
+      if (!itemId) {
+        console.error("itemId가 없습니다.");
+        return;
+      }
+      const goodsId = parseInt(itemId, 10);
+      const response = await deleteGoods(goodsId);
+      if (response.data.status_code === 200) {
+        alert("삭제가 완료되었습니다.");
+        navigate("/goods/list");
+      }
+    } catch (error) {
+      console.log();
+    }
+  };
+
+  // 수정하기 처리
+  const handleEdit = async () => {
+    if (goods?.item) {
+      navigate(`/goods/register`, { state: { ...goods.item, itemId } });
+      // navigate(`/goods/edit/${itemId}`, { state: goods.item });
+    }
   };
 
   // 채팅하기 처리
@@ -131,10 +176,16 @@ const GoodsDetailPage: React.FC = () => {
       if (exists) {
         removeItem(wishItem.itemId);
         console.log("찜 해제 요청 보내는 중...");
+        console.log("removeItem: ", items);
       } else {
         console.log("찜 추가 요청 보내는 중...");
-        await postGoodsFavorites(goodsId);
-        addItem(wishItem);
+        // const exists = items.some((item) => item.itemId === goodsId);
+        // console.log("exists: ", exists);
+        if (!exists) {
+          await postGoodsFavorites(goodsId);
+          addItem(wishItem);
+          console.log("wishItem: ", items);
+        }
       }
     } catch (error) {
       console.log("찜 요청 실패: ", error);
@@ -185,6 +236,18 @@ const GoodsDetailPage: React.FC = () => {
 
         {/* 판매자 정보 */}
         <div className="p-4 border-b">
+          {edit ? (
+            <div className="mb-3 flex justify-end ml-3 gap-4">
+              <button className=" text-second underline" onClick={handleEdit}>
+                수정
+              </button>
+              <button className=" text-fifth underline" onClick={handleDelete}>
+                삭제
+              </button>
+            </div>
+          ) : (
+            <></>
+          )}
           <div className="flex justify-between items-center">
             <p className="text-gray-700">판매자: {goods.userName}</p>
             <div className="flex gap-4">
@@ -200,7 +263,8 @@ const GoodsDetailPage: React.FC = () => {
               </div>
               {/* 하트 버튼 (찜하기) - 이미지 위에 겹쳐서 표시 */}
               <button className=" rounded-full" onClick={handleFavoriteClick}>
-                {goods.isFavorite ? (
+                {favorite ? (
+                  // {goods.isFavorite ? (
                   <img src={Heart} alt="heart" className="w-6 h-6" />
                 ) : (
                   <img src={HeartEmpty} alt="HeartEmpty" className="w-6 h-6" />
@@ -276,7 +340,7 @@ const GoodsDetailPage: React.FC = () => {
         />
 
         {/* 하단 여백 (네비게이션 바와 액션 바 높이만큼) */}
-        <div className="h-32"></div>
+        <div className="h-8"></div>
       </div>
 
       {/* 하단 고정 액션 바 */}

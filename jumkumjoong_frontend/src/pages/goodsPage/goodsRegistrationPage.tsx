@@ -1,13 +1,13 @@
 // src/pages/goodsPage/goodsRegistrationPage.tsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import Header from "../../components/common/Header";
 import PriceInput from "../../components/goods/PriceInput";
 
 // Goods 타입 인터페이스 임포트
 import { ItemRegistParams } from "../../types/types";
-import { postGoods } from "../../api/goods";
+import { postGoods, postGoodsEdit } from "../../api/goods";
 import SerialNumberInput from "../../components/goods/SerialNumberInput";
 
 // 구성여부 타입 정의
@@ -21,6 +21,15 @@ interface ExtendedGoodsData extends ItemRegistParams {
 }
 
 const GoodsRegistrationPage: React.FC = () => {
+  const location = useLocation();
+  // const editItem = location.state as
+  //   | (ExtendedGoodsData & { itemId?: string })
+  //   | undefined;
+  const editItem =
+    location.state && "title" in location.state
+      ? (location.state as ExtendedGoodsData & { itemId?: string })
+      : undefined;
+
   const navigate = useNavigate();
   // 현재 년도 구하기
   const currentYear = new Date().getFullYear();
@@ -28,22 +37,58 @@ const GoodsRegistrationPage: React.FC = () => {
     (currentYear - i).toString()
   );
 
-  const [formData, setFormData] = useState<ExtendedGoodsData>({
-    title: "",
-    description: "",
-    price: 0, // This is causing the error
-    // images: [],
-    purchaseDate: "",
-    grades: true,
-    status: true,
-    configuration: 0, // 구성품 0: 풀박 / 1: 일부 / 2: 단품
-    scratchesStatus: "",
-    createdAt: "",
-    serialNumber: "",
+  // const [formData, setFormData] = useState<ExtendedGoodsData>({
+  //   title: location.state.title,
+  //   description: location.state.description,
+  //   price: location.state.price, // This is causing the error
+  //   // images: [],
+  //   purchaseDate: location.state.purchaseDate,
+  //   grades: location.state.grades,
+  //   status: location.state.status,
+  //   configuration: location.state.configuration, // 구성품 0: 풀박 / 1: 일부 / 2: 단품
+  //   scratchesStatus: location.state.scratchesStatus,
+  //   createdAt: location.state.createdAt,
+  //   serialNumber: location.state.serialNumber,
 
-    purchaseYear: currentYear.toString(),
-    purchaseMonth: "0",
+  //   purchaseYear: currentYear.toString(),
+  //   purchaseMonth: "0",
+  // });
+
+  const [formData, setFormData] = useState<ExtendedGoodsData>(() => {
+    if (editItem) {
+      return {
+        title: editItem.title,
+        description: editItem.description,
+        price: editItem.price,
+        purchaseDate: editItem.purchaseDate,
+        grades: editItem.grades,
+        status: editItem.status,
+        configuration: editItem.configuration,
+        scratchesStatus: editItem.scratchesStatus,
+        createdAt: editItem.createdAt,
+        serialNumber: editItem.serialNumber,
+        purchaseYear:
+          editItem.purchaseDate?.split("-")[0] || currentYear.toString(),
+        purchaseMonth: editItem.purchaseDate?.split("-")[1] || "0",
+      };
+    } else {
+      return {
+        title: "",
+        description: "",
+        price: 0,
+        purchaseDate: "",
+        grades: true,
+        status: true,
+        configuration: 0,
+        scratchesStatus: "",
+        createdAt: "",
+        serialNumber: "",
+        purchaseYear: currentYear.toString(),
+        purchaseMonth: "0",
+      };
+    }
   });
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // 입력 필드 변경 처리
@@ -168,15 +213,32 @@ const GoodsRegistrationPage: React.FC = () => {
         serialNumber: formData.serialNumber,
       };
       console.log("submission: ", submissionData);
+      if (editItem && editItem.itemId) {
+        // TODO: 수정 API 호출 (예: await putGoods(itemId, submissionData))
 
-      // const response = await registerGoods(submissionData);
-      const response = await postGoods(submissionData);
+        try {
+          const goodsId = parseInt(editItem.itemId);
+          const response = await postGoodsEdit({
+            ...submissionData,
+            itemId: goodsId,
+          });
+          console.log("response: ", response);
+          navigate(`/goods/detail/${editItem.itemId}`);
+        } catch (error) {
+          console.log("상품 상세 수정 실패 : ", error);
+        }
+      } else {
+        // await postGoods(submissionData);
+        // const response = await registerGoods(submissionData);
+        const response = await postGoods(submissionData);
 
-      console.log("등록된 상품 정보:", response);
+        console.log("등록된 상품 정보:", response);
 
-      // 성공 시 상품 목록 페이지로 이동
-      alert("상품이 등록되었습니다.");
-      navigate("/goods/list");
+        // if (response.data)
+        // 성공 시 상품 목록 페이지로 이동
+        alert("상품이 등록되었습니다.");
+        navigate("/goods/list");
+      }
     } catch (error) {
       console.error("상품 등록 오류:", error);
       alert("상품 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
@@ -419,7 +481,8 @@ const GoodsRegistrationPage: React.FC = () => {
           disabled={isLoading}
           className="col-span-4 flex-1 py-3 bg-second text-white font-medium rounded-md"
         >
-          {isLoading ? "등록 중..." : "등록하기"}
+          {/* {isLoading ? "등록 중..." : "등록하기"} */}
+          {editItem ? "수정하기" : isLoading ? "등록 중..." : "등록하기"}
         </button>
       </div>
 

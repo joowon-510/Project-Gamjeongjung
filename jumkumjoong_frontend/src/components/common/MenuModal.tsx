@@ -127,10 +127,7 @@ export default function MenuModal({ onClose }: MenuModalProps) {
         </div>
         {/* 내정보 */}
         <div className="flex flex-col gap-4">
-          <div
-            className="w-fill h-[44px] bg-fourth/70 justify-center content-center rounded-md"
-            onClick={() => {}}
-          >
+          <div className="w-fill h-[44px] bg-fourth/70 justify-center content-center rounded-md">
             <p className="ml-4">내 정보</p>
           </div>
           <div className="mx-2 flex flex-col gap-3 ">

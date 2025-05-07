@@ -4,11 +4,12 @@ import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsItem from "../../components/goods/GoodsItem";
 import { getGoodsFavorites } from "../../api/goods";
-import { useAuthStore } from "../../stores/useUserStore";
+import { useAuthStore, useWishItemStore } from "../../stores/useUserStore";
 
 const FavoritePage: React.FC = () => {
   const userInfo = useAuthStore();
   const [favoriteItems, setFavoriteItems] = useState<any>([]);
+  const { items, addItem, removeItem } = useWishItemStore();
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -39,8 +40,8 @@ const FavoritePage: React.FC = () => {
 
       {/* 찜한 상품 목록 */}
       <ul className="divide-y divide-gray-200">
-        {favoriteItems.length > 0 ? (
-          [...favoriteItems]
+        {items.length > 0 ? (
+          [...items]
 
             .sort(
               (a, b) =>

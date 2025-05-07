@@ -23,7 +23,7 @@ import FavoritePage from "./pages/FavoritesPage/FavoritesPage";
 import MyPostsPage from "./pages/userPage/myPostPage";
 import { getUserInfo } from "./api/users";
 import ReviewRegisterPage from "./pages/ReviewPage/ReviewRegisterPage";
-import MenuModal from "./components/common/MenuModal";
+import GoodsEditPage from "./pages/goodsPage/goodsEditPage";
 
 const AppRoutes = () => {
   const navigate = useNavigate();
@@ -65,6 +65,7 @@ const AppRoutes = () => {
       <Route path="/goods/list" element={<GoodsListPage />} />
       <Route path="/goods/detail/:itemId" element={<GoodsDetailPage />} />
       <Route path="/goods/register" element={<GoodsRegistrationPage />} />
+      <Route path="/goods/edit/:itemId" element={<GoodsEditPage />} />
 
       {/* 사용자 관련 페이지 */}
       <Route path="/user/login" element={<LoginPage />} />
