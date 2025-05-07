@@ -14,7 +14,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   return (
     <Link
       to={to}
-      className="absolute right-4 bottom-[116px] bg-second text-white font-semibold rounded-full w-14 h-14 flex items-center justify-center shadow-lg"
+      className="z-10 absolute right-4 bottom-[116px] bg-second text-white font-semibold rounded-full w-14 h-14 flex items-center justify-center shadow-lg"
     >
       {icon}
     </Link>

@@ -4,57 +4,26 @@ import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsItem from "../../components/goods/GoodsItem";
 import { getGoodsFavorites } from "../../api/goods";
-import { useAuthStore, useWishItemStore } from "../../stores/useUserStore";
+import { useAuthStore } from "../../stores/useUserStore";
 
 const FavoritePage: React.FC = () => {
   const userInfo = useAuthStore();
-  const { items, addItem, removeItem } = useWishItemStore();
-  // const [favoriteItems, setFavoriteItems] = useState<any>([]);
-  // 목업 데이터 - 실제 구현에서는 API 호출이나 상태 관리를 통해 가져와야 함
-  // const favoriteItems = [
-  //   {
-  //     id: 1,
-  //     title: "갤럭5(S급) 팝니다",
-  //     price: "96만원",
-  //     time: "2시간전",
-  //     seller: "재드래곤",
-  //     imageUrl: "/path/to/galaxy5.jpg",
-  //     isFavorite: true,
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "맥북pro 팔아용",
-  //     price: "96만원",
-  //     time: "16시간전",
-  //     seller: "AI의신예훈",
-  //     imageUrl: "/path/to/macbook.jpg",
-  //     isFavorite: true,
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "갤럭5(S급) 팝니다",
-  //     price: "96만원",
-  //     time: "1일전",
-  //     seller: "AI의신예훈",
-  //     imageUrl: "/path/to/galaxy5_2.jpg",
-  //     isFavorite: true,
-  //   },
-  // ];
+  const [favoriteItems, setFavoriteItems] = useState<any>([]);
 
-  // useEffect(() => {
-  //   const fetchFavorites = async () => {
-  //     try {
-  //       const data = await getGoodsFavorites(); // ✅ 비동기 처리
-  //       setFavoriteItems(data);
-  //       console.log("찜한 상품 목록:", data);
-  //     } catch (error) {
-  //       console.log("찜 목록 로딩 실패:", error);
-  //       setFavoriteItems([]); // 에러 시 비워주기
-  //     }
-  //   };
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const data = await getGoodsFavorites(); // ✅ 비동기 처리
+        setFavoriteItems(data);
+        console.log("찜한 상품 목록:", data);
+      } catch (error) {
+        console.log("찜 목록 로딩 실패:", error);
+        setFavoriteItems([]); // 에러 시 비워주기
+      }
+    };
 
-  //   fetchFavorites();
-  // }, []);
+    fetchFavorites();
+  }, []);
 
   return (
     <div className="text-first min-h-screen pb-16">
@@ -70,8 +39,8 @@ const FavoritePage: React.FC = () => {
 
       {/* 찜한 상품 목록 */}
       <ul className="divide-y divide-gray-200">
-        {items.length > 0 ? (
-          [...items]
+        {favoriteItems.length > 0 ? (
+          [...favoriteItems]
 
             .sort(
               (a, b) =>
