@@ -20,7 +20,7 @@ public class AESUtil {
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, keySpec);
             byte[] encrypted = cipher.doFinal(value.getBytes());
-            return Base64.getEncoder().encodeToString(encrypted);
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(encrypted);
         } catch (Exception e) {
             throw new RuntimeException("암호화 에러", e);
         }
@@ -31,7 +31,7 @@ public class AESUtil {
             SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), ALGORITHM);
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, keySpec);
-            byte[] decoded = Base64.getDecoder().decode(encryptedValue);
+            byte[] decoded = Base64.getUrlDecoder().decode(encryptedValue);
             byte[] decrypted = cipher.doFinal(decoded);
             return new String(decrypted);
         } catch (Exception e) {

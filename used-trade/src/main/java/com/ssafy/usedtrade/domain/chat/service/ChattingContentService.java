@@ -18,7 +18,7 @@ public class ChattingContentService {
     public void saveMessage(ChatMessageDto chatMessageDto) {
         chattingContentRepository.save(
                 ChattingContent.builder()
-                        .userId(Integer.parseInt(aesUtil.decrypt(chatMessageDto.sender())))
+                        .userId(Integer.parseInt(chatMessageDto.sender()))
                         .chattingList(
                                 ChattingList.builder()
                                         .id(Integer.parseInt(aesUtil.decrypt(chatMessageDto.roomId())))

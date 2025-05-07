@@ -63,22 +63,21 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 handleConnect(accessor);
             }
             case SEND -> {
-                message = handleSend(accessor, message);
+                handleSend(accessor, message);
             }
             case DISCONNECT -> {
                 handleDisconnect(accessor);
             }
         }
+
         return message;
     }
 
     private void handleDisconnect(StompHeaderAccessor accessor) {
         log.info("Disconnect({})", accessor.getSessionId());
-
-        // TODO: session delete
     }
 
-    private Message<?> handleSend(StompHeaderAccessor accessor, Message<?> message) {
+    private void handleSend(StompHeaderAccessor accessor, Message<?> message) {
         log.info("Send({})", accessor.getSessionId());
 
         // payload → JSON string으로 캐스팅 (보통 byte[] or String으로 들어옴)
@@ -126,8 +125,6 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                                 .messageId(String.valueOf(chatMessageDto.createdAt()))
                                 .timestamp(chatMessageDto.createdAt())
                                 .build());
-
-                return message;
             }
             case "RECEIVE" -> {
                 ChatReadDto chatReadDto =
@@ -150,12 +147,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 );
 
                 log.info("receive");
-
-                return message;
             }
         }
-
-        return null;
     }
 
     private void handleConnect(StompHeaderAccessor accessor) {
@@ -187,5 +180,3 @@ public class StompChannelInterceptor implements ChannelInterceptor {
         }
     }
 }
-
-
