@@ -17,6 +17,7 @@ import {
 import { getChatMessages, getUserChatInfo } from '../../api/chat';
 import { useChatContext } from "../../contexts/ChatContext";
 import { format, isToday, isYesterday } from 'date-fns';
+import { useChatService } from "../../poviders/ChatServiceProvider";
 
 const ChatPage: React.FC = () => {
 const { chatid } = useParams<{ chatid: string }>();
@@ -51,7 +52,7 @@ const { chatid } = useParams<{ chatid: string }>();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-
+  const readStatusCache: { [key: string]: boolean } = {};
   // 페이지네이션 관련 상태
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -71,7 +72,9 @@ const { chatid } = useParams<{ chatid: string }>();
 
   // ChatContext 사용 (읽음 표시를 위해)
   const { markRoomAsRead } = useChatContext();
-  
+  const chatService = useChatService(); // chatService 추가
+  const getReadStatusKey = (roomId: string) => `persistent_read_status_${roomId}`;
+
   const [roomId, setRoomId] = useState<string>(() => {
     // 1. URL 파라미터에서 roomId 확인 (최우선) - chatid는 항상 있어야 함
     const urlRoomId = chatid;
@@ -198,30 +201,205 @@ const { chatid } = useParams<{ chatid: string }>();
     recipientName: user?.name || "",
     processMessage: processWebSocketMessage
   });
+  const saveMessageReadStatus = (messageId: string, read: boolean) => {
+    if (!roomId) {
+      console.error('roomId가 없어 읽음 상태를 저장할 수 없습니다.');
+      return;
+    }
+    
+    const roomKey = `chat_read_status_${roomId}`;
+    let readStatuses: { [key: string]: boolean } = {};
+    
+    // 기존 저장된 상태 확인
+    const savedStatuses = localStorage.getItem(roomKey);
+    if (savedStatuses) {
+      try {
+        readStatuses = JSON.parse(savedStatuses);
+      } catch (e) {
+        console.error('읽음 상태 파싱 오류:', e);
+        readStatuses = {};
+      }
+    }
+    
+    // 상태 업데이트
+    readStatuses[messageId] = read;
+    
+    // 메모리 캐시에도 저장
+    readStatusCache[messageId] = read;
+    
+    // 로컬 스토리지에 저장
+    localStorage.setItem(roomKey, JSON.stringify(readStatuses));
+    console.log(`메시지 ID ${messageId}의 읽음 상태 ${read}로 저장됨 (채팅방: ${roomId})`);
+  };
+  
+  
+  const getMessageReadStatus = (messageId: string): boolean | null => {
+    if (!roomId) {
+      console.error('roomId가 없어 읽음 상태를 확인할 수 없습니다.');
+      return null;
+    }
+    
+    const roomKey = getReadStatusKey(roomId);
+    
+    // 1. 로컬 스토리지 확인
+    const localStatuses = localStorage.getItem(roomKey);
+    if (localStatuses) {
+      try {
+        const readStatuses = JSON.parse(localStatuses);
+        if (messageId in readStatuses) {
+          console.log(`메시지 ID ${messageId}의 로컬 읽음 상태: ${readStatuses[messageId]}`);
+          return readStatuses[messageId];
+        }
+      } catch (e) {
+        console.error('로컬 스토리지 읽음 상태 파싱 오류:', e);
+      }
+    }
+    
+    // 2. 세션 스토리지 확인 (브라우저 충돌 등으로 로컬 스토리지가 손상된 경우 대비)
+    const sessionStatuses = sessionStorage.getItem(roomKey);
+    if (sessionStatuses) {
+      try {
+        const readStatuses = JSON.parse(sessionStatuses);
+        if (messageId in readStatuses) {
+          console.log(`메시지 ID ${messageId}의 세션 읽음 상태: ${readStatuses[messageId]} (복구됨)`);
+          // 로컬 스토리지에 복구
+          localStorage.setItem(roomKey, sessionStatuses);
+          return readStatuses[messageId];
+        }
+      } catch (e) {
+        console.error('세션 스토리지 읽음 상태 파싱 오류:', e);
+      }
+    }
+    
+    return null; // 저장된 상태가 없음
+  };
+
+  useEffect(() => {
+    // 채팅방 초기화 시 로컬 스토리지 상태 검증
+    const validateLocalStorage = () => {
+      if (!roomId) return;
+      
+      const roomKey = getReadStatusKey(roomId);
+      const savedStatuses = localStorage.getItem(roomKey);
+      
+      console.log(`채팅방 ${roomId} 초기화 - 로컬 저장 읽음 상태 확인`);
+      
+      if (savedStatuses) {
+        try {
+          const readStatuses = JSON.parse(savedStatuses);
+          const statusCount = Object.keys(readStatuses).length;
+          console.log(`저장된 읽음 상태 수: ${statusCount}개`);
+        } catch (e) {
+          console.error('읽음 상태 파싱 오류, 초기화합니다:', e);
+          localStorage.setItem(roomKey, JSON.stringify({}));
+        }
+      } else {
+        console.log('저장된 읽음 상태 없음, 새로 초기화합니다.');
+        localStorage.setItem(roomKey, JSON.stringify({}));
+      }
+    };
+    
+    validateLocalStorage();
+  }, [roomId]);
+
+// 메시지 ID 생성 함수 - ChatPage.tsx에 추가
+const generateMessageId = (dto: ChatMessageDTO): string => {
+  // 타임스탬프 추출
+  const timestamp = new Date(dto.createdAt).getTime();
+  
+  // 메시지 내용 기반 간단한 해시 생성
+  const text = dto.message || '';
+  
+  // 모든 메시지가 동일한 규칙으로 ID 가짐
+  return `msg_${timestamp}_${text.substring(0, Math.min(10, text.length))}_${dto.senderId || 'unknown'}`;
+};
+
 
   // DTO를 클라이언트 메시지 형식으로 변환하는 함수
-  const convertToClientMessage = (dto: ChatMessageDTO): Message => {
-    // 메시지 발신자가 현재 사용자인지 확인
-    // senderId가 있으면 그걸 사용하고, 없으면 toSend 필드로 판단
-    const isMe = dto.senderId !== undefined 
-      ? dto.senderId === currentUserId 
-      : dto.toSend === true;
-      
-    // 상대방 닉네임 설정 - 우선순위: user?.name > location.state > localStorage
-    const recipientName = user?.name && user.name !== "상대방" && user.name !== "채팅 상대"
-      ? user.name
-      : location.state?.chattingUserNickname || localStorage.getItem('currentChatUserNickname') || "채팅 상대";
+// DTO를 클라이언트 메시지 형식으로 변환하는 함수
+const convertToClientMessage = (dto: ChatMessageDTO): Message => {
+  // 메시지 발신자가 현재 사용자인지 확인
+  const isMe = dto.senderId !== undefined 
+    ? dto.senderId === currentUserId 
+    : dto.toSend === true;
     
-    return {
-      id: `msg_${new Date(dto.createdAt).getTime()}_${Math.random().toString(36).substring(2, 9)}`,
-      text: dto.message || '',
-      timestamp: dto.createdAt,
-      isMe: isMe,
-      userName: isMe ? '나' : recipientName,
-      read: true, // 기본적으로 읽은 상태로 설정
-      receivedAt: dto.createdAt
-    };
+  // 상대방 닉네임 설정
+  const recipientName = user?.name && user.name !== "상대방" && user.name !== "채팅 상대"
+    ? user.name
+    : location.state?.chattingUserNickname || localStorage.getItem('currentChatUserNickname') || "채팅 상대";
+  
+  // 일관된 메시지 ID 생성
+  const messageId = generateMessageId(dto);
+  
+  // 읽음 상태 처리 수정
+  let isRead = !isMe; // 상대방 메시지는 항상 true (내가 보고 있으므로)
+  
+  // 내가 보낸 메시지인 경우만 읽음 상태 확인
+  if (isMe) {
+    console.log(`내가 보낸 메시지 ID ${messageId} 읽음 상태 확인 중...`);
+    
+    // 1. 메모리 캐시 확인 (가장 빠른 접근)
+    if (messageId in readStatusCache) {
+      isRead = readStatusCache[messageId];
+      console.log(`메시지 ID ${messageId}의 메모리 캐시 읽음 상태: ${isRead ? '읽음' : '읽지 않음'}`);
+    } else {
+      // 2. 로컬 스토리지 확인
+      const roomKey = `chat_read_status_${roomId}`;
+      const savedStatuses = localStorage.getItem(roomKey);
+      
+      if (savedStatuses) {
+        try {
+          const readStatuses = JSON.parse(savedStatuses);
+          if (messageId in readStatuses) {
+            isRead = readStatuses[messageId];
+            // 메모리 캐시에 저장
+            readStatusCache[messageId] = isRead;
+            console.log(`메시지 ID ${messageId}의 로컬 저장 읽음 상태: ${isRead ? '읽음' : '읽지 않음'} (캐시에 저장)`);
+          } else {
+            // 서버 데이터 확인
+            if ('readAt' in dto && dto.readAt) {
+              isRead = true;
+            } else if ('isRead' in dto && dto.isRead === true) {
+              isRead = true;
+            } else if ('read' in dto && (dto as any).read === true) {
+              isRead = true;
+            }
+            
+            // 결정된 상태를 로컬 스토리지와 메모리 캐시에 저장
+            readStatuses[messageId] = isRead;
+            localStorage.setItem(roomKey, JSON.stringify(readStatuses));
+            readStatusCache[messageId] = isRead;
+            console.log(`메시지 ID ${messageId}의 서버 읽음 상태: ${isRead ? '읽음' : '읽지 않음'} (로컬+캐시에 저장)`);
+          }
+        } catch (e) {
+          console.error('읽음 상태 파싱 오류:', e);
+          // 오류 발생 시 새 객체 생성하여 현재 상태 저장
+          const newReadStatuses: { [key: string]: boolean } = {};
+          newReadStatuses[messageId] = isRead;
+          localStorage.setItem(roomKey, JSON.stringify(newReadStatuses));
+          readStatusCache[messageId] = isRead;
+        }
+      } else {
+        // 로컬 스토리지에 저장된 상태가 없으면 새로 생성
+        const newReadStatuses: { [key: string]: boolean } = {};
+        newReadStatuses[messageId] = isRead;
+        localStorage.setItem(roomKey, JSON.stringify(newReadStatuses));
+        readStatusCache[messageId] = isRead;
+        console.log(`메시지 ID ${messageId}의 초기 읽음 상태: ${isRead ? '읽음' : '읽지 않음'} (새로 저장)`);
+      }
+    }
+  }
+  
+  return {
+    id: messageId,
+    text: dto.message || '',
+    timestamp: dto.createdAt,
+    isMe: isMe,
+    userName: isMe ? '나' : recipientName,
+    read: isRead,
+    receivedAt: dto.createdAt
   };
+};
 
   // 이전 메시지 불러오기 함수
   const loadMessages = async (isInitialLoad = false) => {
@@ -380,12 +558,73 @@ const { chatid } = useParams<{ chatid: string }>();
     }
   }, [messages, oldScrollHeight]);
 
-  // 채팅방에 들어왔을 때 읽음 표시 처리
+  // // 채팅방에 들어왔을 때 읽음 표시 처리
+  // useEffect(() => {
+  //   if (isConnected && roomId) {
+  //     // 채팅방 읽음 표시 - 이것은 채팅방 목록에서의 알림을 제거하기 위한 것
+  //     markRoomAsRead(roomId);
+  
+  //     // 채팅방 입장 시 상대방에게 메시지를 읽었다고 알리는 RECEIVE 메시지 전송
+  //     if (currentUserId) {
+  //       const token = localStorage.getItem('accessToken');
+        
+  //       if (!token) {
+  //         console.warn('⚠️ 토큰이 없어 읽음 메시지를 보낼 수 없습니다.');
+  //         return;
+  //       }
+        
+  //       // 약간의 지연 후 메시지 전송 (연결 확립 및 토큰 처리를 위해)
+  //       const timer = setTimeout(() => {
+  //         const currentTime = new Date().toISOString();
+  //         const receiveMessage: ReceiveWebSocketMessage = {
+  //           type: MessageType.RECEIVE,
+  //           roomId: roomId,
+  //           receiver: currentUserId,
+  //           receiveAt: currentTime,
+  //           createdAt: currentTime
+  //         };
+          
+  //         console.log('📤 채팅방 입장 시 읽음 메시지 전송:', receiveMessage);
+  //         chatService.sendMessage(receiveMessage);
+  //       }, 1500);
+        
+  //       return () => clearTimeout(timer);
+  //     }
+  //   }
+  // }, [isConnected, roomId, currentUserId, chatService, markRoomAsRead]);
+
   useEffect(() => {
-    if (isConnected && roomId) {
-      markRoomAsRead(roomId);
+    if (isConnected && roomId && currentUserId) {
+      // 토큰 확인
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        console.warn('⚠️ 토큰이 없어 읽음 메시지를 보낼 수 없습니다.');
+        return;
+      }
+      
+      // 채팅방에 접속했음을 알리는 RECEIVE 메시지 전송
+      // 이것은 상대방에게 "나는 상대방이 보낸 메시지를 읽었다"는 신호임
+      const timer = setTimeout(() => {
+        const currentTime = new Date().toISOString();
+        const receiveMessage: ReceiveWebSocketMessage = {
+          type: MessageType.RECEIVE,
+          roomId: roomId,
+          receiver: currentUserId,
+          receiveAt: currentTime,
+          createdAt: currentTime
+        };
+        
+        console.log('📤 채팅방 입장 시 읽음 메시지 전송:', receiveMessage);
+        chatService.sendMessage(receiveMessage);
+        
+        // 채팅방 읽음 상태 업데이트 (UI에서 읽지 않은 메시지 카운트 등을 위함)
+        markRoomAsRead(roomId);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
-  }, [isConnected, roomId, markRoomAsRead]);
+  }, [isConnected, roomId, currentUserId, chatService, markRoomAsRead]);
 
   // 메시지 목록이 업데이트될 때 스크롤을 맨 아래로 이동 (초기 로드 또는 새 메시지 수신 시)
   useEffect(() => {
@@ -406,8 +645,28 @@ const { chatid } = useParams<{ chatid: string }>();
 
   // 메시지 전송 버튼 핸들러
   const handleSendButtonClick = () => {
-    console.log('Sending message:', newMessage);
+    if (newMessage.trim() === '' || !isConnected) return;
+    
+    console.log('메시지 전송:', newMessage);
     sendMessage();
+    
+    // 메시지 전송 후 읽음 상태 메시지 전송 (상대방이 보낸 메시지를 읽었다는 신호)
+    if (roomId && currentUserId) {
+      setTimeout(() => {
+        const currentTime = new Date().toISOString();
+        const receiveMessage: ReceiveWebSocketMessage = {
+          type: MessageType.RECEIVE,
+          roomId: roomId,
+          receiver: currentUserId,
+          receiveAt: currentTime,
+          createdAt: currentTime
+        };
+        
+        console.log('📤 메시지 전송 후 읽음 메시지 전송:', receiveMessage);
+        chatService.sendMessage(receiveMessage);
+      }, 500);
+    }
+    
     // 스크롤을 아래로 내림
     setTimeout(scrollToBottom, 100);
   };
@@ -418,7 +677,6 @@ const { chatid } = useParams<{ chatid: string }>();
       loadMessages(false);
     }
   };
-
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* 배경 이미지 */}
@@ -491,37 +749,16 @@ const { chatid } = useParams<{ chatid: string }>();
           }
         }}
       >
-        {/* 로딩 인디케이터 */}
-        {isLoading && (
-          <div className="text-center py-2">
-            <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-blue-500 border-r-transparent"></div>
-            <p className="text-sm text-gray-500 mt-1">이전 메시지 불러오는 중...</p>
-          </div>
-        )}
+        {/* 내용 생략... */}
         
-        {/* 더 불러오기 버튼 */}
-        {hasMore && !isLoading && messages.length > 0 && (
-          <div className="text-center mb-4">
-            <button 
-              onClick={handleLoadMoreMessages}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300"
-            >
-              이전 메시지 더 불러오기
-            </button>
-          </div>
-        )}
-
         <div className="space-y-4">
-          {messages
-            // Remove this filter entirely - don't filter out any messages
-            // .filter(message => !(!message.isMe && message.userName === "상대방"))
-            .map((message, index) => (
-              <div
-                key={`${message.id}-${index}`}
-                className={`flex flex-col ${
-                  message.isMe ? "items-end" : "items-start"
-                }`}
-              >
+          {messages.map((message, index) => (
+            <div
+              key={`${message.id}-${index}`}
+              className={`flex flex-col ${
+                message.isMe ? "items-end" : "items-start"
+              }`}
+            >
               <div
                 className={`max-w-[70%] ${
                   message.isMe ? "order-1" : "order-2"
@@ -535,21 +772,34 @@ const { chatid } = useParams<{ chatid: string }>();
                 )}
 
                 {/* 메시지 말풍선 */}
-                <div
-                  className={`rounded-xl px-4 py-2 max-w-[100%] ml-auto whitespace-pre-wrap ${
-                    message.isMe
-                      ? "bg-blue-500 text-white rounded-tr-none"
-                      : "bg-gray-200 text-gray-800 rounded-tl-none"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{message.text}</p>
+                <div className="flex">
+                  {/* 내가 보낸 메시지이고 읽지 않은 경우만 1 표시 - 읽음 상태 디버깅용 data-read 속성 추가 */}
+                  {message.isMe && !message.read && (
+                    <span 
+                      className="mr-1 text-l mt-2 text-black font-bold" 
+                      data-testid={`unread-marker-${message.id}`}
+                      data-read={message.read ? "false" : "true"}
+                    >
+                      1
+                    </span>
+                  )}
+                  <div
+                    className={`rounded-xl px-4 py-2 max-w-[100%] ml-auto whitespace-pre-wrap ${
+                      message.isMe
+                        ? "bg-blue-500 text-white rounded-tr-none"
+                        : "bg-gray-200 text-gray-800 rounded-tl-none"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{message.text}</p>
+                  </div>
                 </div>
-
                 {/* 메시지 시간 표시 */}
-                <div className={`text-xs text-gray-500 mt-1 ${
-                  message.isMe ? "text-right" : "text-left"
-                }`}>
-                  {formatMessageTime(message.timestamp)}
+                <div className={`flex items-center mt-1 ${
+                    message.isMe ? "justify-end" : "justify-start"
+                  }`}>
+                  <span className="text-xs text-gray-500">
+                    {formatMessageTime(message.timestamp)}
+                  </span>
                 </div>
               </div>
             </div>

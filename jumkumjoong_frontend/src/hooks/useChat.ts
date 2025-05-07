@@ -103,7 +103,7 @@ export const useChat = ({
           console.log('업데이트된 메시지 배열:', updatedMessages);
           return updatedMessages;
         });
-
+    
         // 메시지 수신 확인 메시지 전송
         const receiveConfirmation: ReceiveWebSocketMessage = {
           type: MessageType.RECEIVE,
@@ -112,15 +112,85 @@ export const useChat = ({
           createdAt: new Date().toISOString(),
           receiveAt: new Date().toISOString()
         };
-
+    
         console.log('메시지 수신 확인 전송:', receiveConfirmation);
         chatService.sendMessage(receiveConfirmation);
-
+    
         // 마지막 메시지 컨텍스트에 업데이트
         updateLastReceivedMessage(message.roomId, message);
       } else if (message.type === MessageType.RECEIVE) {
-        // 메시지 읽음 처리 로직 (필요한 경우 추가)
-        console.log('메시지 수신 확인:', message);
+        // RECEIVE 타입 메시지 처리
+        console.log('메시지 읽음 확인 수신:', message);
+        const receiveMessage = message as ReceiveWebSocketMessage;
+        
+        // 읽음 시간 추출
+        const receiveTime = new Date(receiveMessage.receiveAt).getTime();
+        
+        // 중요: 상대방이 보낸 RECEIVE 메시지인지 확인
+        // String으로 명시적 변환하여 비교
+        const isSelfReceiveMessage = String(receiveMessage.receiver) === String(userId);
+        
+        // 자신이 보낸 메시지가 아닌 경우만 처리 (상대방이 보낸 읽음 메시지)
+        if (!isSelfReceiveMessage) {
+          console.log('상대방이 보낸 읽음 확인 메시지 처리:', receiveMessage);
+          
+          // 읽음 상태를 로컬 스토리지에 저장하는 함수
+          const saveReadStatus = (chatRoomId: string, msgId: string, read: boolean): void => {
+            const roomKey = `chat_read_status_${chatRoomId}`;
+            let readStatuses: { [key: string]: boolean } = {};
+            
+            // 기존 저장된 상태 확인
+            const savedStatuses = localStorage.getItem(roomKey);
+            if (savedStatuses) {
+              try {
+                readStatuses = JSON.parse(savedStatuses);
+              } catch (e) {
+                console.error('읽음 상태 파싱 오류:', e);
+                readStatuses = {};
+              }
+            }
+            
+            // 상태 업데이트
+            readStatuses[msgId] = read;
+            
+            // 로컬 스토리지에 저장
+            localStorage.setItem(roomKey, JSON.stringify(readStatuses));
+            console.log(`메시지 ID ${msgId}의 읽음 상태 ${read}로 저장됨 (채팅방: ${chatRoomId})`);
+          };
+          
+          // 메시지를 하나씩 확인하여 읽음 처리
+          let hasChanges = false;
+          const updatedMessages: Message[] = [];
+          
+          for (const msg of messages) {
+            // 조건 1: 내가 보낸 메시지이고
+            // 조건 2: 아직 읽지 않은 상태(read가 false)이고
+            // 조건 3: 메시지 시간이 RECEIVE 메시지 시간보다 이전인 경우
+            if (msg.isMe && 
+              msg.read === false && 
+              new Date(msg.timestamp).getTime() <= receiveTime) {
+              
+              console.log(`메시지 읽음 처리: ${msg.id}, 텍스트: "${msg.text.substring(0, 15)}${msg.text.length > 15 ? '...' : ''}"`);
+              
+              // 읽음 상태를 true로 바꾸고 로컬 스토리지에 영구 저장
+              saveReadStatus(receiveMessage.roomId, msg.id, true);
+              
+              // 읽음 처리된 메시지 추가
+              updatedMessages.push({ ...msg, read: true });
+              hasChanges = true;
+            } else {
+              // 변경되지 않은 메시지 추가
+              updatedMessages.push(msg);
+            }
+          }
+          
+          // 메시지 변경이 있는 경우에만 상태 업데이트
+          if (hasChanges) {
+            setMessages(updatedMessages);
+          }
+        } else {
+          console.log('내가 보낸 읽음 확인 메시지 무시:', receiveMessage);
+        }
       }
     };
 
@@ -174,18 +244,48 @@ export const useChat = ({
     
     console.log('메시지 전송 시작:', newMessage);
     
+    // 현재 시간 ISO 문자열
+    const currentTime = new Date().toISOString();
+    
     // 사용자가 입력한 메시지를 먼저 UI에 추가 (로컬 메시지)
     const localMsg: Message = {
-      id: Date.now().toString(), // number를 string으로 변환
+      id: `msg_${Date.now()}_${newMessage.trim().substring(0, Math.min(10, newMessage.trim().length))}_${localStorageUserId}`,
       text: newMessage.trim(),
       isMe: true,
       userName: '나',
-      timestamp: new Date().toISOString(),
-      read: true,
-      receivedAt: new Date().toISOString()
+      timestamp: currentTime,
+      read: false, // 항상 읽지 않은 상태로 시작
+      receivedAt: currentTime
     };
     
     console.log('로컬 UI에 메시지 추가:', localMsg);
+    
+    // 생성된 메시지 ID로 즉시 로컬 스토리지에 읽음 상태(false) 저장
+    const saveMessageReadStatus = (messageId: string, read: boolean) => {
+      const roomKey = `chat_read_status_${roomId}`;
+      let readStatuses: { [key: string]: boolean } = {};
+      
+      // 기존 저장된 상태 확인
+      const savedStatuses = localStorage.getItem(roomKey);
+      if (savedStatuses) {
+        try {
+          readStatuses = JSON.parse(savedStatuses);
+        } catch (e) {
+          console.error('읽음 상태 파싱 오류:', e);
+          readStatuses = {};
+        }
+      }
+      
+      // 상태 업데이트
+      readStatuses[messageId] = read;
+      
+      // 저장
+      localStorage.setItem(roomKey, JSON.stringify(readStatuses));
+      console.log(`메시지 ID ${messageId}의 읽음 상태 ${read}로 저장 (채팅방: ${roomId})`);
+    };
+    
+    // 메시지 ID와 읽음 상태(false) 저장
+    saveMessageReadStatus(localMsg.id, false);
     
     setMessages(prevMessages => [...prevMessages, localMsg]);
     
@@ -195,9 +295,9 @@ export const useChat = ({
       roomId: roomId,
       sender: localStorageUserId,
       message: newMessage.trim(),
-      createdAt: new Date().toISOString()
+      createdAt: currentTime
     };
-
+  
     console.log('웹소켓으로 전송:', messageToSend);
     chatService.sendMessage(messageToSend);
     
@@ -232,6 +332,7 @@ export const useChat = ({
 
   return {
     messages,
+    setMessages,
     newMessage,
     isConnected,
     sendMessage,
