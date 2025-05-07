@@ -22,12 +22,17 @@ import TransactionsPage from "./pages/TransactionPage/TransactionPage";
 import FavoritePage from "./pages/FavoritesPage/FavoritesPage";
 import MyPostsPage from "./pages/userPage/myPostPage";
 import { getUserInfo } from "./api/users";
+
 import ReviewRegisterPage from "./pages/ReviewPage/ReviewRegisterPage";
 import GoodsEditPage from "./pages/goodsPage/goodsEditPage";
+
+import { useChatService } from "./poviders/ChatServiceProvider"; // 추가
+
 
 const AppRoutes = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const chatService = useChatService(); // 추가
 
   const fetchUser = async () => {
     const response = await getUserInfo();
@@ -58,8 +63,8 @@ const AppRoutes = () => {
       {/* <Route path="/menu" element={<MenuModal />} /> */}
 
       {/* 채팅 관련 페이지 */}
-      <Route path="/chat/list" element={<ChatListPage />} />
-      <Route path="/chat/:chatid" element={<ChatPage />} />
+      <Route path="/chatting/list" element={<ChatListPage />} />
+      <Route path="/chatting/:chatid" element={<ChatPage />} />
 
       {/* 상품 관련 페이지 */}
       <Route path="/goods/list" element={<GoodsListPage />} />

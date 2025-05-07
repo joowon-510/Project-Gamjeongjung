@@ -24,6 +24,7 @@ import {
 } from "../../stores/useUserStore";
 import { formatDateManually } from "../../utils/dateFormatter";
 
+import ChatButton from "../../components/chat/chatButton";
 const GoodsDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();
@@ -65,15 +66,24 @@ const GoodsDetailPage: React.FC = () => {
         const goodsId = parseInt(itemId);
         const goodsData = await getGoodsDetail(goodsId);
 
-        console.log(goodsData);
+        console.log("🌐 API 전체 응답:", goodsData);
+        console.log("📦 API 응답 body:", goodsData.data.body);
 
         if (goodsData) {
-          const item = goodsData.data.body;
-          setGoods(item);
-          // const exits = goodsData.data.body.isFavorite;
-          console.log("setGoods: ", goods);
+          // itemId를 명시적으로 설정
+          const updatedGoodsData = {
+            ...goodsData.data.body,
+            item: {
+              ...goodsData.data.body.item,
+              itemId: goodsId, // 라우트의 itemId 사용
+            },
+          };
 
-          setFavorite(item.isFavorite);
+          setGoods(updatedGoodsData);
+          const exits = goodsData.data.body.isFavorite;
+          setFavorite(exits);
+
+          console.log("🔍 업데이트된 상품 데이터:", updatedGoodsData);
         } else {
           setError("상품을 찾을 수 없습니다.");
         }
@@ -221,7 +231,15 @@ const GoodsDetailPage: React.FC = () => {
       </div>
     );
   }
-
+  // GoodsDetailPage 컴포넌트 내부
+  console.log("🔍 상품 상세 데이터:", {
+    goodsData: goods,
+    item: goods.item,
+    itemId: goods.item.itemId,
+    userId: goods.item.userId,
+    userName: goods.userName,
+    itemTitle: goods.item.title,
+  });
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* 스크롤 가능한 컨텐츠 영역 */}
@@ -349,12 +367,18 @@ const GoodsDetailPage: React.FC = () => {
           <span className="text-gray-700 mr-2">가격:</span>
           <span className="text-xl font-bold">{goods.item.price}</span>
         </div>
-        <button
-          onClick={handleChat}
-          className="px-6 py-2 bg-blue-400 text-white font-medium rounded-md"
-        >
-          채팅하기
-        </button>
+        <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
+          <div className="flex-1">
+            <span className="text-gray-700 mr-2">가격:</span>
+            <span className="text-xl font-bold">{goods.item.price}</span>
+          </div>
+          <ChatButton
+            sellerId={goods.item.userId}
+            itemId={goods.item.itemId || parseInt(itemId!, 10)} // 명시적으로 itemId 전달
+            sellerName={goods.userName}
+            itemTitle={goods.item.title}
+          />
+        </div>
       </div>
 
       {/* 하단 네비게이션 바 */}

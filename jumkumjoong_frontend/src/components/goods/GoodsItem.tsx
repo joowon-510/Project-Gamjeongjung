@@ -22,6 +22,7 @@ export interface GoodsItemDetailProps {
   title: string;
   userId: number;
 }
+
 export interface GoodsDetailProps {
   userName: string;
   item: GoodsItemDetailProps;
