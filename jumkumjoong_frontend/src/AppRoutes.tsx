@@ -24,6 +24,7 @@ import MyPostsPage from "./pages/userPage/myPostPage";
 import { getUserInfo } from "./api/users";
 
 import ReviewRegisterPage from "./pages/ReviewPage/ReviewRegisterPage";
+import GoodsEditPage from "./pages/goodsPage/goodsEditPage";
 
 import { useChatService } from "./poviders/ChatServiceProvider"; // 추가
 
@@ -58,6 +59,9 @@ const AppRoutes = () => {
       {/* 로그인 페이지 */}
       <Route path="/login" element={<LoginPage />} />
 
+      {/* 메뉴 모달 (임시) */}
+      {/* <Route path="/menu" element={<MenuModal />} /> */}
+
       {/* 채팅 관련 페이지 */}
       <Route path="/chatting/list" element={<ChatListPage />} />
       <Route path="/chatting/:chatid" element={<ChatPage />} />
@@ -66,6 +70,7 @@ const AppRoutes = () => {
       <Route path="/goods/list" element={<GoodsListPage />} />
       <Route path="/goods/detail/:itemId" element={<GoodsDetailPage />} />
       <Route path="/goods/register" element={<GoodsRegistrationPage />} />
+      <Route path="/goods/edit/:itemId" element={<GoodsEditPage />} />
 
       {/* 사용자 관련 페이지 */}
       <Route path="/user/login" element={<LoginPage />} />

@@ -11,6 +11,10 @@ export interface ItemRegistParams {
   serialNumber: string;
 }
 
+export interface ItemEditParams extends ItemRegistParams {
+  itemId: number;
+}
+
 export interface ItemsParams {
   userId: number;
   title: string;

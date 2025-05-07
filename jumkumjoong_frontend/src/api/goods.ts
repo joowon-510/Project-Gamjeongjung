@@ -2,7 +2,7 @@
 import axios from "axios";
 import { GoodsItemProps } from "../components/goods/GoodsItem";
 import { axiosInstance } from "./axios";
-import { ItemRegistParams } from "../types/types";
+import { ItemEditParams, ItemRegistParams } from "../types/types";
 
 // API 기본 URL 설정 (환경에 맞게 변경)
 const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
@@ -84,11 +84,9 @@ export const getGoodsDetail = async (itemId: number): Promise<any> => {
 };
 
 // 상품 수정
-export const postGoodsEdit = async (
-  itemData: ItemRegistParams
-): Promise<any> => {
+export const postGoodsEdit = async (itemData: ItemEditParams): Promise<any> => {
   try {
-    const response = await axiosInstance.post("/items/edit", itemData);
+    const response = await axiosInstance.post("/items/edit-item", itemData);
 
     console.log("상품 수정: ", response);
     return response;
@@ -99,9 +97,11 @@ export const postGoodsEdit = async (
 };
 
 // 상품 삭제
-export const deleteGoods = async (itemName: string): Promise<any> => {
+export const deleteGoods = async (itemId: number): Promise<any> => {
   try {
-    const response = await axiosInstance.delete("/items/delete-item");
+    const response = await axiosInstance.delete("/items/delete-item", {
+      params: { itemId: itemId },
+    });
 
     console.log("상품 삭제: ", response);
     return response;

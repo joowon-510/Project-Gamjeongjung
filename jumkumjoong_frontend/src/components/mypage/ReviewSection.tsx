@@ -25,8 +25,8 @@ const ReviewSection: React.FC = () => {
       </div>
 
       <div className="space-y-3">
-        {reviews.length > 0 ? (
-          reviews.map((review) => (
+        {reviewInfo.content.length > 0 ? (
+          reviewInfo.content.map((review) => (
             <div
               key={review.createdAt}
               className="py-2 border-b flex flex-col gap-2"

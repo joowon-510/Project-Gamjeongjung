@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import ProfileSection from "../../components/mypage/ProfileSection";
-import PriceSection from "../../components/mypage/PriceSection";
+// import PriceSection from "../../components/mypage/PriceSection";
 import ReviewSection from "../../components/mypage/ReviewSection";
 import ActionSection from "../../components/mypage/ActionSection";
 import { useAuthStore } from "../../stores/useUserStore";
