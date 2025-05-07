@@ -12,9 +12,9 @@ import {
   WebSocketMessage,
   MessageType,
   SendWebSocketMessage,
-  ReceiveWebSocketMessage
+  ReceiveWebSocketMessage,
 } from '../../types/chat';
-import { getChatMessages, getUserChatInfo } from '../../api/chat';
+import { getChatMessages, getUserChatInfo,readChatRoom  } from '../../api/chat';
 import { useChatContext } from "../../contexts/ChatContext";
 import { format, isToday, isYesterday } from 'date-fns';
 import { useChatService } from "../../poviders/ChatServiceProvider";
@@ -49,7 +49,9 @@ const { chatid } = useParams<{ chatid: string }>();
       name: finalNickname
     };
   });
-  
+  const hasCheckedReadStatus = useRef(false);
+  const processedRoomIds = useRef(new Set<string>());
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const readStatusCache: { [key: string]: boolean } = {};
@@ -625,6 +627,37 @@ const convertToClientMessage = (dto: ChatMessageDTO): Message => {
       return () => clearTimeout(timer);
     }
   }, [isConnected, roomId, currentUserId, chatService, markRoomAsRead]);
+  
+  useEffect(() => {
+    const markChatAsRead = async () => {
+      if (!roomId) {
+        console.error('❌ roomId가 없어 읽음 상태를 업데이트할 수 없습니다.');
+        return;
+      }
+      
+      try {
+        console.log(`🔍 채팅방 읽음 API 호출 시작: ${roomId}`);
+        const response = await readChatRoom(roomId);
+        
+        console.log('✅ 채팅방 읽음 API 응답:', {
+          status: response.status_code,
+          readTime: response.body
+        });
+        
+        // 응답이 성공이면 채팅방 컨텍스트에도 읽음 상태 업데이트
+        if (response.status_code === 200) {
+          markRoomAsRead(roomId);
+        }
+      } catch (error) {
+        console.error('❌ 채팅방 읽음 API 호출 오류:', error);
+      }
+    };
+    
+    // 컴포넌트 마운트 시 API 호출
+    markChatAsRead();
+    
+    // roomId가 변경될 때마다 API 호출
+  }, [roomId, markRoomAsRead]);
 
   // 메시지 목록이 업데이트될 때 스크롤을 맨 아래로 이동 (초기 로드 또는 새 메시지 수신 시)
   useEffect(() => {
@@ -670,6 +703,103 @@ const convertToClientMessage = (dto: ChatMessageDTO): Message => {
     // 스크롤을 아래로 내림
     setTimeout(scrollToBottom, 100);
   };
+
+  useEffect(() => {
+    const updateMessageReadStatus = async () => {
+      // 이미 처리한 roomId인지 확인
+      if (!roomId || processedRoomIds.current.has(roomId)) {
+        return;
+      }
+      
+      // 로직 실행 전 현재 roomId를 처리 목록에 추가
+      processedRoomIds.current.add(roomId);
+      
+      if (!currentUserId) {
+        console.error('❌ currentUserId가 없어 읽음 상태를 업데이트할 수 없습니다.');
+        return;
+      }
+      
+      try {
+        console.log(`🔍 채팅방 읽음 API 호출 시작 (단 한 번만 실행): ${roomId}`);
+        const response = await readChatRoom(roomId);
+        
+        // API 응답에서 읽음 시간 추출
+        const readTime = response.body;
+        console.log('✅ 상대방 마지막 접속 시간:', readTime);
+        
+        if (response.status_code === 200 && readTime) {
+          // 메시지 로드 확인을 위한 대기
+          // 메시지가 로드되지 않았을 수 있으므로 일정 시간 대기
+          setTimeout(() => {
+            updateMessagesWithReadTime(readTime);
+          }, 500);
+        }
+      } catch (error) {
+        console.error('❌ 채팅방 읽음 상태 업데이트 오류:', error);
+      }
+    };
+    
+    // 메시지 읽음 상태 업데이트 함수 분리
+    const updateMessagesWithReadTime = (readTime: string) => {
+      // 읽음 시간 이전의 내 메시지는 모두 읽음 상태로 변경
+      const readTimeStamp = new Date(readTime).getTime();
+      
+      // 현재 메시지 가져오기 (이 시점에서는 메시지가 로드되어 있어야 함)
+      const currentMessages = messages;
+      if (currentMessages.length === 0) {
+        console.warn('⚠️ 메시지가 아직 로드되지 않았습니다.');
+        return;
+      }
+      
+      // 메시지 배열 업데이트
+      const updatedMessages = currentMessages.map(msg => {
+        // 내가 보낸 메시지이고, 생성 시간이 읽음 시간보다 이전인 경우에만 읽음 처리
+        if (msg.isMe && new Date(msg.timestamp).getTime() <= readTimeStamp) {
+          return { ...msg, read: true };
+        }
+        return msg;
+      });
+      
+      // 업데이트된 메시지로 상태 변경
+      setInitialMessages(updatedMessages);
+      
+      // 로컬 스토리지의 읽음 상태도 업데이트
+      const roomKey = `chat_read_status_${roomId}`;
+      let readStatuses: { [key: string]: boolean } = {};
+      
+      // 기존 저장된 상태 확인
+      const savedStatuses = localStorage.getItem(roomKey);
+      if (savedStatuses) {
+        try {
+          readStatuses = JSON.parse(savedStatuses);
+        } catch (e) {
+          console.error('읽음 상태 파싱 오류:', e);
+          readStatuses = {};
+        }
+      }
+      
+      // 메시지 읽음 상태 업데이트
+      updatedMessages.forEach(msg => {
+        if (msg.isMe && msg.read !== undefined) {
+          readStatuses[msg.id] = msg.read;
+        }
+      });
+      
+      // 업데이트된 읽음 상태 저장
+      localStorage.setItem(roomKey, JSON.stringify(readStatuses));
+      console.log('✅ 로컬 스토리지 읽음 상태 업데이트 완료');
+      
+      // 채팅방 컨텍스트 읽음 상태도 업데이트
+      markRoomAsRead(roomId);
+    };
+    
+    // 연결되어 있을 때만 실행
+    if (isConnected) {
+      updateMessageReadStatus();
+    }
+    
+    // roomId가 변경될 때만 실행
+  }, [roomId, currentUserId, isConnected, markRoomAsRead, setInitialMessages]);
 
   // 이전 메시지 더 불러오기 버튼 핸들러
   const handleLoadMoreMessages = () => {
@@ -717,7 +847,7 @@ const convertToClientMessage = (dto: ChatMessageDTO): Message => {
       </header>
 
       {/* 디버깅 정보 (개발 중에만 사용) */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* {process.env.NODE_ENV === 'development' && (
         <div className="bg-yellow-100 p-2 text-xs">
           <div>Room ID: {roomId}</div>
           <div>User ID: {currentUserId}</div>
@@ -735,7 +865,7 @@ const convertToClientMessage = (dto: ChatMessageDTO): Message => {
             사용자 ID 수동 조회
           </button>
         </div>
-      )}
+      )} */}
 
       {/* 메시지 목록 */}
       <div 
