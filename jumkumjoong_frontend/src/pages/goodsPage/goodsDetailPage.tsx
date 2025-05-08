@@ -33,6 +33,7 @@ const GoodsDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { nickname } = useAuthStore();
   const [edit, setEdit] = useState(false);
+  const [favorite, setFavorite] = useState(false);
 
   // 상품 평점 (하드코딩)
   const [rating] = useState("4.5");
@@ -82,6 +83,7 @@ const GoodsDetailPage: React.FC = () => {
           setGoods(updatedGoodsData);
           const exits = goodsData.data.body.isFavorite;
           setFavorite(exits);
+          console.log(exits);
 
           console.log("🔍 업데이트된 상품 데이터:", updatedGoodsData);
         } else {
@@ -106,7 +108,7 @@ const GoodsDetailPage: React.FC = () => {
 
   // 뒤로가기 처리
   const handleGoBack = () => {
-    navigate("/goods/list");
+    navigate(-1);
   };
 
   // 삭제하기 처리
@@ -120,7 +122,7 @@ const GoodsDetailPage: React.FC = () => {
       const response = await deleteGoods(goodsId);
       if (response.data.status_code === 200) {
         alert("삭제가 완료되었습니다.");
-        navigate("/goods/list");
+        navigate("/my-posts");
       }
     } catch (error) {
       console.log();
@@ -136,13 +138,13 @@ const GoodsDetailPage: React.FC = () => {
   };
 
   // 채팅하기 처리
-  const handleChat = () => {
-    // 채팅 기능 미구현
-    alert("채팅 기능은 아직 구현되지 않았습니다.");
-  };
+  // const handleChat = () => {
+  //   // 채팅 기능 미구현
+  //   alert("채팅 기능은 아직 구현되지 않았습니다.");
+  // };
 
   // 로컬 상태로 찜하기 여부 관리 (목업용)
-  const [favorite, setFavorite] = useState(false);
+
   const { items, addItem, removeItem } = useWishItemStore();
 
   // useEffect(() => {

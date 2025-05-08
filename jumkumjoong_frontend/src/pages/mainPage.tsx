@@ -77,10 +77,6 @@ const MainPage: React.FC = () => {
           </p>
           <div className="flex gap-4">
             {/* 각 카테고리 */}
-            {/* <Link
-              to="/goods/list"
-              className="w-full h-fit bg-fourth px-2 rounded-lg"
-            > */}
             <div
               className="w-full h-fit bg-fourth px-2 rounded-lg"
               onClick={handleLaptop}
@@ -88,7 +84,6 @@ const MainPage: React.FC = () => {
               <img src={laptop} alt="laptop" className="w-[96px]" />
               <p className="text-center pb-2">노트북</p>
             </div>
-            {/* </Link> */}
             <div
               className="w-full h-fit bg-fourth px-2 rounded-lg"
               onClick={handleKeyboard}
@@ -189,9 +184,7 @@ const MainPage: React.FC = () => {
       </main>
 
       {/* 하단 네비게이션 바 */}
-      {/* <div className="border-t"> */}
       <NavigationBar />
-      {/* </div> */}
     </div>
   );
 };
