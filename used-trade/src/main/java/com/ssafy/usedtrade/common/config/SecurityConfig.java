@@ -59,7 +59,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization
-                                .baseUri("/auth/login/kakao/")
+                                .baseUri("/auth/login/kakao")
                                 .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)
                         )
                         .redirectionEndpoint(redirect -> redirect
