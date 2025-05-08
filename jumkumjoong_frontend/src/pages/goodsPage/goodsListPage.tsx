@@ -1,5 +1,5 @@
 // src/pages/goodsPage/goodsListPage.tsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import GoodsItem, { GoodsItemProps } from "../../components/goods/GoodsItem";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
@@ -7,45 +7,61 @@ import FloatingActionButton from "../../components/common/FloatingActionButton";
 import SearchBar from "../../components/common/SearchBar";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { getGoodsSearch } from "../../api/goods";
+import { useLocation } from "react-router-dom";
 
 const GoodsListPage: React.FC = () => {
+  const location = useLocation();
+  const item = location.state;
   // 상품 데이터 상태
   const [goods, setGoods] = useState<GoodsItemProps[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // 검색어 상태
-  const [searchTerm, setSearchTerm] = useState("노트북");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  // 상품 데이터 로딩 함수
-  const fetchGoods = useCallback(async (search: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // 서비스 함수를 통해 데이터 로드 (현재는 모의 데이터, 향후 API 연동 예정)
-      // const data = await getGoodsList(search);
-      const data = await getGoodsSearch("노트북");
-      console.log("data: ", data);
-      if (data === null) {
-        console.log("상품 목록 비어있음");
-        setGoods([]);
-      } else {
-        setGoods(data);
-      }
-    } catch (err) {
-      console.log("상품 로딩 오류:", err);
-      setError("상품을 불러오는 중 오류가 발생했습니다.");
-      setGoods([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchGoods(searchTerm);
-  }, [fetchGoods, searchTerm]);
+    let searchItem = "";
+    if (item === "laptop") {
+      setSearchTerm("노트북");
+      searchItem = "노트북";
+    } else if (item === "keyboard") {
+      setSearchTerm("키보드");
+      searchItem = "키보드";
+    } else if (item === "phone") {
+      setSearchTerm("폰");
+      searchItem = "폰";
+    } else {
+      setSearchTerm("태블릿");
+      searchItem = "태블릿";
+    }
+    // 상품 데이터 로딩 함수
+    const fetchGoods = async (searchItem: string) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // 서비스 함수를 통해 데이터 로드 (현재는 모의 데이터, 향후 API 연동 예정)
+        console.log("searchTerm: ", searchItem);
+        const data = await getGoodsSearch(searchItem);
+        console.log("data: ", data);
+        if (data === null) {
+          console.log("상품 목록 비어있음");
+          setGoods([]);
+        } else {
+          setGoods(data);
+        }
+      } catch (err) {
+        console.log("상품 로딩 오류:", err);
+        setError("상품을 불러오는 중 오류가 발생했습니다.");
+        setGoods([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGoods(searchItem);
+  }, [item, searchTerm]);
 
   // 검색 실행 함수
   const handleSearch = (term: string) => {
@@ -109,7 +125,7 @@ const GoodsListPage: React.FC = () => {
           <div className="p-4 text-center text-red-500">
             <p>{error}</p>
             <button
-              onClick={() => fetchGoods(searchTerm)}
+              // onClick={() => fetchGoods(searchTerm)}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               다시 시도
@@ -141,7 +157,7 @@ const GoodsListPage: React.FC = () => {
             ) : (
               <li className="p-4 text-center text-gray-500">
                 {searchTerm
-                  ? `"${searchTerm}" 검색 결과가 없습니다.`
+                  ? "등록된 상품이 없습니다."
                   : "등록된 상품이 없습니다."}
               </li>
             )}

@@ -1,5 +1,5 @@
 // src/pages/goodsPage/goodsRegistrationPage.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import Header from "../../components/common/Header";
@@ -242,7 +242,7 @@ const GoodsRegistrationPage: React.FC = () => {
         // if (response.data)
         // 성공 시 상품 목록 페이지로 이동
         alert("상품이 등록되었습니다.");
-        navigate("/goods/list");
+        navigate("/my-posts");
       }
     } catch (error) {
       console.error("상품 등록 오류:", error);

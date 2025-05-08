@@ -8,13 +8,15 @@ import heart from "../../assets/Heart.svg";
 import chat from "../../assets/message-chat.svg";
 import settings from "../../assets/icons/settings.svg";
 import logout from "../../assets/icons/logout.svg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface MenuModalProps {
   onClose: () => void;
 }
 
 export default function MenuModal({ onClose }: MenuModalProps) {
+  const navigate = useNavigate();
+
   const categoryActions = [
     {
       id: "laptop",
@@ -90,7 +92,7 @@ export default function MenuModal({ onClose }: MenuModalProps) {
       id: "chattings",
       icon: <img src={chat} alt="chat" className="w-8 h-8" />,
       label: "채팅 목록",
-      path: "/chat/list",
+      path: "/chatting/list",
     },
   ];
 
@@ -112,16 +114,24 @@ export default function MenuModal({ onClose }: MenuModalProps) {
           </div>
           <div className="mx-2 flex flex-col gap-3">
             {categoryActions.map((action) => (
-              <Link
+              // <Link
+              //   key={action.id}
+              //   to={action.path}
+              //   // className="flex items-center pb-2 border-b"
+              // >
+              <div
                 key={action.id}
-                to={action.path}
-                // className="flex items-center pb-2 border-b"
+                onClick={() => {
+                  navigate(action.path, { state: action.id });
+                  onClose();
+                }}
               >
                 <div className="flex gap-3 items-center border-b pb-2">
                   {action.icon}
                   <p className="">{action.label}</p>
                 </div>
-              </Link>
+              </div>
+              // </Link>
             ))}
           </div>
         </div>

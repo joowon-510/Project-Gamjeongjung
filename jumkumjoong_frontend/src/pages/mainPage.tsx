@@ -5,7 +5,7 @@ import phone from "../assets/phone.svg";
 import tablet from "../assets/tablet.svg";
 import NavigationBar from "../components/common/NavigationBar";
 import Header from "../components/common/Header";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getUserInfo } from "../api/users";
 
 // 상태관리 임포트
@@ -50,7 +50,20 @@ const MainPage: React.FC = () => {
     };
 
     checkUser();
-  }, []);
+  }, [navigate]);
+
+  const handleLaptop = () => {
+    navigate("/goods/list", { state: "laptop" });
+  };
+  const handleKeyboard = () => {
+    navigate("/goods/list", { state: "keyboard" });
+  };
+  const handlePhone = () => {
+    navigate("/goods/list", { state: "phone" });
+  };
+  const handleTablet = () => {
+    navigate("/goods/list", { state: "tablet" });
+  };
 
   return (
     <div className="container mx-auto text-first">
@@ -64,25 +77,37 @@ const MainPage: React.FC = () => {
           </p>
           <div className="flex gap-4">
             {/* 각 카테고리 */}
-            <Link
+            {/* <Link
               to="/goods/list"
               className="w-full h-fit bg-fourth px-2 rounded-lg"
+            > */}
+            <div
+              className="w-full h-fit bg-fourth px-2 rounded-lg"
+              onClick={handleLaptop}
             >
-              {/* <div className=""> */}
-              <img src={laptop} alt="laptop" className="w-[96px] h-[96px" />
+              <img src={laptop} alt="laptop" className="w-[96px]" />
               <p className="text-center pb-2">노트북</p>
-              {/* </div> */}
-            </Link>
-            <div className="w-full h-fit bg-fourth px-2 rounded-lg">
-              <img src={keyboard} alt="keyboard" className="w-[96px] h-[96px" />
+            </div>
+            {/* </Link> */}
+            <div
+              className="w-full h-fit bg-fourth px-2 rounded-lg"
+              onClick={handleKeyboard}
+            >
+              <img src={keyboard} alt="keyboard" className="w-[96px]" />
               <p className="text-center pb-2">키보드</p>
             </div>
-            <div className="w-full h-fit bg-fourth px-2 rounded-lg">
-              <img src={phone} alt="phone" className="w-[96px] h-[96px" />
+            <div
+              className="w-full h-fit bg-fourth px-2 rounded-lg"
+              onClick={handlePhone}
+            >
+              <img src={phone} alt="phone" className="w-[96px]" />
               <p className="text-center pb-2">휴대폰</p>
             </div>
-            <div className="w-full h-fit bg-fourth px-2 rounded-lg">
-              <img src={tablet} alt="tablet" className="w-[96px] h-[96px" />
+            <div
+              className="w-full h-fit bg-fourth px-2 rounded-lg"
+              onClick={handleTablet}
+            >
+              <img src={tablet} alt="tablet" className="w-[96px]" />
               <p className="text-center pb-2">태블릿</p>
             </div>
           </div>
