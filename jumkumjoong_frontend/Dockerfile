@@ -1,6 +1,5 @@
 # ⚡ 1. React 빌드 단계
-FROM node:18-alpine AS builder
-
+FROM node:24-alpine AS builder  
 
 WORKDIR /app
 
