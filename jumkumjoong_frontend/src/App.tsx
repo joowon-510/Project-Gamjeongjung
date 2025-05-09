@@ -1,34 +1,18 @@
 // src/App.tsx
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import MainPage from './pages/mainPage';
-import ChatListPage from './pages/chattingPage/chatListPage';
-import ChatPage from './pages/chattingPage/chatPage';
-import GoodsListPage from './pages/goodsPage/goodsListPage';
-import GoodsDetailPage from './pages/goodsPage/goodsDetailPage';
-import GoodsRegistrationPage from './pages/goodsPage/goodsRegistrationPage';
-import LoginPage from './pages/userPage/loginPage';
+import { BrowserRouter as Router } from "react-router-dom";
+import AppRoutes from "./AppRoutes";
+import ChatProvider from "./contexts/ChatContext";
+import { ChatServiceProvider } from "./poviders/ChatServiceProvider";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* 메인 페이지 */}
-        <Route path="/" element={<MainPage />} />
-        
-        {/* 채팅 관련 페이지 */}
-        <Route path="/chat/list" element={<ChatListPage />} />
-        <Route path="/chat" element={<ChatPage />} />
-        
-        {/* 상품 관련 페이지 */}
-        <Route path="/goods/list" element={<GoodsListPage />} />
-        <Route path="/goods/detail/:id" element={<GoodsDetailPage />} />
-        <Route path="/goods/register" element={<GoodsRegistrationPage />} />
-        
-        {/* 사용자 관련 페이지 */}
-        <Route path="/user/login" element={<LoginPage />} />
-      </Routes>
-    </Router>
+    <ChatServiceProvider websocketUrl="http://localhost:8080/api/ws">
+      <ChatProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </ChatProvider>
+    </ChatServiceProvider>
   );
 }
 
