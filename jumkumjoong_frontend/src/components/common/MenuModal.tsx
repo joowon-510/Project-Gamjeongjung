@@ -9,6 +9,7 @@ import chat from "../../assets/message-chat.svg";
 import settings from "../../assets/icons/settings.svg";
 import logout from "../../assets/icons/logout.svg";
 import { Link, useNavigate } from "react-router-dom";
+import Logout from "../../utils/logout";
 
 interface MenuModalProps {
   onClose: () => void;
@@ -96,6 +97,13 @@ export default function MenuModal({ onClose }: MenuModalProps) {
     },
   ];
 
+  // 로그아웃 처리
+  const handleLogout = () => {
+    Logout();
+    // 로그인 페이지로 이동
+    navigate("/login");
+  };
+
   return (
     <div className="fixed inset-0 z-[100] bg-white flex flex-col">
       <header className="sticky top-0 left-0 w-full h-[96px] flex items-center shadow-md bg-white px-4 pt-2 z-10">
@@ -167,7 +175,7 @@ export default function MenuModal({ onClose }: MenuModalProps) {
           {/* 로그아웃 */}
           <div
             className="flex flex-1 gap-2 items-center justify-center"
-            onClick={() => {}}
+            onClick={handleLogout}
           >
             <img src={logout} alt="logout" className="w-7 h-7" />
             <p>로그아웃</p>

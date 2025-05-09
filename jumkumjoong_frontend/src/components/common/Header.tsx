@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import yeslogo from "../../assets/yeslogo.svg";
+import logout from "../../utils/logout";
 
 interface HeaderProps {
   onSearch?: () => void;
@@ -22,16 +23,16 @@ const Header: React.FC<HeaderProps> = ({
   const [searchTerm, setSearchTerm] = useState("검색어를 입력하세요.");
 
   // 뒤로가기 처리
-  const handleGoBack = () => {
-    navigate(-1);
-  };
+  // const handleGoBack = () => {
+  //   navigate(-1);
+  // };
 
   // 검색 아이콘 클릭 처리
-  const handleSearchClick = () => {
-    if (onSearch) {
-      onSearch();
-    }
-  };
+  // const handleSearchClick = () => {
+  //   if (onSearch) {
+  //     onSearch();
+  //   }
+  // };
 
   // 검색어 입력 처리
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,9 +41,7 @@ const Header: React.FC<HeaderProps> = ({
 
   // 로그아웃 처리
   const handleLogout = () => {
-    // 로그아웃 로직 구현
-    localStorage.removeItem("token");
-    // 로그인 페이지로 이동
+    logout();
     navigate("/login");
   };
 
