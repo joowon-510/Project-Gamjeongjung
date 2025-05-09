@@ -24,7 +24,7 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
     elasticsearch:
-      uris: http://elasticsearch:9500  # ✅ 자동 설정 방식으로 수정
+      uris: http://elasticsearch:9200  # ✅ 자동 설정 방식으로 수정
 
   security:
     oauth2:
