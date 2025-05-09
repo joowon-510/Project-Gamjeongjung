@@ -51,7 +51,7 @@ server:
 
 elasticsearch:
   host: elasticsearch
-  port: 9200
+  port: 9300
 
 
 encrypt-decrypt:
