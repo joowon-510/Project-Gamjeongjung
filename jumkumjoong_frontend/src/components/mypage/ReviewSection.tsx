@@ -18,15 +18,17 @@ const ReviewSection: React.FC = () => {
   return (
     <div className="bg-white rounded-lg mt-4 p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">리뷰</h2>
+        <h2 className="text-xl font-bold">
+          리뷰 ({reviewInfo.content.length})
+        </h2>
         <Link to="/reviews" className="text-gray-500 text-sm">
           전체 보기
         </Link>
       </div>
 
       <div className="space-y-3">
-        {reviewInfo.content.length > 0 ? (
-          reviewInfo.content.map((review) => (
+        {reviews.length > 0 ? (
+          reviews.map((review) => (
             <div
               key={review.createdAt}
               className="py-2 border-b flex flex-col gap-2"
@@ -47,7 +49,11 @@ const ReviewSection: React.FC = () => {
               ) : (
                 <p>--</p>
               )}
-              <div className="text-gray-800">{review.content}</div>
+              <div className="text-gray-800">
+                {review.content && review.content.length > 20
+                  ? `${review.content?.slice(0, 20)}...`
+                  : review.content}
+              </div>
             </div>
           ))
         ) : (

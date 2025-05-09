@@ -8,15 +8,6 @@ import starEmpty from "../../assets/icons/starEmpty.svg";
 import starHalf from "../../assets/icons/starHalf.svg";
 import { postReviewRegist } from "../../api/reviews";
 import { useReviewStore } from "../../stores/useReviewStore";
-// import PriceInput from "../../components/goods/PriceInput";
-
-// Goods 타입 인터페이스 임포트
-// import { ItemRegistParams } from "../../types/types";
-// import { postGoods } from "../../api/goods";
-// import SerialNumberInput from "../../components/goods/SerialNumberInput";
-
-// 구성여부 타입 정의
-// type PackageType = "full" | "single" | "partial";
 
 export interface ReviewItemProps {
   itemId: number;
@@ -32,7 +23,7 @@ const ReviewRegisterPage: React.FC = () => {
 
   const [formData, setFormData] = useState<ReviewItemProps>({
     stars: 0,
-    itemId: 2,
+    itemId: 4,
     content: "",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -46,21 +37,17 @@ const ReviewRegisterPage: React.FC = () => {
     }));
   };
 
-  // 가격 입력 처리
-  const handleStarChange = (value: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      stars: value,
-    }));
-  };
-
   // 폼 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 필수 필드 검증
-    if (!formData.stars || formData.content.trim().length <= 0) {
+    if (!formData.stars) {
       alert("별점과 리뷰는 필수 입력 항목입니다.");
+      return;
+    }
+    if (formData.content.trim().length < 20) {
+      alert("리뷰는 20자 이상 작성해주세요.");
       return;
     }
 
@@ -187,7 +174,7 @@ const ReviewRegisterPage: React.FC = () => {
               className="w-full h-auto p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder={
                 formData.content.trim().length === 0
-                  ? "리뷰를 입력하세요. \n리뷰는 100자 이상 작성해주세요."
+                  ? "리뷰를 입력하세요. \n리뷰는 20자 이상 작성해주세요."
                   : "리뷰를 입력하세요."
               }
             />

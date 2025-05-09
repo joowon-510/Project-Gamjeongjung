@@ -4,12 +4,11 @@ import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsItem from "../../components/goods/GoodsItem";
 import { getGoodsFavorites } from "../../api/goods";
-import { useAuthStore, useWishItemStore } from "../../stores/useUserStore";
+import { useAuthStore } from "../../stores/useUserStore";
 
 const FavoritePage: React.FC = () => {
   const userInfo = useAuthStore();
   const [favoriteItems, setFavoriteItems] = useState<any>([]);
-  const { items, addItem, removeItem } = useWishItemStore();
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -40,8 +39,8 @@ const FavoritePage: React.FC = () => {
 
       {/* 찜한 상품 목록 */}
       <ul className="divide-y divide-gray-200">
-        {items.length > 0 ? (
-          [...items]
+        {favoriteItems.length > 0 ? (
+          [...favoriteItems]
 
             .sort(
               (a, b) =>
@@ -49,9 +48,7 @@ const FavoritePage: React.FC = () => {
                 new Date(a.createdAt).getTime()
             )
             .map((item, index) => (
-              // goods.map((item, index) => (
               <GoodsItem key={`${item.itemId}-${index}`} {...item} />
-              // <GoodsItem key={item.itemId} {...item} />
             ))
         ) : (
           <p className="p-4 text-center text-first/50">찜한 상품이 없습니다.</p>

@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import ProfileSection from "../../components/mypage/ProfileSection";
-// import PriceSection from "../../components/mypage/PriceSection";
 import ReviewSection from "../../components/mypage/ReviewSection";
 import ActionSection from "../../components/mypage/ActionSection";
 import { useAuthStore } from "../../stores/useUserStore";
@@ -56,9 +55,6 @@ const MyPage: React.FC = () => {
             username={userInfo.nickname ? userInfo.nickname : "user123"}
             rating={rating}
           />
-
-          {/* 가격 섹션 */}
-          {/* <PriceSection price={340000} /> */}
 
           {/* 리뷰 섹션 */}
           <ReviewSection />
