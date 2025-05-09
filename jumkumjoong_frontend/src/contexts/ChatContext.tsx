@@ -99,6 +99,37 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       });
     }
   }, [unreadMessagesByRoom]);
+  
+  useEffect(() => {
+    // localStorage에서 초기 데이터 로드
+    const loadInitialData = () => {
+      try {
+        // 총 안읽은 메시지 수 로드
+        const storedTotalCount = localStorage.getItem('totalUnreadMessages');
+        if (storedTotalCount) {
+          const parsedCount = parseInt(storedTotalCount, 10);
+          if (!isNaN(parsedCount)) {
+            setUnreadMessageCount(parsedCount);
+          }
+        }
+        
+        // 채팅방별 안읽은 메시지 수 로드
+        const storedUnreadByRoom = localStorage.getItem('unreadMessagesByRoom');
+        if (storedUnreadByRoom) {
+          try {
+            const parsedUnreadByRoom = JSON.parse(storedUnreadByRoom);
+            setUnreadMessagesByRoom(parsedUnreadByRoom);
+          } catch (e) {
+            console.error('안읽은 메시지 상태 파싱 오류:', e);
+          }
+        }
+      } catch (error) {
+        console.error('로컬 스토리지에서 안읽은 메시지 데이터 로드 중 오류:', error);
+      }
+    };
+    
+    loadInitialData();
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
 
   return (
     <ChatContext.Provider value={{

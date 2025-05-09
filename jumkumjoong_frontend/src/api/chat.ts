@@ -47,6 +47,20 @@ export const createChatRoom = async (data: CreateChatRoomRequest) => {
     });
 
     console.log('✅ 채팅방 생성 응답:', response.data);
+    
+    // 기존 채팅방 유무에 따른 처리 추가
+    if (response.data.body) {
+      // 채팅방이 이미 존재하는 경우 - roomId를 반환하여 리다이렉트할 수 있도록 함
+      const roomId = response.data.body;
+      console.log('🔄 기존 채팅방으로 리다이렉트:', `/chatting${roomId}`);
+      return {
+        ...response.data,
+        redirect: true,
+        redirectUrl: `/chatting${roomId}`
+      };
+    }
+    
+    // 채팅방이 없는 경우 - 기존 응답을 그대로 반환
     return response.data;
   } catch (error) {
     console.error('❌ 채팅방 생성 오류:', error);
@@ -328,20 +342,7 @@ export const readChatRoom = async (roomId: string) => {
       data: response.data
     });
     
-    // 상대방의 마지막 접속 시간 추출 및 저장
-    if (response.data && response.data.status === 200 && response.data.readTime) {
-      const readTime = response.data.readTime;
-      
-      // 로컬 스토리지에 읽은 시간 저장
-      localStorage.setItem(`chat_read_time_${roomId}`, readTime);
-      console.log(`✅ 상대방 마지막 접속 시간 저장: ${readTime}`);
-      
-      return {
-        status_code: 200,
-        body: readTime
-      };
-    }
-    
+    // 서버에서 받은 읽음 시간 반환
     return response.data;
   } catch (error) {
     console.error('❌ 채팅방 읽음 요청 오류:', error);
