@@ -1,6 +1,10 @@
 # ⚡ 1. React 빌드 단계
 FROM node:24-alpine AS builder
 
+
+
+# Node.js와 npm을 설치 (필요한 경우)
+RUN apk add --no-cache nodejs npm
 WORKDIR /app
 
 # package.json과 package-lock.json만 복사 후 의존성 설치 (최적화)
