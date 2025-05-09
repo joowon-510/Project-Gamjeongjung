@@ -23,8 +23,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-    elasticsearch:
-      uris: http://elasticsearch:9200  # ✅ 자동 설정 방식으로 수정
+#    elasticsearch:
+#      uris: http://gamjeongjung.co.kr:9200  # ✅ 자동 설정 방식으로 수정
 
   security:
     oauth2:
@@ -51,9 +51,9 @@ server:
   servlet:
     context-path: ${CONTEXT_PATH}
 
-#elasticsearch:
-#  host: elasticsearch
-#  port: 9300
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST}
+  port: ${ELASTICSEARCH_PORT}
 
 
 encrypt-decrypt:
