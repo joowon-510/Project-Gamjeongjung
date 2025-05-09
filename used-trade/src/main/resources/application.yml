@@ -50,7 +50,7 @@ server:
     context-path: ${CONTEXT_PATH}
 
 elasticsearch:
-  host: localhost
+  host: elasticsearch-container
   port: 9200
 
 
