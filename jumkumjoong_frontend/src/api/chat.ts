@@ -316,3 +316,49 @@ export const getUserChatInfo = async (): Promise<UserChatInfoResponse> => {
     };
   }
 };
+
+export const readChatRoom = async (roomId: string) => {
+  try {
+    console.log(`🔍 채팅방 읽음 요청 시작: ${roomId}`);
+    
+    const response = await axiosInstance.get(`/chatting/${roomId}/reading`);
+    
+    console.log('✅ 채팅방 읽음 응답:', {
+      status: response.status,
+      data: response.data
+    });
+    
+    // 상대방의 마지막 접속 시간 추출 및 저장
+    if (response.data && response.data.status === 200 && response.data.readTime) {
+      const readTime = response.data.readTime;
+      
+      // 로컬 스토리지에 읽은 시간 저장
+      localStorage.setItem(`chat_read_time_${roomId}`, readTime);
+      console.log(`✅ 상대방 마지막 접속 시간 저장: ${readTime}`);
+      
+      return {
+        status_code: 200,
+        body: readTime
+      };
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('❌ 채팅방 읽음 요청 오류:', error);
+    
+    // Axios 오류의 경우 상세 정보 로깅
+    if (axios.isAxiosError(error)) {
+      console.error('📡 상세 에러 정보:', {
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers
+      });
+    }
+    
+    // 기본 응답 구조 반환
+    return {
+      status_code: 500,
+      body: new Date().toISOString() // 오류 시 현재 시간 반환
+    };
+  }
+};

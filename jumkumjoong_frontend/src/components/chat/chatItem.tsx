@@ -87,7 +87,11 @@ const ChatItem: React.FC<ChatItemProps> = ({
     
     // 로컬 스토리지에 현재 선택한 채팅방 정보 저장
     try {
-      console.log('💾 ChatItem에서 저장할 닉네임:', validNickname);
+      console.log('💾 ChatItem에서 저장할 정보:', {
+        roomId,
+        nickname: validNickname,
+        postTitle
+      });
       
       // 선택한 채팅방 정보 저장
       localStorage.setItem('currentRoomId', roomId);
@@ -115,6 +119,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
     
     // 상위 컴포넌트에 선택 이벤트 전달
     if (onSelect) {
+      // API 호출은 ChatPage에서 처리하므로 여기서는 roomId만 전달
       onSelect(roomId);
     }
   };
