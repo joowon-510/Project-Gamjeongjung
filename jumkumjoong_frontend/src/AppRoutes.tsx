@@ -1,5 +1,5 @@
 // AppRoutes.tsx
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,8 +8,6 @@ import {
   useLocation,
 } from "react-router-dom";
 import MainPage from "./pages/mainPage";
-import ChatProvider from "./contexts/ChatContext";
-import { ChatServiceProvider } from "./poviders/ChatServiceProvider";
 import ChatListPage from "./pages/chattingPage/chatListPage";
 import ChatPage from "./pages/chattingPage/chatPage";
 import GoodsListPage from "./pages/goodsPage/goodsListPage";
@@ -26,13 +24,12 @@ import { getUserInfo } from "./api/users";
 import ReviewRegisterPage from "./pages/ReviewPage/ReviewRegisterPage";
 import GoodsEditPage from "./pages/goodsPage/goodsEditPage";
 
-import { useChatService } from "./poviders/ChatServiceProvider"; // 추가
-
+// import { useChatService } from "./poviders/ChatServiceProvider"; // 추가
 
 const AppRoutes = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const chatService = useChatService(); // 추가
+  // const chatService = useChatService(); // 추가
 
   const fetchUser = async () => {
     const response = await getUserInfo();
@@ -47,7 +44,7 @@ const AppRoutes = () => {
       }
     };
     checkUser();
-  }, [location.pathname]);
+  }, [location.pathname, navigate]);
 
   return (
     // <ChatServiceProvider websocketUrl="ws://115.85.181.195:8080/ws">

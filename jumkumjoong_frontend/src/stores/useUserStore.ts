@@ -11,6 +11,11 @@ interface AuthState {
   setNickname: (nickname: string | null) => void;
   setEmail: (email: string | null) => void;
   setStatus: (status: number | null) => void;
+  removeAccessToken: () => void;
+  removeRefreshToken: () => void;
+  removeNickname: () => void;
+  removeEmail: () => void;
+  removeStatus: () => void;
 }
 
 export interface WishItemState {
@@ -39,6 +44,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   setNickname: (nickname) => set({ nickname: nickname }),
   setEmail: (email) => set({ email: email }),
   setStatus: (status) => set({ status: status }),
+  removeAccessToken: () => set({ accessToken: null }),
+  removeRefreshToken: () => set({ refreshToken: null }),
+  removeNickname: () => set({ nickname: null }),
+  removeEmail: () => set({ email: null }),
+  removeStatus: () => set({ status: null }),
 }));
 
 export const useWishItemStore = create<WishListState>((set) => ({

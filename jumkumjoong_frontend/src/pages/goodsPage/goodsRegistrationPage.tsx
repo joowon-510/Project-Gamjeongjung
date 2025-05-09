@@ -1,5 +1,5 @@
 // src/pages/goodsPage/goodsRegistrationPage.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import Header from "../../components/common/Header";
@@ -59,7 +59,7 @@ const GoodsRegistrationPage: React.FC = () => {
       return {
         title: editItem.title,
         description: editItem.description,
-        price: editItem.price / 10000,
+        price: editItem.price,
         purchaseDate: editItem.purchaseDate,
         grades: editItem.grades,
         status: editItem.status,
@@ -185,16 +185,17 @@ const GoodsRegistrationPage: React.FC = () => {
       }
 
       // 구매일자 및 구성여부 정보 추가
-      const packageTypeText = {
-        full: "풀박스",
-        single: "단품",
-        partial: "일부구성품",
-      }[formData.configuration];
+      // const packageTypeText = {
+      //   full: "풀박스",
+      //   single: "단품",
+      //   partial: "일부구성품",
+      // }[formData.configuration];
 
       console.log("formData.serialNumber:", formData.serialNumber);
 
       // 최종 설명에 구매일자와 구성여부 정보 포함
-      finalDescription = `구매일자: ${purchaseDateString}\n구성여부: ${packageTypeText}\n\n${finalDescription}`;
+      finalDescription = `${finalDescription}`;
+      // finalDescription = `구매일자: ${purchaseDateString}\n구성여부: ${packageTypeText}\n\n${finalDescription}`;
       const date = new Date().toISOString();
       console.log(date);
       // const now = new Date();
@@ -207,7 +208,7 @@ const GoodsRegistrationPage: React.FC = () => {
       const submissionData = {
         ...formData,
         description: finalDescription,
-        price: formData.price * 10000, // 만원 단위를 원 단위로 변환 (예: 67 -> 670000)
+        price: formData.price, // 만원 단위를 원 단위로 변환 (예: 67 -> 670000)
         purchaseDate: purchaseDateString,
         createdAt: date.toString(),
         serialNumber: formData.serialNumber,
@@ -242,7 +243,7 @@ const GoodsRegistrationPage: React.FC = () => {
         // if (response.data)
         // 성공 시 상품 목록 페이지로 이동
         alert("상품이 등록되었습니다.");
-        navigate("/goods/list");
+        navigate("/my-posts");
       }
     } catch (error) {
       console.error("상품 등록 오류:", error);
