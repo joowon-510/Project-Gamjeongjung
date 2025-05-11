@@ -33,31 +33,33 @@ const PriceInput: React.FC<PriceInputProps> = ({
   };
 
   // 가격 포맷팅 (천 단위 쉼표)
-  const formattedValue = displayValue
-    ? Number(displayValue).toLocaleString("ko-KR")
-    : "";
+  // const formattedValue = displayValue
+  //   ? Number(displayValue).toLocaleString("ko-KR")
+  //   : "";
 
   return (
-    <div className="relative">
-      <input
-        type="text"
-        id={id}
-        name={name}
-        value={displayValue}
-        onChange={handleChange}
-        className="w-full p-2 pr-14 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="가격을 입력하세요"
-      />
-      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-        <span className="text-gray-500">만원</span>
+    <div className="relative flex items-baseline">
+      <div className="flex">
+        <input
+          type="text"
+          id={id}
+          name={name}
+          value={displayValue}
+          onChange={handleChange}
+          className="w-full h-fit p-2 pr-14 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="가격을 입력하세요"
+        />
+        <div className="w-full flex ml-2 items-center self-center pointer-events-none">
+          <span className="text-gray-500">원</span>
+        </div>
       </div>
 
       {/* 입력값이 있을 경우 원화 표시 */}
-      {displayValue && (
-        <div className="mt-1 text-sm text-gray-500">
+      {/* {displayValue && (
+        <div className="mt-1 text-sm text-gray-500 w-full text-center">
           ≈ {formattedValue}0,000원
         </div>
-      )}
+      )} */}
     </div>
   );
 };

@@ -10,6 +10,8 @@
     "autoprefixer": "^10.4.15",
     "axios": "^1.8.4",
     "cra-template-pwa-typescript": "2.0.0",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.503.0",
     "postcss": "^8.4.31",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

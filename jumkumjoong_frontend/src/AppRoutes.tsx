@@ -1,5 +1,5 @@
 // AppRoutes.tsx
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,8 +8,6 @@ import {
   useLocation,
 } from "react-router-dom";
 import MainPage from "./pages/mainPage";
-import ChatProvider from "./contexts/ChatContext";
-import { ChatServiceProvider } from "./poviders/ChatServiceProvider";
 import ChatListPage from "./pages/chattingPage/chatListPage";
 import ChatPage from "./pages/chattingPage/chatPage";
 import GoodsListPage from "./pages/goodsPage/goodsListPage";
@@ -22,11 +20,16 @@ import TransactionsPage from "./pages/TransactionPage/TransactionPage";
 import FavoritePage from "./pages/FavoritesPage/FavoritesPage";
 import MyPostsPage from "./pages/userPage/myPostPage";
 import { getUserInfo } from "./api/users";
+
 import ReviewRegisterPage from "./pages/ReviewPage/ReviewRegisterPage";
+import GoodsEditPage from "./pages/goodsPage/goodsEditPage";
+
+// import { useChatService } from "./poviders/ChatServiceProvider"; // 추가
 
 const AppRoutes = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  // const chatService = useChatService(); // 추가
 
   const fetchUser = async () => {
     const response = await getUserInfo();
@@ -41,7 +44,7 @@ const AppRoutes = () => {
       }
     };
     checkUser();
-  }, [location.pathname]);
+  }, [location.pathname, navigate]);
 
   return (
     // <ChatServiceProvider websocketUrl="ws://115.85.181.195:8080/ws">
@@ -53,14 +56,18 @@ const AppRoutes = () => {
       {/* 로그인 페이지 */}
       <Route path="/login" element={<LoginPage />} />
 
+      {/* 메뉴 모달 (임시) */}
+      {/* <Route path="/menu" element={<MenuModal />} /> */}
+
       {/* 채팅 관련 페이지 */}
-      <Route path="/chat/list" element={<ChatListPage />} />
-      <Route path="/chat/:chatid" element={<ChatPage />} />
+      <Route path="/chatting/list" element={<ChatListPage />} />
+      <Route path="/chatting/:chatid" element={<ChatPage />} />
 
       {/* 상품 관련 페이지 */}
       <Route path="/goods/list" element={<GoodsListPage />} />
       <Route path="/goods/detail/:itemId" element={<GoodsDetailPage />} />
       <Route path="/goods/register" element={<GoodsRegistrationPage />} />
+      <Route path="/goods/edit/:itemId" element={<GoodsEditPage />} />
 
       {/* 사용자 관련 페이지 */}
       <Route path="/user/login" element={<LoginPage />} />

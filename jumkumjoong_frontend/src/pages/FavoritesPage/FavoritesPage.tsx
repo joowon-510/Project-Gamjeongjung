@@ -48,9 +48,7 @@ const FavoritePage: React.FC = () => {
                 new Date(a.createdAt).getTime()
             )
             .map((item, index) => (
-              // goods.map((item, index) => (
               <GoodsItem key={`${item.itemId}-${index}`} {...item} />
-              // <GoodsItem key={item.itemId} {...item} />
             ))
         ) : (
           <p className="p-4 text-center text-first/50">찜한 상품이 없습니다.</p>

@@ -10,10 +10,15 @@ export const postLoginUser = async (accessToken: string): Promise<any> => {
 
     console.log("로그인/회원가입: ", response);
     if (response.data.status_code === 200) {
-      const accessToken = response.data.body.accessToken;
+      const serverAccessToken = response.data.body.accessToken;
       const refreshToken = response.data.body.refreshToken;
 
-      useAuthStore.getState().setAccessToken(accessToken);
+      // 로컬 스토리지에 토큰 저장
+      localStorage.setItem('accessToken', serverAccessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+
+      // Zustand 스토어 업데이트
+      useAuthStore.getState().setAccessToken(serverAccessToken);
       useAuthStore.getState().setRefreshToken(refreshToken);
     }
     return response.data;
