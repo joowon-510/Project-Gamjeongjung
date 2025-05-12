@@ -1,6 +1,6 @@
 // src/pages/chattingPage/chatListPage.tsx
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // useNavigate 추가
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import chatting from "../../assets/icons/message-chat.svg";
@@ -17,7 +17,7 @@ import { useChatContext } from "../../contexts/ChatContext"; // ChatContext impo
 // localStorage에 저장할 키
 const CHAT_REFRESH_KEY = "chatListRefresh";
 const CHAT_CONTEXT_KEY = "chatContextInfo";
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 // 채팅방 정보 인터페이스
 interface ChatRoomItem {
@@ -91,6 +91,7 @@ const ChatListPage: React.FC = () => {
   );
   // 선택된 채팅방 상태 추가
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const navigate = useNavigate(); // navigate 함수 가져오기
 
   const { unreadMessageCount, markRoomAsRead } = useChatContext();
 
@@ -209,6 +210,20 @@ const ChatListPage: React.FC = () => {
       setLoading(false);
       localStorage.removeItem(CHAT_REFRESH_KEY);
     }
+  };
+  const handleChatClick = (chat: EnhancedChatRoomItem) => {
+    // 필요한 정보 localStorage에 저장
+    localStorage.setItem("currentRoomId", chat.roomId);
+    localStorage.setItem("currentChatUserNickname", chat.chattingUserNickname);
+
+    // 프로그래매틱 네비게이션
+    navigate(`/chatting/${chat.roomId}`, {
+      state: {
+        roomId: chat.roomId,
+        chattingUserNickname: chat.chattingUserNickname,
+        postTitle: chat.postTitle,
+      },
+    });
   };
 
   // 채팅방 삭제 함수
@@ -366,21 +381,24 @@ const ChatListPage: React.FC = () => {
         {chatRooms.length > 0 ? (
           <ul className="divide-y divide-gray-200">
             {chatRooms.map((chat) => (
-              <Link
+              <ChatItem
                 key={chat.roomId}
-                to={`/chatting/${chat.roomId}`}
-                state={{
-                  roomId: chat.roomId,
-                  chattingUserNickname: chat.chattingUserNickname,
-                  postTitle: chat.postTitle,
-                  accessToken: localStorage.getItem("accessToken"),
-                }}
-                onClick={(e) => {
+                roomId={chat.roomId}
+                chattingUserNickname={chat.chattingUserNickname}
+                nonReadCount={chat.nonReadCount}
+                lastMessage={chat.lastMessage}
+                postTitle={chat.postTitle}
+                createdAt={chat.createdAt}
+                lastUpdatedAt={chat.lastUpdatedAt}
+                isSelected={chat.roomId === selectedRoomId}
+                onSelect={(roomId) => {
+                  // 여기서 navigate 실행
                   console.log(
                     "💾 전달할 닉네임 확인:",
                     chat.chattingUserNickname
                   );
 
+                  // 로컬 스토리지에 정확한 값 저장
                   try {
                     localStorage.setItem("currentRoomId", chat.roomId);
                     localStorage.setItem(
@@ -392,6 +410,7 @@ const ChatListPage: React.FC = () => {
                       chat.postTitle || ""
                     );
 
+                    // 현재 액세스 토큰 저장
                     const currentToken = localStorage.getItem("accessToken");
                     if (currentToken) {
                       localStorage.setItem(
@@ -400,6 +419,7 @@ const ChatListPage: React.FC = () => {
                       );
                     }
 
+                    // 저장 후 확인 로그
                     const storedNickname = localStorage.getItem(
                       "currentChatUserNickname"
                     );
@@ -412,30 +432,25 @@ const ChatListPage: React.FC = () => {
                           ? "✅ 성공"
                           : "❌ 실패",
                     });
-
-                    // 채팅방으로 이동 시 해당 채팅방을 읽음 상태로 표시
-                    if (chat.nonReadCount > 0) {
-                      markRoomAsRead(chat.roomId);
-                    }
                   } catch (error) {
                     console.error("로컬스토리지 저장 중 오류:", error);
                   }
+
+                  // 네비게이션 수행
+                  navigate(`/chatting/${chat.roomId}`, {
+                    state: {
+                      roomId: chat.roomId,
+                      chattingUserNickname: chat.chattingUserNickname,
+                      postTitle: chat.postTitle,
+                      accessToken: localStorage.getItem("accessToken"),
+                    },
+                  });
+
+                  // 기존 선택 핸들러도 실행
+                  handleSelectChatRoom(roomId);
                 }}
-              >
-                <ChatItem
-                  key={chat.roomId}
-                  roomId={chat.roomId}
-                  chattingUserNickname={chat.chattingUserNickname}
-                  nonReadCount={chat.nonReadCount}
-                  lastMessage={chat.lastMessage}
-                  postTitle={chat.postTitle}
-                  createdAt={chat.createdAt}
-                  lastUpdatedAt={chat.lastUpdatedAt}
-                  isSelected={chat.roomId === selectedRoomId}
-                  onSelect={(roomId) => handleSelectChatRoom(roomId)}
-                  onDelete={(e) => handleDeleteChatRoom(chat.roomId, e)}
-                />
-              </Link>
+                onDelete={(e) => handleDeleteChatRoom(chat.roomId, e)}
+              />
             ))}
           </ul>
         ) : !loading && !error ? (
