@@ -6,7 +6,7 @@ import { ChatServiceProvider } from "./poviders/ChatServiceProvider";
 
 function App() {
   return (
-    <ChatServiceProvider websocketUrl="https://www.gamjeongjung.co.kr/api/ws">
+    <ChatServiceProvider websocketUrl="wss://gamjeongjung.co.kr/api/ws">
       <ChatProvider>
         <Router>
           <AppRoutes />
