@@ -1,16 +1,17 @@
 // src/pages/TransactionsPage.tsx
 import React, { useCallback, useEffect, useState } from "react";
+
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
-import { getGoodsUsers } from "../../api/goods";
 import GoodsItem, { GoodsItemProps } from "../../components/goods/GoodsItem";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { getGoodsUsers } from "../../api/goods";
+import { sortGoodsByDateDesc } from "../../utils/sortUtils";
 
 const TransactionsPage: React.FC = () => {
   const [transactionGoods, setTransactionGoods] = useState<GoodsItemProps[]>(
     []
   );
-
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +41,40 @@ const TransactionsPage: React.FC = () => {
     fetchTransactionGoods();
   }, [fetchTransactionGoods]);
 
+  const renderContent = () => {
+    if (isLoading) return <LoadingSpinner />;
+
+    if (error) {
+      return (
+        <div className="p-4 text-center text-red-500">
+          <p>{error}</p>
+          <button
+            onClick={fetchTransactionGoods}
+            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            다시 시도
+          </button>
+        </div>
+      );
+    }
+
+    if (transactionGoods.length === 0) {
+      return (
+        <div className="p-4 text-center text-gray-500">
+          거래 상품이 없습니다.
+        </div>
+      );
+    }
+
+    return (
+      <ul className="divide-y divide-gray-200 pb-14">
+        {sortGoodsByDateDesc(transactionGoods).map((item) => (
+          <GoodsItem key={item.itemId} {...item} canChangeStatus={true} />
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 pb-16">
       {/* 헤더 */}
@@ -51,39 +86,7 @@ const TransactionsPage: React.FC = () => {
       </div>
 
       {/* 거래 내역 목록 - 안드로이드 네비게이션 바를 고려하여 여백 제거 */}
-      <main className="flex-1 overflow-y-auto pb-0">
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : error ? (
-          // 오류 상태 표시
-          <div className="p-4 text-center text-red-500">
-            <p>{error}</p>
-            <button
-              onClick={fetchTransactionGoods}
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              다시 시도
-            </button>
-          </div>
-        ) : transactionGoods.length > 0 ? (
-          <ul className="divide-y divide-gray-200">
-            {[...transactionGoods]
-              .sort(
-                (a, b) =>
-                  new Date(b.createdAt).getTime() -
-                  new Date(a.createdAt).getTime()
-              )
-              .map((item) => (
-                <GoodsItem key={item.itemId} {...item} canChangeStatus={true} />
-              ))}
-            <li className="h-14 bg-transparent border-none" />
-          </ul>
-        ) : (
-          <div className="p-4 text-center text-gray-500">
-            거래 상품이 없습니다.
-          </div>
-        )}
-      </main>
+      <main className="flex-1 overflow-y-auto pb-0">{renderContent()}</main>
 
       {/* NavigationBar 고정 위치로 배치 */}
       <div className="fixed bottom-0 left-0 w-full">

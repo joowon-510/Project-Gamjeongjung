@@ -42,7 +42,7 @@ export const getReview = async () => {
 export const getReviewStars = async () => {
   try {
     const response = await axiosInstance.get("/reviews/stars");
-    console.log("별점 평균 조회: ", response);
+    console.log("별점 평균 조회: ", response.data.body);
 
     return response;
   } catch (error) {
