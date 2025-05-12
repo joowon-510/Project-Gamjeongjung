@@ -12,7 +12,7 @@ interface ChatButtonProps {
   className?: string;
 }
 
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 // localStorage에 저장할 키
 const CHAT_REFRESH_KEY = 'chatListRefresh';
