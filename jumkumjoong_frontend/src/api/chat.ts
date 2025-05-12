@@ -113,7 +113,7 @@ export const getChatMessages = async (roomId: string, params?: ChatMessageParams
     console.log('🔍 최종 요청 파라미터:', queryParams);
     
     // axiosInstance 사용
-    const response = await axiosInstance.get<ChatMessageResponse>(`api/chatting/${roomId}`, {
+    const response = await axiosInstance.get<ChatMessageResponse>(`${BASE_URL}/chatting/${roomId}`, {
       params: queryParams
     });
     
