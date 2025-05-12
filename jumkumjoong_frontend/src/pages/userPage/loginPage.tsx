@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import yeslogo from "../../assets/yeslogo.svg";
-import kakaologo from "../../assets/kakaoLogin.svg"; // 카카오 로고 아이콘 (작은 사이즈)
+import yeslogo from "../../assets/icons/yeslogo.svg";
+import kakaologo from "../../assets/icons/kakaoLogin.svg"; // 카카오 로고 아이콘 (작은 사이즈)
 import { postLoginUser } from "../../api/users";
 
 declare global {

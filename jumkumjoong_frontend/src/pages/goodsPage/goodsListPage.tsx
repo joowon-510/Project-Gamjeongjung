@@ -32,9 +32,12 @@ const GoodsListPage: React.FC = () => {
     } else if (item === "phone") {
       setSearchTerm("폰");
       searchItem = "폰";
-    } else {
+    } else if (item === "tablet") {
       setSearchTerm("태블릿");
       searchItem = "태블릿";
+    } else {
+      setSearchTerm(item);
+      searchItem = item;
     }
     // 상품 데이터 로딩 함수
     const fetchGoods = async (searchItem: string) => {

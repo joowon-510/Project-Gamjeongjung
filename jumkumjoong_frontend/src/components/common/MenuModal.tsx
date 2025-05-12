@@ -1,14 +1,16 @@
-import yeslogo from "../../assets/yeslogo.svg";
+import { Link, useNavigate } from "react-router-dom";
+
+import yeslogo from "../../assets/icons/yeslogo.svg";
 import close from "../../assets/icons/close.svg";
-import laptop from "../../assets/laptop.svg";
-import keyboard from "../../assets/keyboard.svg";
-import phone from "../../assets/phone.svg";
-import tablet from "../../assets/tablet.svg";
-import heart from "../../assets/Heart.svg";
-import chat from "../../assets/message-chat.svg";
+import laptop from "../../assets/icons/laptop.svg";
+import keyboard from "../../assets/icons/keyboard.svg";
+import phone from "../../assets/icons/phone.svg";
+import tablet from "../../assets/icons/tablet.svg";
+import heart from "../../assets/icons/Heart.svg";
+import chat from "../../assets/icons/message-chat.svg";
 import settings from "../../assets/icons/settings.svg";
 import logout from "../../assets/icons/logout.svg";
-import { Link, useNavigate } from "react-router-dom";
+
 import Logout from "../../utils/logout";
 
 interface MenuModalProps {
@@ -104,6 +106,10 @@ export default function MenuModal({ onClose }: MenuModalProps) {
     navigate("/login");
   };
 
+  const handleEditInfo = () => {
+    navigate("/edit/nickname");
+  };
+
   return (
     <div className="fixed inset-0 z-[100] bg-white flex flex-col">
       <header className="sticky top-0 left-0 w-full h-[96px] flex items-center shadow-md bg-white px-4 pt-2 z-10">
@@ -122,11 +128,6 @@ export default function MenuModal({ onClose }: MenuModalProps) {
           </div>
           <div className="mx-2 flex flex-col gap-3">
             {categoryActions.map((action) => (
-              // <Link
-              //   key={action.id}
-              //   to={action.path}
-              //   // className="flex items-center pb-2 border-b"
-              // >
               <div
                 key={action.id}
                 onClick={() => {
@@ -139,7 +140,6 @@ export default function MenuModal({ onClose }: MenuModalProps) {
                   <p className="">{action.label}</p>
                 </div>
               </div>
-              // </Link>
             ))}
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function MenuModal({ onClose }: MenuModalProps) {
           {/* 회원정보변경 */}
           <div
             className="flex flex-1 gap-2 items-center justify-center"
-            onClick={() => {}}
+            onClick={handleEditInfo}
           >
             <img src={settings} alt="settings" className="w-7 h-7" />
             <p>회원정보변경</p>
