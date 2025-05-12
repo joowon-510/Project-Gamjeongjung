@@ -38,7 +38,7 @@ export const createChatRoom = async (data: CreateChatRoomRequest) => {
       throw new Error('상품 ID가 없습니다.');
     }
 
-    const response = await axiosInstance.get<ChatResponse<ChatRoom>>(`${BASE_URL}/chatting`, { 
+    const response = await axiosInstance.get<ChatResponse<ChatRoom>>(`/chatting`, { 
       params: data,
       // 디버깅을 위한 추가 설정
       paramsSerializer: {
@@ -81,7 +81,7 @@ export const createChatRoom = async (data: CreateChatRoomRequest) => {
 // 채팅방 목록 조회
 export const getChatRooms = async () => {
   try {
-    const response = await axiosInstance.get<ChatResponse<ChatRoom[]>>(`${BASE_URL}/chatting`);
+    const response = await axiosInstance.get<ChatResponse<ChatRoom[]>>(`/chatting`);
     return response.data;
   } catch (error) {
     console.error('채팅방 목록 조회 오류:', error);
@@ -113,7 +113,7 @@ export const getChatMessages = async (roomId: string, params?: ChatMessageParams
     console.log('🔍 최종 요청 파라미터:', queryParams);
     
     // axiosInstance 사용
-    const response = await axiosInstance.get<ChatMessageResponse>(`${BASE_URL}/chatting/${roomId}`, {
+    const response = await axiosInstance.get<ChatMessageResponse>(`/chatting/${roomId}`, {
       params: queryParams
     });
     
