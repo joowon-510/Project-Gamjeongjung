@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import yeslogo from "../../assets/icons/yeslogo.svg";
-import kakaologo from "../../assets/icons/kakaoLogin.svg";
-
+import kakaologo from "../../assets/icons/kakaoLogin.svg"; // 카카오 로고 아이콘 (작은 사이즈)
 import { postLoginUser } from "../../api/users";
 
 declare global {
@@ -19,36 +17,19 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ✅ 1. Kakao SDK 로드 및 초기화
   useEffect(() => {
-    loadKakaoSdk();
-  }, []);
-
-  const loadKakaoSdk = () => {
     const script = document.createElement("script");
     script.src = "https://developers.kakao.com/sdk/js/kakao.js";
     script.async = true;
     script.onload = () => {
       if (window.Kakao && !window.Kakao.isInitialized()) {
         window.Kakao.init(JS_KEY);
-        console.log("Kakao SDK initialized:", window.Kakao.isInitialized());
+        console.log("Kakao SDK 초기화:", window.Kakao.isInitialized());
       }
     };
     document.head.appendChild(script);
-  };
-
-  // ✅ 1. Kakao SDK 로드 및 초기화
-  // useEffect(() => {
-  //   const script = document.createElement("script");
-  //   script.src = "https://developers.kakao.com/sdk/js/kakao.js";
-  //   script.async = true;
-  //   script.onload = () => {
-  //     if (window.Kakao && !window.Kakao.isInitialized()) {
-  //       window.Kakao.init(JS_KEY);
-  //       console.log("Kakao SDK 초기화:", window.Kakao.isInitialized());
-  //     }
-  //   };
-  //   document.head.appendChild(script);
-  // }, []);
+  }, []);
 
   // ✅ 2. 로그인 처리 함수
   const handleKakaoLogin = () => {
@@ -62,24 +43,24 @@ const LoginPage: React.FC = () => {
     }
 
     window.Kakao.Auth.loginForm({
+      // window.Kakao.Auth.login({
       scope: "profile_nickname, account_email",
-      success: async (authObj: any) => {
+      success: async function (authObj: any) {
+        const accessToken = authObj.access_token;
+        console.log("카카오 access_token:", accessToken);
+
         try {
-          const accessToken = authObj.access_token;
-          console.log("카카오 access_token:", accessToken);
-
-          const res = await postLoginUser(accessToken);
+          const res = await postLoginUser(accessToken); // 👉 백엔드로 전송
           console.log("로그인 성공:", res);
-
+          // localStorage.setItem("jwt", res.data.accessToken); // 필요시 저장
           navigate("/");
         } catch (err) {
-          console.log("백엔드 로그인 실패: ", err);
           setError("백엔드 로그인 실패");
         } finally {
           setLoading(false);
         }
       },
-      fail: (err: any) => {
+      fail: function (err: any) {
         console.error("카카오 로그인 실패:", err);
         setError("카카오 로그인 실패");
         setLoading(false);
