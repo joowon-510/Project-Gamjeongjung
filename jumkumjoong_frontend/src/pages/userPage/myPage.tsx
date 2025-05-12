@@ -1,12 +1,15 @@
 // src/pages/MyPage.tsx
 import React, { useEffect, useState } from "react";
+
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import ProfileSection from "../../components/mypage/ProfileSection";
 import ReviewSection from "../../components/mypage/ReviewSection";
 import ActionSection from "../../components/mypage/ActionSection";
+
 import { useAuthStore } from "../../stores/useUserStore";
 import { useReviewStore } from "../../stores/useReviewStore";
+
 import { getReview, getReviewStars } from "../../api/reviews";
 
 const MyPage: React.FC = () => {
@@ -15,32 +18,29 @@ const MyPage: React.FC = () => {
   const [rating, setRating] = useState<number>(3);
 
   useEffect(() => {
-    const fetchStar = async () => {
-      try {
-        const response = await getReviewStars();
-        console.log("response: ", response?.data.body);
-        if (!response) {
-          setRating(3);
-          return;
-        }
-        setRating(response.data.body);
-      } catch (error) {
-        console.log("error: ", error);
-      }
-    };
-    const fetchReviewsList = async () => {
-      try {
-        const response = await getReview();
-        console.log("getReview: ", response);
-        reviewInfo.setContent(response);
-      } catch (error) {
-        console.log("리뷰 조회 실패: ", error);
-      }
-    };
-    fetchReviewsList();
-    console.log("reviewInfo: ", reviewInfo);
-    fetchStar();
+    loadReviewData();
   }, []);
+
+  const loadReviewData = async () => {
+    try {
+      const [starRes, reviewRes] = await Promise.all([
+        getReviewStars(),
+        getReview(),
+      ]);
+
+      if (reviewRes) {
+        reviewInfo.setContent(reviewRes);
+      }
+
+      if (starRes) {
+        // setRating(starRes);
+        console.log(starRes);
+      }
+    } catch (error) {
+      console.log("리뷰 로딩 실패: ", error);
+      setRating(3);
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">

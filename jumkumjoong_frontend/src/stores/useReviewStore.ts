@@ -9,7 +9,7 @@ export interface ReviewState {
   // setCreatedAt: (createdAt: string | null) => void;
 }
 
-interface ReviewListState {
+export interface ReviewListState {
   content: ReviewState[] | [];
   setContent: (content: ReviewState[] | []) => void;
   addContent: (content: ReviewState) => void;

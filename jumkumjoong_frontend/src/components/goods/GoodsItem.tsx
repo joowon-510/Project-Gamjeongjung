@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatRelativeTime } from "../../utils/dateFormatter";
-import Heart from "../../assets/Heart.svg";
-import HeartEmpty from "../../assets/HeartEmpty.svg";
+import Heart from "../../assets/icons/Heart.svg";
+import HeartEmpty from "../../assets/icons/HeartEmpty.svg";
 import check from "../../assets/icons/check.svg";
 import { postGoodsChangeStatus, postGoodsFavorites } from "../../api/goods";
 import { useWishItemStore, WishItemState } from "../../stores/useUserStore";

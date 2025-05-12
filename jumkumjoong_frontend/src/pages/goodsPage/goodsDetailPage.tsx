@@ -14,8 +14,8 @@ import {
   postGoodsFavorites,
 } from "../../api/goods";
 
-import Heart from "../../assets/Heart.svg";
-import HeartEmpty from "../../assets/HeartEmpty.svg";
+import Heart from "../../assets/icons/Heart.svg";
+import HeartEmpty from "../../assets/icons/HeartEmpty.svg";
 
 import {
   useWishItemStore,
@@ -25,6 +25,7 @@ import {
 import { formatDateManually } from "../../utils/dateFormatter";
 
 import ChatButton from "../../components/chat/chatButton";
+
 const GoodsDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();

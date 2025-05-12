@@ -1,7 +1,8 @@
 // src/components/common/Header.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import yeslogo from "../../assets/yeslogo.svg";
+import yeslogo from "../../assets/icons/yeslogo.svg";
+import search from "../../assets/icons/Search.svg";
 import logout from "../../utils/logout";
 
 interface HeaderProps {
@@ -20,23 +21,21 @@ const Header: React.FC<HeaderProps> = ({
   showLogout = false, // 기본값은 로그아웃 버튼 숨김
 }) => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("검색어를 입력하세요.");
-
-  // 뒤로가기 처리
-  // const handleGoBack = () => {
-  //   navigate(-1);
-  // };
-
-  // 검색 아이콘 클릭 처리
-  // const handleSearchClick = () => {
-  //   if (onSearch) {
-  //     onSearch();
-  //   }
-  // };
+  const [searchTerm, setSearchTerm] = useState("");
 
   // 검색어 입력 처리
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+  };
+
+  // 검색 처리
+  const handleSearch = async () => {
+    try {
+      console.log("검색어: ", searchTerm);
+      navigate("/goods/list", { state: searchTerm });
+    } catch (error) {
+      console.log("검색 실패: ", error);
+    }
   };
 
   // 로그아웃 처리
@@ -75,12 +74,26 @@ const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       ) : !hideSearchButton ? (
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4"
-        />
+        <div className="flex w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
+            placeholder="검색어를 입력하세요."
+            className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70"
+          />
+          <img
+            src={search}
+            alt="search"
+            className="w-6"
+            onClick={handleSearch}
+          />
+        </div>
       ) : (
         <p className="w-[100%] h-10 self-center px-4"></p>
       )}
