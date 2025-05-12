@@ -1,5 +1,5 @@
 // src/pages/chattingPage/chatListPage.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom"; // useNavigate 추가
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
@@ -7,12 +7,9 @@ import chatting from "../../assets/message-chat.svg";
 import ChatItem from "../../components/chat/chatItem";
 import axios, { isAxiosError } from 'axios'; // axios와 isAxiosError import
 import { axiosInstance } from '../../api/axios'; // axiosInstance import 경로 확인
-
-// API 임포트
 import { deleteChatRoom } from "../../api/chat";
-
-// 상품 관련 인터페이스 임포트
 import { GoodsItemDetailProps, GoodsDetailProps } from "../../components/goods/GoodsItem";
+import { useChatContext } from "../../contexts/ChatContext"; // ChatContext import 확인
 
 // localStorage에 저장할 키
 const CHAT_REFRESH_KEY = 'chatListRefresh';
@@ -93,11 +90,38 @@ const ChatListPage: React.FC = () => {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const navigate = useNavigate(); // navigate 함수 가져오기
 
+  const { unreadMessageCount, markRoomAsRead } = useChatContext();
+
   // 로컬 저장 컨텍스트 정보 가져오기
   const getChatContext = (): Record<string, ChatContextInfo> => {
     const contextString = localStorage.getItem(CHAT_CONTEXT_KEY);
     return contextString ? JSON.parse(contextString) : {};
   };
+
+  const updateTotalUnreadCount = useCallback(() => {
+    // 채팅방 목록에서 모든 nonReadCount 합산
+    const totalUnread = chatRooms.reduce((total, room) => total + (room.nonReadCount || 0), 0);
+    
+    console.log('📊 채팅방 목록에서 계산된 전체 안읽은 메시지 수:', totalUnread);
+    
+    // unreadMessagesByRoom 객체 생성
+    const unreadMessagesByRoom: Record<string, number> = {};
+    
+    // 각 채팅방의 안읽은 메시지 수를 객체에 저장
+    chatRooms.forEach(room => {
+      if (room.nonReadCount > 0) {
+        unreadMessagesByRoom[room.roomId] = room.nonReadCount;
+      }
+    });
+    
+    // 디버깅을 위한 로그
+    console.log('📱 각 채팅방 별 안읽은 메시지 수:', unreadMessagesByRoom);
+    
+    // 로컬 스토리지에 저장 (앱 리로드 시 유지)
+    localStorage.setItem('totalUnreadMessages', totalUnread.toString());
+    localStorage.setItem('unreadMessagesByRoom', JSON.stringify(unreadMessagesByRoom));
+    
+  }, [chatRooms]);
 
   // 채팅방 목록 로드 함수
   const loadChatRooms = async (page: number = 0, retryCount: number = 0) => {
@@ -185,8 +209,6 @@ const ChatListPage: React.FC = () => {
   };
 
   // 채팅방 삭제 함수
-  // chatListPage.tsx의 handleDeleteChatRoom 함수 전체 코드
-// chatListPage.tsx의 handleDeleteChatRoom 함수 수정
 const handleDeleteChatRoom = async (roomId: string, event?: React.MouseEvent) => {
   try {
     // 이벤트 전파 중지 (Link 클릭 방지) - event가 있는 경우에만
@@ -288,6 +310,11 @@ const handleDeleteChatRoom = async (roomId: string, event?: React.MouseEvent) =>
     loadChatRooms();
   }, [refreshTrigger]); // refreshTrigger가 변경될 때마다 다시 로드
 
+    // chatRooms 상태가 변경될 때마다 안읽은 메시지 수 업데이트
+    useEffect(() => {
+      updateTotalUnreadCount();
+    }, [chatRooms, updateTotalUnreadCount]);
+
   // 추가 채팅방 로드 함수
   const loadMoreChatRooms = () => {
     if (!isLastPage && !loading) {
@@ -318,7 +345,7 @@ const handleDeleteChatRoom = async (roomId: string, event?: React.MouseEvent) =>
     };
   }, []);
 
-  return (
+   return (
     <div className="flex flex-col h-screen bg-white">
       {/* 헤더 */}
       <Header title="LOGO" showBackButton={false} hideSearchButton={false} />

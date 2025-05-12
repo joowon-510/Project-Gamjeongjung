@@ -317,7 +317,6 @@ const generateMessageId = (dto: ChatMessageDTO): string => {
 };
 
 
-  // DTO를 클라이언트 메시지 형식으로 변환하는 함수
 // DTO를 클라이언트 메시지 형식으로 변환하는 함수
 const convertToClientMessage = (dto: ChatMessageDTO): Message => {
   // 메시지 발신자가 현재 사용자인지 확인
@@ -559,41 +558,6 @@ const convertToClientMessage = (dto: ChatMessageDTO): Message => {
       setOldScrollHeight(0);
     }
   }, [messages, oldScrollHeight]);
-
-  // // 채팅방에 들어왔을 때 읽음 표시 처리
-  // useEffect(() => {
-  //   if (isConnected && roomId) {
-  //     // 채팅방 읽음 표시 - 이것은 채팅방 목록에서의 알림을 제거하기 위한 것
-  //     markRoomAsRead(roomId);
-  
-  //     // 채팅방 입장 시 상대방에게 메시지를 읽었다고 알리는 RECEIVE 메시지 전송
-  //     if (currentUserId) {
-  //       const token = localStorage.getItem('accessToken');
-        
-  //       if (!token) {
-  //         console.warn('⚠️ 토큰이 없어 읽음 메시지를 보낼 수 없습니다.');
-  //         return;
-  //       }
-        
-  //       // 약간의 지연 후 메시지 전송 (연결 확립 및 토큰 처리를 위해)
-  //       const timer = setTimeout(() => {
-  //         const currentTime = new Date().toISOString();
-  //         const receiveMessage: ReceiveWebSocketMessage = {
-  //           type: MessageType.RECEIVE,
-  //           roomId: roomId,
-  //           receiver: currentUserId,
-  //           receiveAt: currentTime,
-  //           createdAt: currentTime
-  //         };
-          
-  //         console.log('📤 채팅방 입장 시 읽음 메시지 전송:', receiveMessage);
-  //         chatService.sendMessage(receiveMessage);
-  //       }, 1500);
-        
-  //       return () => clearTimeout(timer);
-  //     }
-  //   }
-  // }, [isConnected, roomId, currentUserId, chatService, markRoomAsRead]);
 
   useEffect(() => {
     if (isConnected && roomId && currentUserId) {
@@ -837,50 +801,20 @@ const convertToClientMessage = (dto: ChatMessageDTO): Message => {
           <div className="ml-4 text-lg font-semibold">
             {user?.name || "채팅"}
           </div>
-          {!isConnected && (
-            <div className="ml-2 text-xs text-red-500">연결 중...</div>
-          )}
-          {isConnected && (
-            <div className="ml-2 text-xs text-green-500">연결됨</div>
-          )}
         </div>
       </header>
-
-      {/* 디버깅 정보 (개발 중에만 사용) */}
-      {/* {process.env.NODE_ENV === 'development' && (
-        <div className="bg-yellow-100 p-2 text-xs">
-          <div>Room ID: {roomId}</div>
-          <div>User ID: {currentUserId}</div>
-          <div>Connection: {isConnected ? 'Connected' : 'Disconnected'}</div>
-          <div>Messages Count: {messages.length}</div>
-          <div>Has More: {hasMore ? 'Yes' : 'No'}</div>
-          <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
-          <div>Current Page: {currentPage}</div>
-          <div className="mt-2 font-bold">API 상태: {apiStatus}</div>
-          <div className="mt-1">직접 fetch 결과: {manualFetchResult}</div>
-          <button 
-            onClick={manualFetchUserId}
-            className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs"
-          >
-            사용자 ID 수동 조회
-          </button>
-        </div>
-      )} */}
 
       {/* 메시지 목록 */}
       <div 
         className="flex-1 overflow-y-auto p-4 z-10"
         ref={messagesContainerRef}
         onScroll={(e) => {
-          // 스크롤이 상단에 가까워지면 이전 메시지 로드
           const { scrollTop } = e.currentTarget;
           if (scrollTop < 50 && hasMore && !isLoading) {
             handleLoadMoreMessages();
           }
         }}
-      >
-        {/* 내용 생략... */}
-        
+      >        
         <div className="space-y-4">
           {messages.map((message, index) => (
             <div
