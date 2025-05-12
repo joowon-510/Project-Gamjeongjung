@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import laptop from "../assets/laptop.svg";
-import keyboard from "../assets/keyboard.svg";
-import phone from "../assets/phone.svg";
-import tablet from "../assets/tablet.svg";
+import laptop from "../assets/icons/laptop.svg";
+import keyboard from "../assets/icons/keyboard.svg";
+import phone from "../assets/icons/phone.svg";
+import tablet from "../assets/icons/tablet.svg";
 import NavigationBar from "../components/common/NavigationBar";
 import Header from "../components/common/Header";
 import { useNavigate } from "react-router-dom";

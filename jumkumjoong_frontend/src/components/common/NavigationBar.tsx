@@ -1,11 +1,11 @@
 // src/components/common/NavigationBar.tsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import plusCircle from "../../assets/PlusCircle.svg";
-import heart from "../../assets/Heart.svg";
-import userProfile from "../../assets/user-profile.svg";
-import messageChat from "../../assets/message-chat.svg";
-import menu from "../../assets/menu.svg";
+import plusCircle from "../../assets/icons/PlusCircle.svg";
+import heart from "../../assets/icons/Heart.svg";
+import userProfile from "../../assets/icons/user-profile.svg";
+import messageChat from "../../assets/icons/message-chat.svg";
+import menu from "../../assets/icons/menu.svg";
 import { useChatContext } from "../../contexts/ChatContext";
 import MenuModal from "./MenuModal";
 

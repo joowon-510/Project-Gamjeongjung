@@ -1,7 +1,7 @@
 // src/components/common/Header.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import yeslogo from "../../assets/yeslogo.svg";
+import yeslogo from "../../assets/icons/yeslogo.svg";
 import logout from "../../utils/logout";
 
 interface HeaderProps {
