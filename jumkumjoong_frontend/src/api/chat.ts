@@ -11,7 +11,7 @@ import {
 } from '../types/chat';
 import axiosInstance from './axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 // 채팅방 생성 요청 타입
 interface CreateChatRoomRequest {

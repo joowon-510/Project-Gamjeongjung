@@ -5,7 +5,7 @@ import { axiosInstance } from "./axios";
 import { ItemEditParams, ItemRegistParams } from "../types/types";
 
 // API 기본 URL 설정 (환경에 맞게 변경)
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 // 상품 목록 가져오기
 export const fetchGoods = async (
