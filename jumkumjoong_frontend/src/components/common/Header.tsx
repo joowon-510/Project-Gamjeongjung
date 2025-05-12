@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import yeslogo from "../../assets/icons/yeslogo.svg";
 import search from "../../assets/icons/Search.svg";
 import logout from "../../utils/logout";
-import { getGoodsSearch } from "../../api/goods";
 
 interface HeaderProps {
   onSearch?: () => void;
@@ -24,18 +23,6 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 뒤로가기 처리
-  // const handleGoBack = () => {
-  //   navigate(-1);
-  // };
-
-  // 검색 아이콘 클릭 처리
-  // const handleSearchClick = () => {
-  //   if (onSearch) {
-  //     onSearch();
-  //   }
-  // };
-
   // 검색어 입력 처리
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -45,8 +32,6 @@ const Header: React.FC<HeaderProps> = ({
   const handleSearch = async () => {
     try {
       console.log("검색어: ", searchTerm);
-      // const search = await getGoodsSearch(searchTerm);
-      console.log(search);
       navigate("/goods/list", { state: searchTerm });
     } catch (error) {
       console.log("검색 실패: ", error);
@@ -94,6 +79,11 @@ const Header: React.FC<HeaderProps> = ({
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
             placeholder="검색어를 입력하세요."
             className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70"
           />
