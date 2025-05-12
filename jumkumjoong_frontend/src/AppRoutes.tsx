@@ -31,6 +31,8 @@ const AppRoutes = () => {
   const location = useLocation();
   // const chatService = useChatService(); // 추가
 
+  const PUBLIC_PATHS = ["/", "/login", "/goods/list"];
+
   const fetchUser = async () => {
     const response = await getUserInfo();
     return response;
@@ -38,9 +40,12 @@ const AppRoutes = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const user = await fetchUser();
-      if (!user && location.pathname !== "/login") {
-        navigate("/login");
+      const isPublic = PUBLIC_PATHS.includes(location.pathname);
+      if (!isPublic) {
+        const user = await fetchUser();
+        if (!user) {
+          navigate("/login");
+        }
       }
     };
     checkUser();
