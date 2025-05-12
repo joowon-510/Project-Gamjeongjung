@@ -1,4 +1,4 @@
-// src/api/chat.ts - 오류 수정한 버전
+// src/api/chat.ts - process.env.NODE_ENV 제거 버전
 import axios from 'axios';
 import { useAuthStore } from "../stores/useUserStore";
 
@@ -38,7 +38,7 @@ export const createChatRoom = async (data: CreateChatRoomRequest) => {
       throw new Error('상품 ID가 없습니다.');
     }
 
-    const response = await axiosInstance.get<ChatResponse<ChatRoom>>(`${BASE_URL}/chatting`, { 
+    const response = await axiosInstance.get<ChatResponse<ChatRoom>>(`/chatting`, { 
       params: data,
       // 디버깅을 위한 추가 설정
       paramsSerializer: {
@@ -81,7 +81,7 @@ export const createChatRoom = async (data: CreateChatRoomRequest) => {
 // 채팅방 목록 조회
 export const getChatRooms = async () => {
   try {
-    const response = await axiosInstance.get<ChatResponse<ChatRoom[]>>(`${BASE_URL}/chatting`);
+    const response = await axiosInstance.get<ChatResponse<ChatRoom[]>>(`/chatting`);
     return response.data;
   } catch (error) {
     console.error('채팅방 목록 조회 오류:', error);

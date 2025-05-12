@@ -345,7 +345,7 @@ const handleDeleteChatRoom = async (roomId: string, event?: React.MouseEvent) =>
     };
   }, []);
 
-   return (
+  return (
     <div className="flex flex-col h-screen bg-white">
       {/* 헤더 */}
       <Header title="LOGO" showBackButton={false} hideSearchButton={false} />
