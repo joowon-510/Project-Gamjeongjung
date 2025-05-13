@@ -1,6 +1,6 @@
-package com.ssafy.usedtrade.domain.websocket.redis.service;
+package com.ssafy.usedtrade.domain.redis.service;
 
-import com.ssafy.usedtrade.domain.websocket.redis.entity.WebsocketSession;
+import com.ssafy.usedtrade.domain.redis.entity.WebsocketSession;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;

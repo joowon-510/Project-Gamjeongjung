@@ -1,12 +1,20 @@
 package com.ssafy.usedtrade.domain.item.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -17,6 +25,9 @@ public class SalesItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
+
+    @OneToMany(mappedBy = "salesItem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ItemImage> itemImageList;
 
     @NotNull
     @Column(name = "user_id", nullable = false)
@@ -60,6 +71,6 @@ public class SalesItem {
     @Column(name = "scratches_status", nullable = false)
     private String scratchesStatus;
 
-    @Column(name = "serial_number",nullable = true)
+    @Column(name = "serial_number", nullable = true)
     private String serialNumber;
 }

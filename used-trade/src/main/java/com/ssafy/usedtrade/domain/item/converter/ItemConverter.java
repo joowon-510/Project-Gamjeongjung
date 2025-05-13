@@ -2,6 +2,7 @@ package com.ssafy.usedtrade.domain.item.converter;
 
 import com.ssafy.usedtrade.domain.item.dto.EsItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemDto;
+import com.ssafy.usedtrade.domain.item.entity.ItemImage;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 
 public class ItemConverter {
@@ -37,6 +38,10 @@ public class ItemConverter {
         itemDto.setCreatedAt(salesItem.getCreatedAt());
         itemDto.setScratchesStatus(salesItem.getScratchesStatus());
         itemDto.setSerialNumber(salesItem.getSerialNumber());
+        itemDto.setDeviceImageList(
+                salesItem.getItemImageList().stream()
+                        .map(ItemImage::getImageName)
+                        .toList());
         return itemDto;
     }
 

@@ -5,16 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.usedtrade.common.encryption.AESUtil;
 import com.ssafy.usedtrade.common.jwt.JwtTokenProvider;
 import com.ssafy.usedtrade.domain.chat.service.ChattingContentService;
+import com.ssafy.usedtrade.domain.redis.entity.ChattingReadPointRequest;
+import com.ssafy.usedtrade.domain.redis.entity.ChattingTotalMessageRequest;
+import com.ssafy.usedtrade.domain.redis.entity.MessageDetail;
+import com.ssafy.usedtrade.domain.redis.entity.WebsocketSession;
+import com.ssafy.usedtrade.domain.redis.service.ChattingReadPointService;
+import com.ssafy.usedtrade.domain.redis.service.ChattingTotalMessageService;
+import com.ssafy.usedtrade.domain.redis.service.MessageDetailService;
+import com.ssafy.usedtrade.domain.redis.service.UserWebsocketSessionService;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatReadDto;
-import com.ssafy.usedtrade.domain.websocket.redis.entity.ChattingReadPointRequest;
-import com.ssafy.usedtrade.domain.websocket.redis.entity.ChattingTotalMessageRequest;
-import com.ssafy.usedtrade.domain.websocket.redis.entity.MessageDetail;
-import com.ssafy.usedtrade.domain.websocket.redis.entity.WebsocketSession;
-import com.ssafy.usedtrade.domain.websocket.redis.service.ChattingReadPointService;
-import com.ssafy.usedtrade.domain.websocket.redis.service.ChattingTotalMessageService;
-import com.ssafy.usedtrade.domain.websocket.redis.service.MessageDetailService;
-import com.ssafy.usedtrade.domain.websocket.redis.service.UserWebsocketSessionService;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -98,7 +98,7 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 chattingContentService.saveMessage(chatMessageDto);
 
                 // read 시간 update
-                chattingReadPointService.save_update(
+                chattingReadPointService.saveOrUpdate(
                         ChattingReadPointRequest.builder()
                                 .channelId(aesUtil.decrypt(chatMessageDto.roomId()))
                                 .userId(chatMessageDto.sender())
@@ -114,7 +114,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
 
                 // 메세지 내용
                 messageDetailService.save(MessageDetail.builder()
-                        .messageId(String.valueOf(chatMessageDto.createdAt()))
+                        .messageId(chatMessageDto.createdAt()
+                                + "_" + chatMessageDto.sender())
                         .message(chatMessageDto)
                         .build());
 
@@ -122,7 +123,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 chattingTotalMessageService.save(
                         ChattingTotalMessageRequest.builder()
                                 .chattingRoomId(chatMessageDto.roomId())
-                                .messageId(String.valueOf(chatMessageDto.createdAt()))
+                                .messageId(chatMessageDto.createdAt()
+                                        + "_" + chatMessageDto.sender())
                                 .timestamp(chatMessageDto.createdAt())
                                 .build());
             }
@@ -131,7 +133,7 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                         transToDto(payloadJson, ChatReadDto.class);
 
                 // read 시간 update
-                chattingReadPointService.save_update(
+                chattingReadPointService.saveOrUpdate(
                         ChattingReadPointRequest.builder()
                                 .channelId(aesUtil.decrypt(chatReadDto.roomId()))
                                 .userId(chatReadDto.receiver())
@@ -155,7 +157,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String token = accessor.getFirstNativeHeader("Authorization");
 
-            if (token != null && token.startsWith("Bearer ") && jwtTokenProvider.validate(token.substring(7))) {
+            if (token != null && token.startsWith("Bearer ")
+                    && jwtTokenProvider.validate(token.substring(7))) {
                 Authentication authentication =
                         jwtTokenProvider.decode(token.substring(7));
                 accessor.setUser(authentication);

@@ -1,5 +1,6 @@
 package com.ssafy.usedtrade.domain.review.repository;
 
+import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 import com.ssafy.usedtrade.domain.review.dto.ReviewResponse;
 import com.ssafy.usedtrade.domain.review.entity.Review;
 import java.time.LocalDateTime;
@@ -16,4 +17,6 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
     @Query("SELECT AVG(r.stars) FROM Review r WHERE r.sellerId = :sellerId")
     Float findAverageStarsBySellerId(Integer sellerId);
+
+    void deleteByItem(SalesItem salesItem);
 }

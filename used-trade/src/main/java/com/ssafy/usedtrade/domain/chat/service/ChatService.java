@@ -4,18 +4,22 @@ import com.ssafy.usedtrade.common.encryption.AESUtil;
 import com.ssafy.usedtrade.domain.chat.dto.ChatContentResponse;
 import com.ssafy.usedtrade.domain.chat.dto.ChatListResponse;
 import com.ssafy.usedtrade.domain.chat.dto.ChatRoomCreateRequest;
-import com.ssafy.usedtrade.domain.chat.entity.ChattingContent;
 import com.ssafy.usedtrade.domain.chat.entity.ChattingList;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingContentRepository;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingListRepository;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
 import com.ssafy.usedtrade.domain.item.service.SalesItemService;
+import com.ssafy.usedtrade.domain.redis.entity.ChattingReadPointRequest;
+import com.ssafy.usedtrade.domain.redis.service.ChattingReadPointService;
+import com.ssafy.usedtrade.domain.redis.service.ChattingTotalMessageService;
+import com.ssafy.usedtrade.domain.redis.service.MessageDetailService;
 import com.ssafy.usedtrade.domain.user.service.UserService;
-import com.ssafy.usedtrade.domain.websocket.redis.entity.ChattingReadPointRequest;
-import com.ssafy.usedtrade.domain.websocket.redis.service.ChattingReadPointService;
+import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +37,8 @@ public class ChatService {
     private final UserService userService;
     private final AESUtil aesUtil;
     private final SalesItemService salesItemService;
+    private final ChattingTotalMessageService chattingTotalMessageService;
+    private final MessageDetailService messageDetailService;
 
     public Slice<ChatListResponse> findAllMyChatRoom(Integer userId, LocalDateTime lastChatTime) {
         /*
@@ -56,10 +62,9 @@ public class ChatService {
                     userId,
                     pageable
             ).map(entity -> {
-                // TODO: REDIS로 세션 접속했던 시간 대비 해서 count
-                int nonReadCount =
-                        chattingContentRepository.countUnreadMessagesAfterDate(
-                                entity.getId(),
+                long nonReadCount =
+                        chattingTotalMessageService.count(
+                                aesUtil.encrypt(String.valueOf(entity.getId())),
                                 chattingReadPointService.find(
                                         ChattingReadPointRequest.builder()
                                                 .channelId(String.valueOf(entity.getId()))
@@ -74,22 +79,15 @@ public class ChatService {
                                 entity.getBuyerId() :
                                 entity.getSellerId()
                 );
-                // TODO: Redis ZSet으로 마지막 메세지 보여주기
-                String lastMessage = chattingContentRepository.findTopByChattingListIdOrderByCreatedAtDesc(
-                                entity.getId())
-                        .orElse(new ChattingContent(
-                                null,
-                                null,
-                                null,
-                                "메세지가 존재하지 않습니다.",
-                                null))
-                        .getContents();
+                ChatMessageDto chatMessageDto = messageDetailService.find(
+                        chattingTotalMessageService.getLatestMessageId(
+                                aesUtil.encrypt(String.valueOf(entity.getId()))));
 
                 return ChatListResponse.builder()
                         .roomId(aesUtil.encrypt(String.valueOf(entity.getId())))
                         .chattingUserNickname(userNickname)
-                        .nonReadCount(nonReadCount)
-                        .lastMessage(lastMessage)
+                        .nonReadCount((int) nonReadCount)
+                        .lastMessage(chatMessageDto.message())
                         .postTitle(
                                 itemSalesRepository.findById(entity.getPostId())
                                         .orElseThrow(() -> new IllegalArgumentException("해당 post가 없습니다."))
@@ -106,15 +104,14 @@ public class ChatService {
                 lastChatTime,
                 pageable
         ).map(entity -> {
-            // TODO: REDIS로 세션 접속했던 시간 대비 해서 count
-            int nonReadCount =
-                    chattingContentRepository.countUnreadMessagesAfterDate(
-                            entity.getId(),
-                            chattingReadPointService.find(
-                                    ChattingReadPointRequest.builder()
-                                            .channelId(String.valueOf(entity.getId()))
-                                            .userId(String.valueOf(userId))
-                                            .build()));
+            long nonReadCount = chattingTotalMessageService.count(
+                    aesUtil.encrypt(String.valueOf(entity.getId())),
+                    chattingReadPointService.find(
+                            ChattingReadPointRequest.builder()
+                                    .channelId(String.valueOf(entity.getId()))
+                                    .userId(String.valueOf(userId))
+                                    .build()));
+
             /*
              * TODO: 현재 user 이름을 위해 db 참조
              *  N + 1이 되는 상황 제거해보기
@@ -124,21 +121,16 @@ public class ChatService {
                             entity.getBuyerId() :
                             entity.getSellerId()
             );
-            // TODO: Redis ZSet으로 마지막 메세지 보여주기
-            String lastMessage = chattingContentRepository.findTopByChattingListIdOrderByCreatedAtDesc(entity.getId())
-                    .orElse(new ChattingContent(
-                            null,
-                            null,
-                            null,
-                            "메세지가 존재하지 않습니다.",
-                            null))
-                    .getContents();
+            //redis에서 마지막 메세지 보여주기
+            ChatMessageDto chatMessageDto = messageDetailService.find(
+                    chattingTotalMessageService.getLatestMessageId(
+                            aesUtil.encrypt(String.valueOf(entity.getId()))));
 
             return ChatListResponse.builder()
                     .roomId(aesUtil.encrypt(String.valueOf(entity.getId())))
                     .chattingUserNickname(userNickname)
-                    .nonReadCount(nonReadCount)
-                    .lastMessage(lastMessage)
+                    .nonReadCount((int) nonReadCount)
+                    .lastMessage(chatMessageDto.message())
                     .postTitle(
                             itemSalesRepository.findById(entity.getPostId())
                                     .orElseThrow(() -> new IllegalArgumentException("해당 post가 없습니다."))
@@ -206,20 +198,46 @@ public class ChatService {
                         .build());
     }
 
-    public void createChatRoom(Integer userId, ChatRoomCreateRequest createRequest) {
+    public String createChatRoom(Integer userId, ChatRoomCreateRequest createRequest) {
         // 게시물 id로 게시글 조회
         SalesItem salesItem =
                 itemSalesRepository.findById(createRequest.salesItemId())
                         .orElseThrow(() -> new IllegalArgumentException("존재하는 물품이 없습니다."));
 
-        // 게시글에서 판매자 id 조회
-        chattingListRepository.save(
-                ChattingList.builder()
-                        .postId(salesItem.getId())
-                        .sellerId(salesItem.getUserId())
-                        .buyerId(userId)
-                        .lastChatTime(LocalDateTime.now())
-                        .build());
+        // 채팅 요청 유저 id + 게시물 id로 존재여부 판단
+        Optional<ChattingList> optionalChattingList =
+                chattingListRepository.findByBuyerIdAndPostId(userId, salesItem.getId());
+
+        if (optionalChattingList.isEmpty()) {
+            ChattingList chattingList = chattingListRepository.save(
+                    ChattingList.builder()
+                            .postId(salesItem.getId())
+                            .sellerId(salesItem.getUserId())
+                            .buyerId(userId)
+                            .lastChatTime(LocalDateTime.now())
+                            .build());
+
+            // 초기 읽기 시간 세팅
+            chattingReadPointService.saveOrUpdate(ChattingReadPointRequest.builder()
+                    .userId(String.valueOf(salesItem.getUserId()))
+                    .channelId(String.valueOf(salesItem.getId()))
+                    .createdAt(LocalDateTime.now())
+                    .build());
+            chattingReadPointService.saveOrUpdate(ChattingReadPointRequest.builder()
+                    .userId(String.valueOf(userId))
+                    .channelId(String.valueOf(salesItem.getId()))
+                    .createdAt(LocalDateTime.now())
+                    .build());
+
+            // 생성된 채팅방의 id를 return
+            return redirectUrlExistChatting(Optional.of(chattingList));
+        }
+
+        return redirectUrlExistChatting(optionalChattingList);
+    }
+
+    private String redirectUrlExistChatting(Optional<ChattingList> optionalChattingList) {
+        return "/" + aesUtil.encrypt(String.valueOf(optionalChattingList.get().getId()));
     }
 
     public void deleteMyChatRoom(Integer userId, String roomId) {
@@ -234,5 +252,20 @@ public class ChatService {
         }
 
         chattingListRepository.deleteById(decryptRoomId);
+    }
+
+    public LocalDateTime findReadTime(Integer userId, String roomId) {
+        Integer decryptRoomId = Integer.parseInt(aesUtil.decrypt(roomId));
+
+        Map<Object, Object> maps =
+                chattingReadPointService.findAll(String.valueOf(decryptRoomId));
+
+        for (Map.Entry<Object, Object> entry : maps.entrySet()) {
+            if (userId != Integer.parseInt(entry.getKey().toString())) {
+                return LocalDateTime.parse(entry.getValue().toString());
+            }
+        }
+
+        return null;
     }
 }
