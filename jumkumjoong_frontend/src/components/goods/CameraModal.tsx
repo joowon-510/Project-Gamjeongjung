@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import Webcam from "react-webcam";
 
 interface CameraProps {
   onClose: () => void;
@@ -7,9 +8,15 @@ interface CameraProps {
 
 const CROP_BOX_SIZE = 384;
 
+const videoConstraints = {
+  facingMode: { ideal: "environment" },
+};
+
 const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  //✅
+  const webcamRef = useRef<Webcam>(null);
 
   const getBackCameraStream = async (): Promise<MediaStream | null> => {
     try {
@@ -94,9 +101,17 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
   }, []);
 
   const handleCapture = () => {
-    const video = videoRef.current;
+    // const video = videoRef.current;
+    //✅
+    const webcam = webcamRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    // if (!video || !canvas) return;
+
+    //✅
+    if (!webcam || !canvas) return;
+
+    //✅
+    const video = webcam.video as HTMLVideoElement;
 
     const videoRect = video.getBoundingClientRect();
     const cropLeft = (videoRect.width - CROP_BOX_SIZE) / 2;
@@ -120,19 +135,19 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
       onCapture(imageDataUrl);
 
       // ✅ 카메라 스트림 중단 및 해제
-      const stream = video.srcObject as MediaStream;
-      stream?.getTracks().forEach((track) => track.stop());
-      video.srcObject = null;
+      // const stream = video.srcObject as MediaStream;
+      // stream?.getTracks().forEach((track) => track.stop());
+      // video.srcObject = null;
 
       onClose();
     }
   };
 
-  const handleClose = () => {
-    const stream = videoRef.current?.srcObject as MediaStream;
-    stream?.getTracks().forEach((track) => track.stop());
-    onClose();
-  };
+  // const handleClose = () => {
+  //   const stream = videoRef.current?.srcObject as MediaStream;
+  //   stream?.getTracks().forEach((track) => track.stop());
+  //   onClose();
+  // };
 
   const BlurOverlay = ({
     position,
@@ -142,18 +157,28 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
     style: React.CSSProperties;
   }) => (
     <div
-      className={`absolute ${position} z-10 blur-section`}
+      className={`absolute ${position} z-10`}
+      // className={`absolute ${position} z-10 blur-section`}
       style={style}
     ></div>
   );
 
   return (
     <div className="fixed inset-0 z-[60] bg-black text-white">
-      <video
+      {/* <video
         ref={videoRef}
         className="absolute top-0 left-0 w-full h-full object-cover"
         playsInline
         muted
+      /> */}
+      <Webcam
+        audio={false}
+        ref={webcamRef}
+        videoConstraints={videoConstraints}
+        className="absolute top-0 left-0 w-full h-full object-cover"
+        mirrored={false}
+        screenshotFormat="image/png"
+        forceScreenshotSourceSize
       />
 
       <canvas ref={canvasRef} style={{ display: "none" }} />
@@ -204,7 +229,8 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
         </button>
         <button
           className="bg-red-500 px-4 py-2 rounded text-white font-bold"
-          onClick={handleClose}
+          onClick={onClose}
+          // onClick={handleClose}
         >
           닫기
         </button>
