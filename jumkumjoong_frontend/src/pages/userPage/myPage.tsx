@@ -33,12 +33,14 @@ const MyPage: React.FC = () => {
       }
 
       if (starRes) {
-        // setRating(starRes);
+        setRating(starRes.data.body);
         console.log(starRes);
+      } else {
+        setRating(0);
       }
     } catch (error) {
       console.log("리뷰 로딩 실패: ", error);
-      setRating(3);
+      setRating(0);
     }
   };
 
