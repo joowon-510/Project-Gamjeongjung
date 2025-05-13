@@ -12,10 +12,15 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
+    const video = videoRef.current;
     const initCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          video: {
+            facingMode: { ideal: "environment" },
+          } satisfies MediaTrackConstraints,
+          audio: false,
+          // video: true,
         });
         const video = videoRef.current;
 
@@ -38,8 +43,13 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
     initCamera();
 
     return () => {
-      const stream = videoRef.current?.srcObject as MediaStream;
-      stream?.getTracks().forEach((track) => track.stop());
+      // const stream = video?.srcObject as MediaStream;
+      // stream?.getTracks().forEach((track) => track.stop());
+      if (video && video.srcObject instanceof MediaStream) {
+        const stream = video.srcObject;
+        stream.getTracks().forEach((track) => track.stop()); // ✅ 트랙 정지
+        video.srcObject = null; // ✅ 연결 해제
+      }
     };
   }, []);
 
