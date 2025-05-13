@@ -4,7 +4,11 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import NavigationBar from "../components/common/NavigationBar";
 import { getUserInfo } from "../api/users";
-import { getGoodsFavorites, getGoodsSearch } from "../api/goods";
+import {
+  getGoodsFavorites,
+  getGoodsRecent,
+  getGoodsSearch,
+} from "../api/goods";
 
 // 상태관리 임포트
 import { useAuthStore, useWishItemStore } from "../stores/useUserStore";
@@ -35,12 +39,12 @@ const categories = [
 //   { img: thumbnail5, title: "그램 14인치" },
 // ];
 
-const recentItems = [
-  { img: thumbnail, title: "갤북5(S)급 팝니다" },
-  { img: thumbnail2, title: "맥북pro 팔아용" },
-  { img: thumbnail3, title: "갤북4 싸게 팝니다" },
-  { img: thumbnail4, title: "그램 14인치" },
-];
+// const recentItems = [
+//   { img: thumbnail, title: "갤북5(S)급 팝니다" },
+//   { img: thumbnail2, title: "맥북pro 팔아용" },
+//   { img: thumbnail3, title: "갤북4 싸게 팝니다" },
+//   { img: thumbnail4, title: "그램 14인치" },
+// ];
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
@@ -67,8 +71,11 @@ const MainPage: React.FC = () => {
 
     const checkGoods = async () => {
       try {
-        const goods = await getGoodsSearch("노트북");
+        const goods = await getGoodsRecent();
         console.log("goods: ", goods);
+        if (!goods) {
+          setRecentItem([]);
+        }
         const parsedItems = goods.map((item: any) => ({
           img: item.imageUrl || thumbnail, // 실제로는 item.imageUrl 같은 값이 들어가야 할 수도 있음
           id: item.itemId,
@@ -95,31 +102,38 @@ const MainPage: React.FC = () => {
   }));
 
   const renderItemGrid = (
-    items: { img: string; title: string; id: number }[]
-  ) => (
-    <div className="grid grid-cols-2 gap-4 mt-2 flex items-center">
-      {items.length > 0 ? (
-        items.map((item, idx) => (
-          <div
-            key={idx}
-            className=""
-            onClick={() => {
-              navigate(`/goods/detail/${item.id}`);
-            }}
-          >
-            <img
-              src={item.img}
-              alt={`thumbnail-${idx}`}
-              className=" rounded-xl"
-            />
-            <p>{item.title}</p>
-          </div>
-        ))
-      ) : (
-        <p className="mt-5">상품을 보러 가볼까요?</p>
-      )}
-    </div>
-  );
+    items: { img: string; title: string; id: number }[],
+    key: "recent" | "wish"
+  ) => {
+    const mention =
+      key === "recent"
+        ? "등록된 상품이 없습니다."
+        : "찜한 상품이 없습니다.\n상품을 보러가볼까요?";
+    return (
+      <div className="grid grid-cols-2 gap-4 mt-2 flex items-center">
+        {items.length > 0 ? (
+          items.map((item, idx) => (
+            <div
+              key={idx}
+              className=""
+              onClick={() => {
+                navigate(`/goods/detail/${item.id}`);
+              }}
+            >
+              <img
+                src={item.img}
+                alt={`thumbnail-${idx}`}
+                className=" rounded-xl"
+              />
+              <p>{item.title}</p>
+            </div>
+          ))
+        ) : (
+          <p className="mt-5 whitespace-pre-wrap">{mention}</p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col h-screen text-first">
@@ -153,7 +167,7 @@ const MainPage: React.FC = () => {
             <img src={heart} alt="heart" className="w-5" />
             <p className=" text-[20px]">내가 찜한 아이템</p>
           </div>
-          {renderItemGrid(wishItems)}
+          {renderItemGrid(wishItems, "wish")}
         </article>
 
         {/* 최근 등록된 아이템 */}
@@ -162,7 +176,7 @@ const MainPage: React.FC = () => {
             <img src={newGoods} alt="new" className="w-7" />
             <p className="text-[20px]">방금 등록된 아이템</p>
           </div>
-          {renderItemGrid(recentItems)}
+          {renderItemGrid(recentItems, "recent")}
         </article>
       </main>
 

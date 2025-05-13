@@ -69,24 +69,26 @@ const GoodsDetailPage: React.FC = () => {
         const goodsData = await getGoodsDetail(goodsId);
 
         console.log("🌐 API 전체 응답:", goodsData);
-        console.log("📦 API 응답 body:", goodsData.data.body);
+        console.log("📦 API 응답 body:", goodsData.body);
 
-        if (goodsData) {
+        if (goodsData.status_code === 200) {
           // itemId를 명시적으로 설정
           const updatedGoodsData = {
-            ...goodsData.data.body,
+            ...goodsData.body,
             item: {
-              ...goodsData.data.body.item,
+              ...goodsData.body.item,
               itemId: goodsId, // 라우트의 itemId 사용
             },
           };
 
           setGoods(updatedGoodsData);
-          const exits = goodsData.data.body.isFavorite;
+          const exits = goodsData.body.isFavorite;
           setFavorite(exits);
           console.log(exits);
 
           console.log("🔍 업데이트된 상품 데이터:", updatedGoodsData);
+        } else if (goodsData.status_code === 400) {
+          setError("탈퇴한 사용자입니다.");
         } else {
           setError("상품을 찾을 수 없습니다.");
         }
