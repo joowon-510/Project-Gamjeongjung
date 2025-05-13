@@ -2,11 +2,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import plusCircle from "../../assets/PlusCircle.svg";
-import heart from "../../assets/Heart.svg";
-import userProfile from "../../assets/user-profile.svg";
-import messageChat from "../../assets/message-chat.svg";
-import menu from "../../assets/menu.svg";
+import plusCircle from "../../assets/icons/PlusCircle.svg";
+import heart from "../../assets/icons/Heart.svg";
+import userProfile from "../../assets/icons/user-profile.svg";
+import messageChat from "../../assets/icons/message-chat.svg";
+import menu from "../../assets/icons/menu.svg";
 import { useChatStore } from "../../stores/chatStore";
 import MenuModal from "./MenuModal";
 
