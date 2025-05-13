@@ -46,16 +46,18 @@ const MainPage: React.FC = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const user = await getUserInfo();
+      try {
+        const user = await getUserInfo();
+        console.log("User: ", useAuthStore.getState());
+        const wishItem = await getGoodsFavorites();
+        useWishItemStore.getState().setItems(wishItem);
+        console.log("Wish item: ", useWishItemStore.getState().items);
+        if (!user) {
+          // navigate("/login");
 
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-      console.log("User: ", useAuthStore.getState());
-      const wishItem = await getGoodsFavorites();
-      useWishItemStore.getState().setItems(wishItem);
-      console.log("Wish item: ", useWishItemStore.getState().items);
+          return;
+        }
+      } catch (error) {}
     };
 
     checkUser();
