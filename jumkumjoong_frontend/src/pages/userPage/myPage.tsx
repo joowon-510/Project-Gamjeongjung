@@ -43,7 +43,7 @@ const MyPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 text-first">
       {/* 헤더 - 로그아웃 버튼 표시 */}
       <Header showLogout={true} />
 
