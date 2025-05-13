@@ -49,7 +49,7 @@ const AppRoutes = () => {
       }
     };
     checkUser();
-  }, [location.pathname, navigate]);
+  }, [location.pathname, navigate, PUBLIC_PATHS]);
 
   return (
     <Routes>
