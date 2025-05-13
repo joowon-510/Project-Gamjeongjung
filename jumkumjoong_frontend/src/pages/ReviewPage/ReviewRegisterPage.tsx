@@ -1,11 +1,14 @@
 // src/pages/ReviewPage/ReviewRegisterPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import NavigationBar from "../../components/common/NavigationBar";
 import Header from "../../components/common/Header";
+
 import starFilled from "../../assets/icons/starFilled.svg";
 import starEmpty from "../../assets/icons/starEmpty.svg";
 import starHalf from "../../assets/icons/starHalf.svg";
+
 import { postReviewRegist } from "../../api/reviews";
 import { useReviewStore } from "../../stores/useReviewStore";
 
@@ -37,31 +40,43 @@ const ReviewRegisterPage: React.FC = () => {
     }));
   };
 
-  // 폼 제출 처리
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStarClick = (value: number) => {
+    setFormData((prev) => ({ ...prev, stars: value }));
+  };
 
-    // 필수 필드 검증
+  const validateForm = (): boolean => {
     if (!formData.stars) {
       alert("별점과 리뷰는 필수 입력 항목입니다.");
-      return;
+      return false;
     }
     if (formData.content.trim().length < 20) {
       alert("리뷰는 20자 이상 작성해주세요.");
-      return;
+      return false;
     }
+    return true;
+  };
+
+  // 폼 제출 처리
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
     try {
       setIsLoading(true);
 
-      let finalDescription = formData.content;
+      // let finalDescription = formData.content;
 
-      // 상품 등록 API 호출
       const submissionData = {
         ...formData,
-        content: finalDescription,
-        stars: formData.stars,
+        content: formData.content.trim(),
       };
+
+      // 상품 등록 API 호출
+      // const submissionData = {
+      //   ...formData,
+      //   content: finalDescription,
+      //   stars: formData.stars,
+      // };
       console.log("submission: ", submissionData);
 
       const response = await postReviewRegist(submissionData);
@@ -92,6 +107,36 @@ const ReviewRegisterPage: React.FC = () => {
     navigate(-1);
   };
 
+  const renderStarRating = () => (
+    <div className="flex justify-between items-center w-full p-2 border border-gray-300 rounded-md">
+      <div className="text-lg ml-4">{formData.stars} 점</div>
+      <div className="flex mr-4">
+        {[1, 2, 3, 4, 5].map((value) => {
+          const half = value - 0.5;
+          const icon =
+            formData.stars >= value
+              ? starFilled
+              : formData.stars >= half
+              ? starHalf
+              : starEmpty;
+          return (
+            <div key={value} className="relative w-10 h-10">
+              <div
+                className="absolute w-1/2 h-full left-0 top-0 cursor-pointer z-10"
+                onClick={() => handleStarClick(half)}
+              />
+              <div
+                className="absolute w-1/2 h-full right-0 top-0 cursor-pointer z-10"
+                onClick={() => handleStarClick(value)}
+              />
+              <img src={icon} alt={`star-${value}`} className="w-10 h-10" />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <div className="container h-screen mx-auto text-first">
       {/* 통일된 헤더 사용 */}
@@ -117,44 +162,7 @@ const ReviewRegisterPage: React.FC = () => {
             >
               신뢰도를 입력해주세요.
             </label>
-            <div className="flex justify-between items-center w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <div className="text-lg ml-4">{formData.stars} 점</div>
-              <div className="flex mr-4">
-                {[1, 2, 3, 4, 5].map((value) => {
-                  const half = value - 0.5;
-                  return (
-                    <div key={value} className="relative w-10 h-10">
-                      {/* 왼쪽 반 클릭 (0.5점) */}
-                      <div
-                        className="absolute w-1/2 h-full left-0 top-0 cursor-pointer z-10"
-                        onClick={() =>
-                          setFormData((prev) => ({ ...prev, stars: half }))
-                        }
-                      />
-                      {/* 오른쪽 반 클릭 (1점) */}
-                      <div
-                        className="absolute w-1/2 h-full right-0 top-0 cursor-pointer z-10"
-                        onClick={() =>
-                          setFormData((prev) => ({ ...prev, stars: value }))
-                        }
-                      />
-                      {/* 아이콘 렌더링 */}
-                      <img
-                        src={
-                          formData.stars >= value
-                            ? starFilled
-                            : formData.stars >= half
-                            ? starHalf
-                            : starEmpty
-                        }
-                        alt={`star-${value}`}
-                        className="w-10 h-10"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            {renderStarRating()}
           </div>
 
           {/* 리뷰 입력 */}
@@ -187,7 +195,6 @@ const ReviewRegisterPage: React.FC = () => {
 
       {/* 하단 버튼 영역 - sticky로 변경하여 스크롤과 무관하게 항상 표시 */}
       <div className="flex-1 px-3 py-7 bg-white flex gap-2 grid grid-cols-6">
-        {/* <div className="sticky bottom-14 left-0 right-0 p-4 bg-white border-t flex space-x-2 z-10"> */}
         <button
           type="button"
           onClick={handleCancel}

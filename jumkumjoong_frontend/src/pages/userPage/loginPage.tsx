@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import yeslogo from "../../assets/yeslogo.svg";
-import kakaologo from "../../assets/kakaoLogin.svg"; // 카카오 로고 아이콘 (작은 사이즈)
+import yeslogo from "../../assets/icons/yeslogo.svg";
+import kakaologo from "../../assets/icons/kakaoLogin.svg"; // 카카오 로고 아이콘 (작은 사이즈)
 import { postLoginUser } from "../../api/users";
 
 declare global {
@@ -68,6 +68,14 @@ const LoginPage: React.FC = () => {
     });
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-2);
+    } else {
+      navigate("/"); // 기본 경로로 fallback
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-6 bg-white text-first">
       <div className="flex flex-col  mb-5 mt-0 pt-0">
@@ -101,7 +109,7 @@ const LoginPage: React.FC = () => {
       <div className="border-t border-gray-200 w-full max-w-[320px] my-6"></div>
 
       <button
-        onClick={() => navigate(-1)}
+        onClick={handleBack}
         className="text-red-500 text-sm underline underline-offset-2 hover:text-red-600"
       >
         뒤로가기
