@@ -161,16 +161,36 @@ const GoodsRegistrationPage: React.FC = () => {
     e.preventDefault();
 
     // 필수 필드 검증
-    if (
-      !formData.title.trim() ||
-      formData.price <= 0 ||
-      // !formData.price.trim() ||
-      !formData.purchaseYear ||
-      formData.serialNumber.trim().length === 0
-    ) {
-      alert("상품명, 가격, 구매 년도, 시리얼 번호는 필수 입력 항목입니다.");
+    if (!formData.title.trim()) {
+      alert("상품명은 필수 입력 항목입니다.");
       return;
     }
+    if (!formData.purchaseYear) {
+      alert("구매 일자는 필수 입력 항목입니다.");
+      return;
+    }
+    if (formData.serialNumber.trim().length === 0) {
+      alert("시리얼 번호는 필수 입력 항목입니다.");
+      return;
+    }
+    if (formData.price <= 0) {
+      alert("가격은 필수 입력 항목입니다.");
+      return;
+    }
+    if (formData.description.trim().length === 0) {
+      alert("상품 설명은 필수 입력 항목입니다.");
+      return;
+    }
+    // if (
+    //   !formData.title.trim() ||
+    //   formData.price <= 0 ||
+    //   // !formData.price.trim() ||
+    //   !formData.purchaseYear ||
+    //   formData.serialNumber.trim().length === 0
+    // ) {
+    //   alert("상품명, 가격, 구매 년도, 시리얼 번호는 필수 입력 항목입니다.");
+    //   return;
+    // }
 
     try {
       setIsLoading(true);
