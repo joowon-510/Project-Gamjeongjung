@@ -94,7 +94,6 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 ChatMessageDto chatMessageDto =
                         transToDto(payloadJson, ChatMessageDto.class);
 
-                // TODO: RDB 저장은 추후 Redis에서 일괄 저장하는 느낌으로 하기
                 chattingContentService.saveMessage(chatMessageDto);
 
                 // read 시간 update
@@ -171,6 +170,7 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                             .userId(jwtTokenProvider.getUserIdFromToken(token.substring(7)))
                             .build());
         }
+
         log.info("[ws]({}) Connected", accessor.getSessionId());
     }
 

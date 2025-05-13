@@ -49,7 +49,6 @@ public class KakaoOAuth2Response extends OAuth2Response {
                             )
                     )
                     .email(String.valueOf(attributes.get("email")))
-//                    .phone_number(String.valueOf(attributes.get("phone_number")))
                     .nickname(String.valueOf(properties.get("nickname")))
                     .build();
         }
@@ -97,10 +96,5 @@ public class KakaoOAuth2Response extends OAuth2Response {
     public String nickName() {
         return this.getKakaoAccount().nickname();
     }
-
-//    @Override
-//    public String phoneNumber() {
-//        return this.getKakaoAccount().phone_number();
-//    }
 }
 
