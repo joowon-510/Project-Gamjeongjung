@@ -7,6 +7,8 @@ interface CameraProps {
 }
 
 const CROP_BOX_SIZE = 384;
+const CROP_WIDTH = 288;
+const CROP_HEIGHT = 384;
 
 const videoConstraints = {
   facingMode: { ideal: "environment" },
@@ -101,53 +103,55 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
   }, []);
 
   const handleCapture = () => {
-    // const video = videoRef.current;
-    //✅
     const webcam = webcamRef.current;
     const canvas = canvasRef.current;
-    // if (!video || !canvas) return;
-
-    //✅
     if (!webcam || !canvas) return;
 
-    //✅
     const video = webcam.video as HTMLVideoElement;
 
-    const videoRect = video.getBoundingClientRect();
-    const cropLeft = (videoRect.width - CROP_BOX_SIZE) / 2;
-    const cropTop = (videoRect.height - CROP_BOX_SIZE) / 2;
+    // 1) 화면(HTML) 상의 크기
+    const vw = video.clientWidth;
+    const vh = video.clientHeight;
 
-    const scaleX = video.videoWidth / videoRect.width;
-    const scaleY = video.videoHeight / videoRect.height;
+    // 2) 비디오 원본 해상도
+    const sw = video.videoWidth;
+    const sh = video.videoHeight;
 
-    const sx = cropLeft * scaleX;
-    const sy = cropTop * scaleY;
-    const sWidth = CROP_BOX_SIZE * scaleX;
-    const sHeight = CROP_BOX_SIZE * scaleY;
+    // 3) object-cover 방식으로 확대된 스케일
+    //    cover는 가로·세로 중 더 크게 스케일링 됨
+    const scale = Math.max(vw / sw, vh / sh);
 
-    canvas.width = sWidth;
-    canvas.height = sHeight;
+    // 4) 확대된 비디오가 container보다 커진 만큼의 오프셋
+    const dw = sw * scale; // 실제 렌더된 비디오 너비
+    const dh = sh * scale; // 실제 렌더된 비디오 높이
+    const offsetX = (dw - vw) / 2;
+    const offsetY = (dh - vh) / 2;
+
+    // 5) CSS 화면 상의 크롭 박스 좌표
+    const cropW = CROP_WIDTH; // 288
+    const cropH = CROP_HEIGHT; // 384
+    const cropX = (vw - cropW) / 2;
+    const cropY = (vh - cropH) / 2;
+
+    // 6) 원본 픽셀 좌표로 변환
+    const sx = (cropX + offsetX) / scale;
+    const sy = (cropY + offsetY) / scale;
+    const sWidth = cropW / scale;
+    const sHeight = cropH / scale;
+
+    // 7) 캔버스는 최종 크기(CROP_WIDTH×CROP_HEIGHT)로 고정
+    canvas.width = cropW;
+    canvas.height = cropH;
 
     const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
-      const imageDataUrl = canvas.toDataURL("image/png");
-      onCapture(imageDataUrl);
+    if (!ctx) return;
+    // 원본(sx,sy,sWidth,sHeight)을 0,0에서 cropW×cropH 크기로 그리기
+    ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, cropW, cropH);
 
-      // ✅ 카메라 스트림 중단 및 해제
-      // const stream = video.srcObject as MediaStream;
-      // stream?.getTracks().forEach((track) => track.stop());
-      // video.srcObject = null;
-
-      onClose();
-    }
+    const dataUrl = canvas.toDataURL("image/png");
+    onCapture(dataUrl);
+    onClose();
   };
-
-  // const handleClose = () => {
-  //   const stream = videoRef.current?.srcObject as MediaStream;
-  //   stream?.getTracks().forEach((track) => track.stop());
-  //   onClose();
-  // };
 
   const BlurOverlay = ({
     position,

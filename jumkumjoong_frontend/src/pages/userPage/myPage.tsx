@@ -33,17 +33,19 @@ const MyPage: React.FC = () => {
       }
 
       if (starRes) {
-        // setRating(starRes);
+        setRating(starRes.data.body);
         console.log(starRes);
+      } else {
+        setRating(0);
       }
     } catch (error) {
       console.log("리뷰 로딩 실패: ", error);
-      setRating(3);
+      setRating(0);
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 text-first">
       {/* 헤더 - 로그아웃 버튼 표시 */}
       <Header showLogout={true} />
 
