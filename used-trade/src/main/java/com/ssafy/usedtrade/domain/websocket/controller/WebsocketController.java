@@ -1,6 +1,6 @@
 package com.ssafy.usedtrade.domain.websocket.controller;
 
-import com.ssafy.usedtrade.domain.websocket.redis.service.UserWebsocketSessionService;
+import com.ssafy.usedtrade.domain.redis.service.UserWebsocketSessionService;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;

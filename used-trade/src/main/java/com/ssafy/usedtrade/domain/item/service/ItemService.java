@@ -5,15 +5,19 @@ import com.ssafy.usedtrade.domain.item.converter.ItemConverter;
 import com.ssafy.usedtrade.domain.item.dto.EsItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemListDto;
+import com.ssafy.usedtrade.domain.item.dto.RegistResponse;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 import com.ssafy.usedtrade.domain.item.entity.SaveItem;
 import com.ssafy.usedtrade.domain.item.error.ItemErrorCode;
 import com.ssafy.usedtrade.domain.item.exception.ItemException;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
 import com.ssafy.usedtrade.domain.item.repository.SaveItemRepository;
+import com.ssafy.usedtrade.domain.review.repository.ReviewRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,20 +31,30 @@ public class ItemService {
     private final ItemSalesRepository itemSalesRepository;
     private final SaveItemRepository saveItemRepository;
     private final ElasticSearchService elasticSearchService;
+    private final ReviewRepository reviewRepository;
 
     //물품 등록
     @Transactional
-    public void registItem(ItemDto item) {
-        SalesItem salesItem = ItemConverter.dtoToEntity(item);
-        itemSalesRepository.save(salesItem);
+    public RegistResponse registItem(ItemDto item) {
+        SalesItem salesItem = itemSalesRepository.save(
+                ItemConverter.dtoToEntity(item));
 
         EsItemDto esItem = ItemConverter.EsDtoToEsItem(salesItem);
         elasticSearchService.save(esItem);
+
+        return RegistResponse.builder()
+                .itemId(salesItem.getId())
+                .build();
     }
 
+    @Transactional
     public void deleteItem(Integer itemId) {
         if (itemSalesRepository.existsById(itemId)) {  // 먼저 해당 아이템이 존재하는지 확인
-            itemSalesRepository.deleteById(itemId);  // 아이템 삭제
+            SalesItem salesItem = itemSalesRepository.findById(itemId)
+                    .orElseThrow(() -> new IllegalArgumentException("아이템이 존재하지 않습니다."));
+
+            reviewRepository.deleteByItem(salesItem);
+            itemSalesRepository.delete(salesItem);  // 아이템 삭제
             elasticSearchService.delete(itemId);
         } else {
             throw new RuntimeException("Item not found");  // 예외 처리
@@ -49,7 +63,7 @@ public class ItemService {
 
     //상품 상태 변경
     public void changeItemStatus(Integer itemId, Boolean status) {
-        itemSalesRepository.changeItemStatusById(itemId,status);
+        itemSalesRepository.changeItemStatusById(itemId, status);
 
         EsItemDto esItem = elasticSearchService.findById(itemId);
         if (esItem != null) {
@@ -62,8 +76,22 @@ public class ItemService {
     public List<ItemListDto> searchItem(String keyword) {
         List<ItemListDto> result = itemSalesRepository.findItemListDtoByTitle(keyword);
         System.out.println(result);
+
         List<EsItemDto> esResult = elasticSearchService.searchItem(keyword);
         System.out.println(esResult);
+
+        Map<Integer, String> urlMap = new HashMap<>();
+
+        //TODO: 하드하게 대입 -> 무조건 삭제하기!
+        next:
+        for (EsItemDto esItemDto : esResult) {
+            for (ItemListDto dto : result) {
+                if (esItemDto.getId() == dto.getItemId()) {
+                    urlMap.put(esItemDto.getId(), dto.getDeviceImageUrl());
+                    continue next;
+                }
+            }
+        }
 
         return esResult.stream()
                 .map(item -> ItemListDto.builder()
@@ -71,7 +99,8 @@ public class ItemService {
                         .itemName(item.getTitle())
                         .itemPrice(item.getPrice())
                         .createdAt(LocalDateTime.parse(item.getCreatedAt()))         // 필요한 경우
-                        .itemStatus(item.getStatus())           // 필요한 경우
+                        .itemStatus(item.getStatus())
+                        .deviceImageUrl(urlMap.get(item.getId()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -87,7 +116,8 @@ public class ItemService {
         SalesItem item = itemSalesRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorCode.ITEM_NOT_FOUND));
 
-        return ItemConverter.entityToDto(item);
+        return ItemConverter
+                .entityToDto(item);
 
     }
 
@@ -123,8 +153,8 @@ public class ItemService {
         elasticSearchService.save(esItem);
     }
 
-    public boolean isFavorite(Integer itemId,Integer userId) {
-        boolean isFavorite = saveItemRepository.existsByUserIdAndItemId(itemId,userId);
+    public boolean isFavorite(Integer itemId, Integer userId) {
+        boolean isFavorite = saveItemRepository.existsByUserIdAndItemId(itemId, userId);
         return isFavorite;
     }
 }

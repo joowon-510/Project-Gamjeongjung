@@ -38,12 +38,11 @@ public class ChatController {
     }
 
     @PostMapping
-    public Api<Void> createChatRoom(
+    public Api<String> createChatRoom(
             @AuthenticationPrincipal SecurityMemberDetails memberDetails,
             @RequestBody ChatRoomCreateRequest createRequest
     ) {
-        chatService.createChatRoom(memberDetails.getId(), createRequest);
-        return Api.OK();
+        return Api.OK(chatService.createChatRoom(memberDetails.getId(), createRequest));
     }
 
     // roomid 암호화
@@ -67,6 +66,14 @@ public class ChatController {
             LocalDateTime createdAt
     ) {
         return Api.OK(chatService.findAllMyChat(memberDetails.getId(), roomId, createdAt));
+    }
+
+    // roomid 암호화
+    @GetMapping("/{roomId}/reading")
+    public Api<LocalDateTime> findReadTime(
+            @PathVariable String roomId,
+            @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
+        return Api.OK(chatService.findReadTime(memberDetails.getId(), roomId));
     }
 
     @DeleteMapping("/{roomId}")

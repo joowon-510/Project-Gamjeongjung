@@ -1,4 +1,4 @@
-package com.ssafy.usedtrade.domain.websocket.redis.entity;
+package com.ssafy.usedtrade.domain.redis.entity;
 
 import lombok.Builder;
 

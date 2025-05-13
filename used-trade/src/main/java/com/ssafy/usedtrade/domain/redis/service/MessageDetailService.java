@@ -1,8 +1,8 @@
-package com.ssafy.usedtrade.domain.websocket.redis.service;
+package com.ssafy.usedtrade.domain.redis.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.usedtrade.domain.redis.entity.MessageDetail;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
-import com.ssafy.usedtrade.domain.websocket.redis.entity.MessageDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -26,7 +26,7 @@ public class MessageDetailService {
 
     private ChatMessageDto toResponse(String data) {
         try {
-            return objectMapper.convertValue(data, ChatMessageDto.class);
+            return objectMapper.readValue(data, ChatMessageDto.class);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -35,9 +35,15 @@ public class MessageDetailService {
     }
 
     public void save(MessageDetail messageDetail) {
-        redisTemplate.opsForValue().set(
-                String.valueOf(messageDetail.getMessageId()),
-                String.valueOf(messageDetail.getMessage()));
+        try {
+            String json = objectMapper.writeValueAsString(messageDetail.getMessage());
+            redisTemplate.opsForValue().set(
+                    String.valueOf(messageDetail.getMessageId()),
+                    json
+            );
+        } catch (Exception e) {
+            System.out.println("❌ 직렬화 실패: " + e.getMessage());
+        }
     }
 
     public void update(MessageDetail messageDetail) {

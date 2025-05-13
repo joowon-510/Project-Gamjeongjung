@@ -49,8 +49,7 @@ public class SecurityConfig {
 
         return http
                 .authorizeHttpRequests(authorize ->
-                        authorize
-                                .anyRequest()
+                        authorize.anyRequest()
                                 .permitAll()
                 )
                 .addFilterBefore(
