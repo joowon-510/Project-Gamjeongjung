@@ -823,7 +823,7 @@ const ChatPage: React.FC = () => {
     }
   };
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       {/* 배경 이미지 */}
       <img
         src={nologo}
@@ -832,7 +832,7 @@ const ChatPage: React.FC = () => {
       />
 
       {/* 헤더 */}
-      <header className="sticky top-0 z-10 bg-white border-b">
+      <header className="sticky top-0 z-50 bg-white border-b">
         <div className="flex items-center h-16 px-4">
           <button onClick={handleGoBack} className="p-2">
             <svg
