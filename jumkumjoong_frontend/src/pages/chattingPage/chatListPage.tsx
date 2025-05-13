@@ -127,7 +127,7 @@ const ChatListPage: React.FC = () => {
       });
       
       // API 호출 
-      const response = await axios.get<ApiResponse>(`${BASE_URL}/chatting?page=${page}&size=10`, {
+      const response = await axios.get<ApiResponse>(`${BASE_URL}/chatting`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken || ''}`
