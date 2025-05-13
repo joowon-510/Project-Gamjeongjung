@@ -56,6 +56,7 @@ public class ItemConverter {
                 .createdAt(String.valueOf(item.getCreatedAt()))
                 .build();
     }
+
     public static ItemListDto entityToListDto(SalesItem item) {
         return ItemListDto.builder()
                 .itemId(item.getId())
@@ -63,7 +64,10 @@ public class ItemConverter {
                 .itemPrice(item.getPrice())
                 .createdAt(item.getCreatedAt())
                 .itemStatus(item.getStatus())
-                .deviceImageUrl(item.getItemImageList().get(0).getImageName())  // 여기
+                .deviceImageUrl(
+                        item.getItemImageList().size() != 0 ?
+                                item.getItemImageList().get(0).getImageName() :
+                                null)  // 여기
                 .build();
     }
 }
