@@ -1,5 +1,5 @@
 // src/pages/chattingPage/chatListPage.tsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback,useRef } from "react";
 import { Link } from "react-router-dom";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
@@ -10,6 +10,7 @@ import { axiosInstance } from '../../api/axios'; // axiosInstance import 경로 
 import { deleteChatRoom } from "../../api/chat";
 import { GoodsItemDetailProps, GoodsDetailProps } from "../../components/goods/GoodsItem";
 import { useChatContext } from "../../contexts/ChatContext"; // ChatContext import 확인
+import { useChatStore } from '../../stores/chatStore';
 
 // localStorage에 저장할 키
 const CHAT_REFRESH_KEY = 'chatListRefresh';
@@ -77,7 +78,9 @@ interface ApiResponse {
 }
 
 const ChatListPage: React.FC = () => {
-  const [chatRooms, setChatRooms] = useState<EnhancedChatRoomItem[]>([]);
+  // const [chatRooms, setChatRooms] = useState<EnhancedChatRoomItem[]>([]);
+  const { chatRooms, setChatRooms } = useChatStore();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLastPage, setIsLastPage] = useState(false);
@@ -88,7 +91,6 @@ const ChatListPage: React.FC = () => {
   );
   // 선택된 채팅방 상태 추가
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-
   const { unreadMessageCount, markRoomAsRead } = useChatContext();
 
   // 로컬 저장 컨텍스트 정보 가져오기
@@ -96,41 +98,31 @@ const ChatListPage: React.FC = () => {
     const contextString = localStorage.getItem(CHAT_CONTEXT_KEY);
     return contextString ? JSON.parse(contextString) : {};
   };
-
+  const [pollCount, setPollCount] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const updateTotalUnreadCount = useCallback(() => {
-    // 채팅방 목록에서 모든 nonReadCount 합산
     const totalUnread = chatRooms.reduce((total, room) => total + (room.nonReadCount || 0), 0);
     
     console.log('📊 채팅방 목록에서 계산된 전체 안읽은 메시지 수:', totalUnread);
     
-    // unreadMessagesByRoom 객체 생성
-    const unreadMessagesByRoom: Record<string, number> = {};
-    
-    // 각 채팅방의 안읽은 메시지 수를 객체에 저장
-    chatRooms.forEach(room => {
-      if (room.nonReadCount > 0) {
-        unreadMessagesByRoom[room.roomId] = room.nonReadCount;
-      }
-    });
-    
-    // 디버깅을 위한 로그
-    console.log('📱 각 채팅방 별 안읽은 메시지 수:', unreadMessagesByRoom);
-    
-    // 로컬 스토리지에 저장 (앱 리로드 시 유지)
+    // 로컬 스토리지에 저장
     localStorage.setItem('totalUnreadMessages', totalUnread.toString());
-    localStorage.setItem('unreadMessagesByRoom', JSON.stringify(unreadMessagesByRoom));
     
+    // Context나 다른 전역 상태 업데이트 (필요한 경우)
+    // updateGlobalUnreadCount(totalUnread);
   }, [chatRooms]);
 
   // 채팅방 목록 로드 함수
-  const loadChatRooms = async (page: number = 0, retryCount: number = 0) => {
+  const loadChatRooms = async (page: number = 0, source: string = 'manual') => {
+    console.log(`🔄 [${source}] 채팅방 목록 로드 시작 - ${new Date().toLocaleTimeString()}`);
+    
     try {
       setLoading(true);
       setError(null);
       
       // 현재 액세스 토큰 가져오기
       const accessToken = localStorage.getItem('accessToken');
-      console.log(`채팅방 목록 조회 API 호출 (페이지: ${page})...`, {
+      console.log(`[${source}] 채팅방 목록 조회 API 호출 (페이지: ${page})...`, {
         hasToken: !!accessToken
       });
       
@@ -143,8 +135,7 @@ const ChatListPage: React.FC = () => {
       });
       
       if (response.data && response.data.status_code === 200) {
-        console.log('채팅방 목록 조회 성공:', response.data);
-        
+        console.log(`✅ [${source}] 채팅방 목록 조회 성공:`, response.data);
         const responseBody = response.data.body;
         
         if (responseBody && Array.isArray(responseBody.content)) {
@@ -181,11 +172,11 @@ const ChatListPage: React.FC = () => {
           setPageNumber(responseBody.number);
         }
       } else {
-        console.error('채팅방 목록 조회 실패:', response.data);
+        console.error(`❌ [${source}] 채팅방 목록 조회 실패:`, response.data);
         setError("채팅방 목록을 가져오는데 실패했습니다.");
       }
     } catch (error) {
-      console.error("채팅방 목록 로딩 오류:", error);
+      console.error(`❌ [${source}] 채팅방 목록 로딩 오류:`, error);
       setError("채팅방 목록을 불러오는 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
@@ -283,6 +274,69 @@ const handleDeleteChatRoom = async (roomId: string, event?: React.MouseEvent) =>
     setLoading(false);
   }
 };
+
+useEffect(() => {
+  console.log('🚀 폴링 설정 시작');
+  
+  // 초기 로드
+  loadChatRooms(0, 'initial');
+  
+  // 주기적 업데이트 설정
+  intervalRef.current = setInterval(() => {
+    setPollCount(prev => {
+      const newCount = prev + 1;
+      console.log(`⏰ 폴링 ${newCount}번째 실행 - ${new Date().toLocaleTimeString()}`);
+      
+      // 페이지가 보이는 상태일 때만 업데이트
+      if (!document.hidden) {
+        console.log('👁️ 페이지가 보이는 상태 - 업데이트 진행');
+        loadChatRooms(0, `polling-${newCount}`);
+      } else {
+        console.log('🙈 페이지가 숨겨진 상태 - 업데이트 건너뜀');
+      }
+      
+      return newCount;
+    });
+  }, 5000); // 5초마다
+
+  // 클린업
+  return () => {
+    console.log('🛑 폴링 중지');
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  };
+}, []); // 빈 의존성 배열
+
+useEffect(() => {
+  const handleFocus = () => {
+    console.log('📱 페이지 포커스 - 채팅방 목록 새로고침');
+    loadChatRooms();
+  };
+
+  const handleVisibilityChange = () => {
+    if (!document.hidden) {
+      console.log('👁️ 페이지 표시됨 - 채팅방 목록 새로고침');
+      loadChatRooms();
+    }
+  };
+
+  // 이벤트 리스너 등록
+  window.addEventListener('focus', handleFocus);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  // 클린업
+  return () => {
+    window.removeEventListener('focus', handleFocus);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+  };
+}, []);
+
+useEffect(() => {
+  if (refreshTrigger) {
+    loadChatRooms();
+  }
+}, [refreshTrigger]);
 
   // 채팅방 선택 핸들러
   const handleSelectChatRoom = (roomId: string) => {
