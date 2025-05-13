@@ -9,7 +9,6 @@ import com.ssafy.usedtrade.domain.chat.repository.ChattingContentRepository;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingListRepository;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
-import com.ssafy.usedtrade.domain.item.service.SalesItemService;
 import com.ssafy.usedtrade.domain.redis.entity.ChattingReadPointRequest;
 import com.ssafy.usedtrade.domain.redis.service.ChattingReadPointService;
 import com.ssafy.usedtrade.domain.redis.service.ChattingTotalMessageService;
@@ -36,7 +35,6 @@ public class ChatService {
     private final ItemSalesRepository itemSalesRepository;
     private final UserService userService;
     private final AESUtil aesUtil;
-    private final SalesItemService salesItemService;
     private final ChattingTotalMessageService chattingTotalMessageService;
     private final MessageDetailService messageDetailService;
 
@@ -53,7 +51,8 @@ public class ChatService {
         Pageable pageable = PageRequest.of(
                 0,
                 10,
-                Sort.by(Sort.Direction.DESC, "lastChatTime"));
+                Sort.by(Sort.Direction.DESC, "lastChatTime")
+                        .and(Sort.by(Sort.Direction.DESC, "id")));
 
         // 나의 id가 traderId or postId면 all get
         if (lastChatTime == null) {
@@ -62,6 +61,7 @@ public class ChatService {
                     userId,
                     pageable
             ).map(entity -> {
+                // redis로 안읽은 메세지 갯수 return
                 long nonReadCount =
                         chattingTotalMessageService.count(
                                 aesUtil.encrypt(String.valueOf(entity.getId())),
@@ -79,6 +79,8 @@ public class ChatService {
                                 entity.getBuyerId() :
                                 entity.getSellerId()
                 );
+
+                // redis로 마지막 메세지 get
                 ChatMessageDto chatMessageDto = messageDetailService.find(
                         chattingTotalMessageService.getLatestMessageId(
                                 aesUtil.encrypt(String.valueOf(entity.getId()))));
@@ -89,9 +91,7 @@ public class ChatService {
                         .nonReadCount((int) nonReadCount)
                         .lastMessage(chatMessageDto.message())
                         .postTitle(
-                                itemSalesRepository.findById(entity.getPostId())
-                                        .orElseThrow(() -> new IllegalArgumentException("해당 post가 없습니다."))
-                                        .getTitle()
+                                itemSalesRepository.getReferenceById(entity.getPostId()).getTitle()
                         )
                         .build();
             });
@@ -104,6 +104,7 @@ public class ChatService {
                 lastChatTime,
                 pageable
         ).map(entity -> {
+            // redis로 안읽은 메세지 갯수 return
             long nonReadCount = chattingTotalMessageService.count(
                     aesUtil.encrypt(String.valueOf(entity.getId())),
                     chattingReadPointService.find(
@@ -121,7 +122,7 @@ public class ChatService {
                             entity.getBuyerId() :
                             entity.getSellerId()
             );
-            //redis에서 마지막 메세지 보여주기
+            //redis에서 마지막 메세지 get
             ChatMessageDto chatMessageDto = messageDetailService.find(
                     chattingTotalMessageService.getLatestMessageId(
                             aesUtil.encrypt(String.valueOf(entity.getId()))));
@@ -132,9 +133,7 @@ public class ChatService {
                     .nonReadCount((int) nonReadCount)
                     .lastMessage(chatMessageDto.message())
                     .postTitle(
-                            itemSalesRepository.findById(entity.getPostId())
-                                    .orElseThrow(() -> new IllegalArgumentException("해당 post가 없습니다."))
-                                    .getTitle()
+                            itemSalesRepository.getReferenceById(entity.getPostId()).getTitle()
                     )
                     .build();
         });
@@ -149,19 +148,18 @@ public class ChatService {
          * TODO:
          *  - 일단 Test 기본 값으로 구현
          *  - 필수
-         *  1. chatRoomId 복호화
-         *  2. Mysql -> Redis 사용
-         *  3. Test 값 -> Redis 적용으로 동적으로
-         *  4. front에서 시간을 비교해서 적용가능하도록 구현
-         *  5. 최근 chat 참가 기준으로 전체 return 후 진행
+         *  1. Mysql -> Redis 사용
+         *  2. Test 값 -> Redis 적용으로 동적으로
+         *  3. front에서 시간을 비교해서 적용가능하도록 구현
+         *  4. 최근 chat 참가 기준으로 전체 return 후 진행
          *  - 부가
-         *  4. 채팅 list에 동적으로 가능인 지도 front와 상의
+         *  5. 채팅 list에 동적으로 가능인 지도 front와 상의
          * */
         Integer decryptRoomId = Integer.parseInt(aesUtil.decrypt(roomId));
 
         // 해당 roomId로 해당 유저의 입장 가능성 판단
-        ChattingList chattingList = chattingListRepository.findById(decryptRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 방이 없습니다."));
+        ChattingList chattingList =
+                chattingListRepository.getReferenceById(decryptRoomId);
 
         if (chattingList.getBuyerId() != userId && chattingList.getSellerId() != userId) {
             throw new IllegalArgumentException("해당 유저는 해당 채팅방에 입장할 수 없습니다.");
@@ -170,8 +168,9 @@ public class ChatService {
         PageRequest pageable =
                 PageRequest.of(
                         0,
-                        10,
-                        Sort.by(Sort.Direction.DESC, "createdAt"));
+                        100,
+                        Sort.by(Sort.Direction.DESC, "createdAt")
+                                .and(Sort.by(Sort.Direction.DESC, "id")));
 
         if (createdAt == null) {
             return chattingContentRepository.findAllByChattingListId(
@@ -236,10 +235,6 @@ public class ChatService {
         return redirectUrlExistChatting(optionalChattingList);
     }
 
-    private String redirectUrlExistChatting(Optional<ChattingList> optionalChattingList) {
-        return "/" + aesUtil.encrypt(String.valueOf(optionalChattingList.get().getId()));
-    }
-
     public void deleteMyChatRoom(Integer userId, String roomId) {
         // 암호화 userId -> 복호화
         Integer decryptRoomId = Integer.parseInt(aesUtil.decrypt(roomId));
@@ -267,5 +262,9 @@ public class ChatService {
         }
 
         return null;
+    }
+
+    private String redirectUrlExistChatting(Optional<ChattingList> optionalChattingList) {
+        return "/" + aesUtil.encrypt(String.valueOf(optionalChattingList.get().getId()));
     }
 }

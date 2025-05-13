@@ -1,6 +1,5 @@
 package com.ssafy.usedtrade.domain.user.service;
 
-import com.ssafy.usedtrade.domain.item.exception.ItemException;
 import com.ssafy.usedtrade.domain.user.dto.request.updateUserInfoNicknameRequest;
 import com.ssafy.usedtrade.domain.user.dto.response.UserInfoResponse;
 import com.ssafy.usedtrade.domain.user.entity.User;
@@ -8,8 +7,6 @@ import com.ssafy.usedtrade.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -41,6 +38,4 @@ public class UserService {
                 .map(User::getNickname)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저 ID에 대한 닉네임을 찾을 수 없습니다: "));
     }
-
-
 }

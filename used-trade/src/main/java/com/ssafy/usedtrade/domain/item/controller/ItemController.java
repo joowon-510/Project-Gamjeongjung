@@ -45,8 +45,7 @@ public class ItemController extends BaseController {
     public Api<RegistResponse> registItem(
             @RequestBody ItemDto item,
             @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        item.setUserId(getUserId(memberDetails));
-        return Api.OK(itemService.registItem(item));
+        return Api.OK(itemService.registItem(item, memberDetails.getId()));
     }
 
     // 이미지 업로드
@@ -61,9 +60,10 @@ public class ItemController extends BaseController {
 
     //물품 정보 수정
     @PostMapping("/edit-item")
-    public Api<Void> editItem(@RequestBody ItemDto item, @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        item.setUserId(getUserId(memberDetails));
-        itemService.editItem(item);
+    public Api<Void> editItem(
+            @RequestBody ItemDto item,
+            @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
+        itemService.editItem(item, memberDetails.getId());
         return Api.OK();
     }
 

@@ -35,12 +35,14 @@ public class ItemService {
 
     //물품 등록
     @Transactional
-    public RegistResponse registItem(ItemDto item) {
+    public RegistResponse registItem(ItemDto item, Integer memberId) {
+        item.setUserId(memberId);
+
         SalesItem salesItem = itemSalesRepository.save(
                 ItemConverter.dtoToEntity(item));
 
-        EsItemDto esItem = ItemConverter.EsDtoToEsItem(salesItem);
-        elasticSearchService.save(esItem);
+        elasticSearchService.save(
+                ItemConverter.EsDtoToEsItem(salesItem));
 
         return RegistResponse.builder()
                 .itemId(salesItem.getId())
@@ -136,12 +138,12 @@ public class ItemService {
 
     //아이템 수정
     @Transactional
-    public void editItem(ItemDto itemDto) {
-        System.out.println("service");
+    public void editItem(ItemDto itemDto, Integer memberId) {
         SalesItem item = itemSalesRepository.findById(itemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ItemErrorCode.ITEM_NOT_FOUND));
 
         // grades, scratchesStatus는 수정하지 않음
+        item.setUserId(memberId);
         item.setTitle(itemDto.getTitle());
         item.setDescription(itemDto.getDescription());
         item.setPrice(itemDto.getPrice());
@@ -154,7 +156,6 @@ public class ItemService {
     }
 
     public boolean isFavorite(Integer itemId, Integer userId) {
-        boolean isFavorite = saveItemRepository.existsByUserIdAndItemId(itemId, userId);
-        return isFavorite;
+        return saveItemRepository.existsByUserIdAndItemId(itemId, userId);
     }
 }

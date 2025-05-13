@@ -34,6 +34,7 @@ public class ChatController {
 
         Map<String, String> map = new HashMap<>();
         map.put("userId", String.valueOf(memberDetails.getId()));
+
         return Api.OK(map);
     }
 
