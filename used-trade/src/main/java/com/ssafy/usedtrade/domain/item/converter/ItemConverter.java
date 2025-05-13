@@ -2,6 +2,7 @@ package com.ssafy.usedtrade.domain.item.converter;
 
 import com.ssafy.usedtrade.domain.item.dto.EsItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemDto;
+import com.ssafy.usedtrade.domain.item.dto.ItemListDto;
 import com.ssafy.usedtrade.domain.item.entity.ItemImage;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 
@@ -53,6 +54,16 @@ public class ItemConverter {
                 .price(item.getPrice())
                 .status(item.getStatus())
                 .createdAt(String.valueOf(item.getCreatedAt()))
+                .build();
+    }
+    public static ItemListDto entityToListDto(SalesItem item) {
+        return ItemListDto.builder()
+                .itemId(item.getId())
+                .itemName(item.getTitle())
+                .itemPrice(item.getPrice())
+                .createdAt(item.getCreatedAt())
+                .itemStatus(item.getStatus())
+                .deviceImageUrl(item.getItemImageList().get(0).getImageName())  // 여기
                 .build();
     }
 }

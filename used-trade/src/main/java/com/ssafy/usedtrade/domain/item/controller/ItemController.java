@@ -81,6 +81,14 @@ public class ItemController extends BaseController {
         return Api.OK();
     }
 
+    //최신 상품 가져오기
+    @GetMapping("/search-newItem")
+    public Api<List<ItemListDto>> searchNewItem() {
+        List<ItemListDto> itemList = itemService.searchNewItem();
+        log.info("search-item result:{}", itemList);
+        return Api.OK(itemList);
+    }
+
     //상품 검색
     @GetMapping("/search-item")
     public Api<List<ItemListDto>> searchItem(@RequestParam String itemName) {

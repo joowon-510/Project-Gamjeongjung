@@ -171,4 +171,12 @@ public class ItemService {
     public boolean isFavorite(Integer itemId, Integer userId) {
         return saveItemRepository.existsByUserIdAndItemId(itemId, userId);
     }
+
+    public List<ItemListDto> searchNewItem() {
+        List<SalesItem> items = itemSalesRepository.findTop6ByOrderByCreatedAtDesc();
+        return items.stream()
+                .map(ItemConverter::entityToListDto)
+                .collect(Collectors.toList());
+    }
+
 }

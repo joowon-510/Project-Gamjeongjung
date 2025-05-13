@@ -46,4 +46,5 @@ public interface ItemSalesRepository extends JpaRepository<SalesItem, Integer> {
             + "FROM SalesItem si "
             + "WHERE si.userId = :userId")
     List<ItemListDto> findSalesItemByUserId(@Param("userId") Integer userId);
+    List<SalesItem> findTop6ByOrderByCreatedAtDesc();
 }
