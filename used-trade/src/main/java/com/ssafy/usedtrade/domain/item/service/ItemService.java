@@ -13,6 +13,8 @@ import com.ssafy.usedtrade.domain.item.exception.ItemException;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
 import com.ssafy.usedtrade.domain.item.repository.SaveItemRepository;
 import com.ssafy.usedtrade.domain.review.repository.ReviewRepository;
+import com.ssafy.usedtrade.domain.user.entity.User;
+import com.ssafy.usedtrade.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -32,6 +34,7 @@ public class ItemService {
     private final SaveItemRepository saveItemRepository;
     private final ElasticSearchService elasticSearchService;
     private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
 
     //물품 등록
     @Transactional
@@ -113,15 +116,25 @@ public class ItemService {
         return itemSalesRepository.findWishListByUserId(userId);
     }
 
-    //상품 상세 조회
+    // 상품 상세 조회
     public ItemDto getItemInfo(Integer itemId) {
+        // 아이템 조회
         SalesItem item = itemSalesRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorCode.ITEM_NOT_FOUND));
 
-        return ItemConverter
-                .entityToDto(item);
+        // 아이템의 userId로 유저 조회
+        User user = userRepository.findById(item.getUserId())
+                .orElseThrow(() -> new ItemException(ItemErrorCode.USER_NOT_FOUND));
 
+        // 유저의 상태가 0이 아닌 경우 예외 처리
+        if (user.getStatus() != 0) {
+            throw new ItemException(ItemErrorCode.USER_NOT_FOUND);  // 유저 비활성 예외
+        }
+
+        // 유저가 활성 상태일 경우, 아이템 정보 반환
+        return ItemConverter.entityToDto(item);
     }
+
 
     //판매 목록 가져오기
     public List<ItemListDto> getSalesItemList(Integer userId) {

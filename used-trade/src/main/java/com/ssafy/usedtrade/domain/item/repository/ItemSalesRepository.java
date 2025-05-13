@@ -22,10 +22,11 @@ public interface ItemSalesRepository extends JpaRepository<SalesItem, Integer> {
 
     List<ItemListDto> findByTitle(@Size(max = 255) @NotNull String title);
 
-    @Query("SELECT new com.ssafy.usedtrade.domain.item.dto.ItemListDto(i.id, i.title, i.price, i.createdAt,i.status, '') "
-            + "FROM SalesItem i JOIN ItemImage image On image.salesItem = i "
-            + "WHERE i.title "
-            + "LIKE %:title%")
+    @Query("SELECT new com.ssafy.usedtrade.domain.item.dto.ItemListDto(s.id, s.title, s.price, s.createdAt, s.status, "
+            + "(SELECT i.imageName FROM ItemImage i WHERE i.salesItem = s ORDER BY i.id ASC LIMIT 1)) "
+            + "FROM SalesItem s "
+            + "JOIN User u ON s.userId = u.id "
+            + "WHERE u.status = 0 AND s.userId = :userId")
     List<ItemListDto> findItemListDtoByTitle(@Param("title") String title);
 
     @Query("SELECT new com.ssafy.usedtrade.domain.item.dto.ItemListDto(s.id, s.title, s.price, s.createdAt,s.status, "

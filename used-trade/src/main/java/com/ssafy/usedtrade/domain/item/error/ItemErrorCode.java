@@ -4,8 +4,8 @@ import com.ssafy.usedtrade.common.error.ErrorCodeInterface;
 
 public enum ItemErrorCode implements ErrorCodeInterface {
 
-    ITEM_NOT_FOUND(500, 400, "물품 ID가 존재하지 않습니다.");
-
+    ITEM_NOT_FOUND(500, 400, "물품 ID가 존재하지 않습니다."),
+    USER_NOT_FOUND(500, 400, "존재하지 않는 유저입니다.");
     private final Integer httpStatusCode;
     private final Integer statusCode;
     private final String message;
