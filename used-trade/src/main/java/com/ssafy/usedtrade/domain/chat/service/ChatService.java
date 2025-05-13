@@ -1,5 +1,6 @@
 package com.ssafy.usedtrade.domain.chat.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.usedtrade.common.encryption.AESUtil;
 import com.ssafy.usedtrade.domain.chat.dto.ChatContentResponse;
 import com.ssafy.usedtrade.domain.chat.dto.ChatListResponse;
@@ -15,17 +16,23 @@ import com.ssafy.usedtrade.domain.redis.service.ChattingTotalMessageService;
 import com.ssafy.usedtrade.domain.redis.service.MessageDetailService;
 import com.ssafy.usedtrade.domain.user.service.UserService;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -37,6 +44,7 @@ public class ChatService {
     private final AESUtil aesUtil;
     private final ChattingTotalMessageService chattingTotalMessageService;
     private final MessageDetailService messageDetailService;
+    private final ObjectMapper objectMapper;
 
     public Slice<ChatListResponse> findAllMyChatRoom(Integer userId, LocalDateTime lastChatTime) {
         /*
@@ -148,7 +156,6 @@ public class ChatService {
          * TODO:
          *  - 일단 Test 기본 값으로 구현
          *  - 필수
-         *  1. Mysql -> Redis 사용
          *  2. Test 값 -> Redis 적용으로 동적으로
          *  3. front에서 시간을 비교해서 적용가능하도록 구현
          *  4. 최근 chat 참가 기준으로 전체 return 후 진행
@@ -165,36 +172,48 @@ public class ChatService {
             throw new IllegalArgumentException("해당 유저는 해당 채팅방에 입장할 수 없습니다.");
         }
 
-        PageRequest pageable =
-                PageRequest.of(
-                        0,
-                        100,
-                        Sort.by(Sort.Direction.DESC, "createdAt")
-                                .and(Sort.by(Sort.Direction.DESC, "id")));
+        // 최신순 메시지 ID 최대 100개 조회
+        List<String> messageList = chattingTotalMessageService.multiGetMessage(
+                roomId,
+                createdAt == null
+                        ? Double.MAX_VALUE
+                        : Timestamp.valueOf(createdAt).getTime() - 1);
 
-        if (createdAt == null) {
-            return chattingContentRepository.findAllByChattingListId(
-                    decryptRoomId,
-                    pageable
-            ).map(entity ->
-                    ChatContentResponse.builder()
-                            .message(entity.getContents())
-                            .toSend(entity.getUserId().equals(userId))
-                            .createdAt(entity.getCreatedAt())
-                            .build());
+        boolean hasMoreMessage =
+                chattingTotalMessageService.hasMoreMessage(
+                        roomId,
+                        createdAt == null
+                                ? Double.MAX_VALUE
+                                : Timestamp.valueOf(createdAt).getTime() - 1
+                );
+
+        // Redis에서 메시지 JSON 한꺼번에 조회
+        List<ChatContentResponse> chatMessages = new ArrayList<>();
+
+        int i = 0;
+        for (String json : messageList) {
+            if (json == null) {
+                i++;
+                continue;
+            }
+            try {
+                ChatMessageDto dto = objectMapper.readValue(json, ChatMessageDto.class);
+                chatMessages.add(ChatContentResponse.builder()
+                        .message(dto.message())
+                        .toSend(dto.sender().equals(String.valueOf(userId)))
+                        .createdAt(dto.createdAt())
+                        .build());
+            } catch (Exception e) {
+                log.warn("❌ 역직렬화 실패 - messageId: {}", messageList.toArray()[i], e);
+            }
+            i++;
         }
 
-        // 입장 후, 해당 페이지에 메세지 제공
-        return chattingContentRepository.findAllByChattingListIdAndCreatedAtBefore(
-                decryptRoomId,
-                createdAt,
-                pageable
-        ).map(entity ->
-                ChatContentResponse.builder()
-                        .message(entity.getContents())
-                        .toSend(entity.getUserId().equals(userId))
-                        .createdAt(entity.getCreatedAt())
-                        .build());
+        // Slice 형태로 응답
+        return new SliceImpl<>(
+                chatMessages,
+                PageRequest.of(0, 100),
+                hasMoreMessage);
     }
 
     public String createChatRoom(Integer userId, ChatRoomCreateRequest createRequest) {

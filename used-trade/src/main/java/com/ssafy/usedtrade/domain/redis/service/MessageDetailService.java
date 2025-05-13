@@ -14,19 +14,24 @@ public class MessageDetailService {
     private final ObjectMapper objectMapper;
 
     public ChatMessageDto find(String messageId) {
-        String data =
-                redisTemplate.opsForValue().get(messageId);
-
-        if (data == null) {
-            return null;
+        if (messageId == null) {
+            return toResponse(null, false);
         }
 
-        return toResponse(data);
+        String data = redisTemplate.opsForValue().get(messageId);
+
+        return toResponse(data, data != null);
     }
 
-    private ChatMessageDto toResponse(String data) {
+    private ChatMessageDto toResponse(String data, boolean isNull) {
         try {
-            return objectMapper.readValue(data, ChatMessageDto.class);
+            if (isNull) {
+                return objectMapper.readValue(data, ChatMessageDto.class);
+            }
+
+            return ChatMessageDto.builder()
+                    .message("메세지가 존재하지 않습니다!")
+                    .build();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

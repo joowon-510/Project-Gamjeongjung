@@ -5,6 +5,7 @@ import com.ssafy.usedtrade.domain.redis.dto.ChannelTotalMessageResponse;
 import com.ssafy.usedtrade.domain.redis.entity.ChattingTotalMessageRequest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -49,6 +50,18 @@ public class ChattingTotalMessageService {
         return result != null && !result.isEmpty()
                 ? result.iterator().next()
                 : null; // 또는 기본값 처리
+    }
+
+    public List<String> multiGetMessage(String roomId, Double maxScore) {
+        return redisTemplate.opsForValue().multiGet(
+                redisTemplate.opsForZSet()
+                        .reverseRangeByScore(getKey(roomId), 0, maxScore, 0, 100));
+    }
+
+    public boolean hasMoreMessage(String roomId, Double maxScore) {
+        Set<String> result = redisTemplate.opsForZSet()
+                .reverseRangeByScore(roomId + "-message", 0, maxScore - 1, 0, 1);
+        return result != null && !result.isEmpty();
     }
 
     private static String getKey(ChattingTotalMessageRequest chattingTotalMessageRequest) {
