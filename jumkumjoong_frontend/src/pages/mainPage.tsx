@@ -97,12 +97,12 @@ const MainPage: React.FC = () => {
   const renderItemGrid = (
     items: { img: string; title: string; id: number }[]
   ) => (
-    <div className="grid grid-cols-2 gap-4 px- mt-2 flex items-center">
+    <div className="grid grid-cols-2 gap-4 mt-2 flex items-center">
       {items.length > 0 ? (
         items.map((item, idx) => (
           <div
             key={idx}
-            className="mb-5"
+            className=""
             onClick={() => {
               navigate(`/goods/detail/${item.id}`);
             }}
@@ -149,7 +149,7 @@ const MainPage: React.FC = () => {
 
         {/* 찜한 아이템 중 거래 중인 상품 */}
         <article className=" mx-4 border-b pb-5">
-          <div className="flex gap-2">
+          <div className="flex gap-2 pb-2">
             <img src={heart} alt="heart" className="w-5" />
             <p className=" text-[20px]">내가 찜한 아이템</p>
           </div>
@@ -158,7 +158,7 @@ const MainPage: React.FC = () => {
 
         {/* 최근 등록된 아이템 */}
         <article className="mx-4">
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center pb-2">
             <img src={newGoods} alt="new" className="w-7" />
             <p className="text-[20px]">방금 등록된 아이템</p>
           </div>
