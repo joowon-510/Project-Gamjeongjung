@@ -47,6 +47,6 @@ export const getReviewStars = async () => {
     return response;
   } catch (error) {
     console.log("별점 평균 조회 실패: ", error);
-    return null;
+    return 0;
   }
 };
