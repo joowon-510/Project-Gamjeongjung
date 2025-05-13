@@ -11,32 +11,72 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  const getBackCameraStream = async (): Promise<MediaStream | null> => {
+    try {
+      // ✅ 1. 일단 권한 요청 (label 보기 위함)
+      await navigator.mediaDevices.getUserMedia({ video: true });
+
+      // ✅ 2. 모든 비디오 디바이스 가져오기
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(
+        (device) => device.kind === "videoinput"
+      );
+
+      // ✅ 3. 후면 카메라 탐색 (label 기반)
+      const backCamera = videoDevices.find((device) =>
+        /back|rear/i.test(device.label)
+      );
+
+      // ✅ 4. 후면 카메라가 있으면 해당 deviceId로 요청
+      const constraints: MediaStreamConstraints = backCamera
+        ? {
+            video: { deviceId: { exact: backCamera.deviceId } },
+            audio: false,
+          }
+        : {
+            video: { facingMode: { ideal: "environment" } }, // fallback
+            audio: false,
+          };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      return stream;
+    } catch (error) {
+      console.error("카메라 접근 오류:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     const video = videoRef.current;
     const initCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" },
-          } satisfies MediaTrackConstraints,
-          audio: false,
-          // video: true,
-        });
-        const video = videoRef.current;
+      // try {
+      //   const stream = await navigator.mediaDevices.getUserMedia({
+      //     video: {
+      //       facingMode: { ideal: "environment" },
+      //     } satisfies MediaTrackConstraints,
+      //     audio: false,
+      //     // video: true,
+      //   });
+      //   const video = videoRef.current;
 
-        if (video) {
-          const prevStream = video.srcObject as MediaStream;
-          prevStream?.getTracks().forEach((track) => track.stop());
+      //   if (video) {
+      //     const prevStream = video.srcObject as MediaStream;
+      //     prevStream?.getTracks().forEach((track) => track.stop());
 
-          video.srcObject = stream;
-          video.onloadedmetadata = () => {
-            video
-              .play()
-              .catch((err) => console.error("비디오 재생 오류:", err));
-          };
-        }
-      } catch (error) {
-        console.error("카메라 접근 오류:", error);
+      //     video.srcObject = stream;
+      //     video.onloadedmetadata = () => {
+      //       video
+      //         .play()
+      //         .catch((err) => console.error("비디오 재생 오류:", err));
+      //     };
+      //   }
+      // } catch (error) {
+      //   console.error("카메라 접근 오류:", error);
+      // }
+      const stream = await getBackCameraStream(); // ✅ 위에서 정의한 함수 호출
+      if (stream && video) {
+        video.srcObject = stream;
+        await video.play();
       }
     };
 
@@ -78,6 +118,12 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
       ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
       const imageDataUrl = canvas.toDataURL("image/png");
       onCapture(imageDataUrl);
+
+      // ✅ 카메라 스트림 중단 및 해제
+      const stream = video.srcObject as MediaStream;
+      stream?.getTracks().forEach((track) => track.stop());
+      video.srcObject = null;
+
       onClose();
     }
   };
