@@ -26,6 +26,7 @@ export const ChatServiceProvider: React.FC<ChatServiceProviderProps> = ({
     if (!chatServiceRef.current) {
       chatServiceRef.current = new ChatService({
         url: websocketUrl,
+        debug: process.env.NODE_ENV === 'development',
         onConnect: () => {
           console.log('ChatService connected globally');
         },
