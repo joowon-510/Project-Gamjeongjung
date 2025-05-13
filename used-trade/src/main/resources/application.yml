@@ -68,7 +68,6 @@ cloud:
     credentials:
       accessKey: ${AWS_ACCESS_TOKEN}
       secretKey: ${AWS_SECRET_TOKEN}
-
 #
 #logging:
 #  level:
