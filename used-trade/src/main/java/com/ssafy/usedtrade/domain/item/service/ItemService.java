@@ -136,10 +136,7 @@ public class ItemService {
 
     //아이템 찜하기
     public void saveItem(Integer itemId, Integer userId) {
-        SaveItem saveItem = new SaveItem();
-        saveItem.setItemId(itemId);
-        saveItem.setUserId(userId);
-        saveItemRepository.save(saveItem);
+        saveItemRepository.handleWishItem(itemId,userId);
     }
 
     //아이템 수정
