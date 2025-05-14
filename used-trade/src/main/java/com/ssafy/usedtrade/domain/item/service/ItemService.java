@@ -17,9 +17,9 @@ import com.ssafy.usedtrade.domain.user.entity.User;
 import com.ssafy.usedtrade.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,37 +79,30 @@ public class ItemService {
 
     //상품 검색
     public List<ItemListDto> searchItem(String keyword) {
-        List<ItemListDto> result = itemSalesRepository.findItemListDtoByTitle(keyword);
-        System.out.println(result);
+        Map<Integer, ItemListDto> dbItemMap =
+                itemSalesRepository.findItemListDtoByTitle(keyword).stream()
+                        .collect(Collectors.toMap(ItemListDto::getItemId, Function.identity()));
+        System.out.println(dbItemMap);
 
         List<EsItemDto> esResult = elasticSearchService.searchItem(keyword);
         System.out.println(esResult);
 
-        Map<Integer, String> urlMap = new HashMap<>();
-
-        //TODO: 하드하게 대입 -> 무조건 삭제하기!
-        next:
-        for (EsItemDto esItemDto : esResult) {
-            for (ItemListDto dto : result) {
-                if (esItemDto.getId() == dto.getItemId()) {
-                    urlMap.put(esItemDto.getId(), dto.getDeviceImageUrl());
-                    continue next;
-                }
-            }
-        }
-
         return esResult.stream()
-                .map(item -> ItemListDto.builder()
-                        .itemId(item.getId())
-                        .itemName(item.getTitle())
-                        .itemPrice(item.getPrice())
-                        .createdAt(LocalDateTime.parse(item.getCreatedAt()))         // 필요한 경우
-                        .itemStatus(item.getStatus())
-                        .deviceImageUrl(urlMap.get(item.getId()))
-                        .build())
-                .collect(Collectors.toList());
+                .map(item -> {
+                    ItemListDto itemListDto = dbItemMap.get(item.getId());
+                    return ItemListDto.builder()
+                            .itemId(item.getId())
+                            .itemName(item.getTitle())
+                            .itemPrice(item.getPrice())
+                            .createdAt(LocalDateTime.parse(item.getCreatedAt()))
+                            .itemStatus(item.getStatus())
+                            .deviceImageUrl(
+                                    itemListDto != null
+                                            ? itemListDto.getDeviceImageUrl()
+                                            : null)
+                            .build();
+                }).toList();
     }
-//        return itemSalesRepository.findItemListDtoByTitle(itemName);
 
     //찜한 목록 조회
     public List<ItemListDto> getWishList(Integer userId) {

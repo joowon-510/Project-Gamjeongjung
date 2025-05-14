@@ -6,7 +6,6 @@ import com.ssafy.usedtrade.domain.chat.dto.ChatContentResponse;
 import com.ssafy.usedtrade.domain.chat.dto.ChatListResponse;
 import com.ssafy.usedtrade.domain.chat.dto.ChatRoomCreateRequest;
 import com.ssafy.usedtrade.domain.chat.entity.ChattingList;
-import com.ssafy.usedtrade.domain.chat.repository.ChattingContentRepository;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingListRepository;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
@@ -14,14 +13,12 @@ import com.ssafy.usedtrade.domain.redis.entity.ChattingReadPointRequest;
 import com.ssafy.usedtrade.domain.redis.service.ChattingReadPointService;
 import com.ssafy.usedtrade.domain.redis.service.ChattingTotalMessageService;
 import com.ssafy.usedtrade.domain.redis.service.MessageDetailService;
-import com.ssafy.usedtrade.domain.user.service.UserService;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +34,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ChatService {
     private final ChattingListRepository chattingListRepository;
-    private final ChattingContentRepository chattingContentRepository;
     private final ChattingReadPointService chattingReadPointService;
     private final ItemSalesRepository itemSalesRepository;
-    private final UserService userService;
     private final AESUtil aesUtil;
     private final ChattingTotalMessageService chattingTotalMessageService;
     private final MessageDetailService messageDetailService;
@@ -63,88 +58,28 @@ public class ChatService {
                         .and(Sort.by(Sort.Direction.DESC, "id")));
 
         // 나의 id가 traderId or postId면 all get
-        if (lastChatTime == null) {
-            return chattingListRepository.findByBuyerIdOrSellerId(
-                    userId,
-                    userId,
-                    pageable
-            ).map(entity -> {
-                // redis로 안읽은 메세지 갯수 return
-                long nonReadCount =
-                        chattingTotalMessageService.count(
-                                aesUtil.encrypt(String.valueOf(entity.getId())),
-                                chattingReadPointService.find(
-                                        ChattingReadPointRequest.builder()
-                                                .channelId(String.valueOf(entity.getId()))
-                                                .userId(String.valueOf(userId))
-                                                .build()));
-                /*
-                 * TODO: 현재 user 이름을 위해 db 참조
-                 *  N + 1이 되는 상황 제거해보기
-                 * */
-                String userNickname = userService.getUserNameById(
-                        !Objects.equals(entity.getBuyerId(), userId) ?
-                                entity.getBuyerId() :
-                                entity.getSellerId()
-                );
+        List<ChatListResponse> list = chattingListRepository
+                .findByBuyerIdOrSellerId_toChatListResponse(userId, lastChatTime, pageable)
+                .stream().map(chatListResponse -> {
+                    return ChatListResponse.builder()
+                            .roomId(chatListResponse.roomId())
+                            .chattingUserNickname(chatListResponse.chattingUserNickname())
+                            .nonReadCount(
+                                    getNonReadCount(userId, chatListResponse))
+                            .lastMessage(
+                                    getLastMessage(chatListResponse))
+                            .postTitle(chatListResponse.postTitle())
+                            .build();
+                })
+                .toList();
 
-                // redis로 마지막 메세지 get
-                ChatMessageDto chatMessageDto = messageDetailService.find(
-                        chattingTotalMessageService.getLatestMessageId(
-                                aesUtil.encrypt(String.valueOf(entity.getId()))));
-
-                return ChatListResponse.builder()
-                        .roomId(aesUtil.encrypt(String.valueOf(entity.getId())))
-                        .chattingUserNickname(userNickname)
-                        .nonReadCount((int) nonReadCount)
-                        .lastMessage(chatMessageDto.message())
-                        .postTitle(
-                                itemSalesRepository.getReferenceById(entity.getPostId()).getTitle()
-                        )
-                        .build();
-            });
+        // 다음 유무
+        boolean hasNext = list.size() > pageable.getPageSize();
+        if (hasNext) {
+            list.remove(pageable.getPageSize());
         }
 
-        // 해당 List를 DTO로 변환 후 return
-        return chattingListRepository.findByBuyerIdOrSellerIdAndLastChatTimeLessThan(
-                userId,
-                userId,
-                lastChatTime,
-                pageable
-        ).map(entity -> {
-            // redis로 안읽은 메세지 갯수 return
-            long nonReadCount = chattingTotalMessageService.count(
-                    aesUtil.encrypt(String.valueOf(entity.getId())),
-                    chattingReadPointService.find(
-                            ChattingReadPointRequest.builder()
-                                    .channelId(String.valueOf(entity.getId()))
-                                    .userId(String.valueOf(userId))
-                                    .build()));
-
-            /*
-             * TODO: 현재 user 이름을 위해 db 참조
-             *  N + 1이 되는 상황 제거해보기
-             * */
-            String userNickname = userService.getUserNameById(
-                    !Objects.equals(entity.getBuyerId(), userId) ?
-                            entity.getBuyerId() :
-                            entity.getSellerId()
-            );
-            //redis에서 마지막 메세지 get
-            ChatMessageDto chatMessageDto = messageDetailService.find(
-                    chattingTotalMessageService.getLatestMessageId(
-                            aesUtil.encrypt(String.valueOf(entity.getId()))));
-
-            return ChatListResponse.builder()
-                    .roomId(aesUtil.encrypt(String.valueOf(entity.getId())))
-                    .chattingUserNickname(userNickname)
-                    .nonReadCount((int) nonReadCount)
-                    .lastMessage(chatMessageDto.message())
-                    .postTitle(
-                            itemSalesRepository.getReferenceById(entity.getPostId()).getTitle()
-                    )
-                    .build();
-        });
+        return new SliceImpl<>(list, pageable, hasNext);
     }
 
     public Slice<ChatContentResponse> findAllMyChat(
@@ -157,10 +92,9 @@ public class ChatService {
          *  - 일단 Test 기본 값으로 구현
          *  - 필수
          *  2. Test 값 -> Redis 적용으로 동적으로
-         *  3. front에서 시간을 비교해서 적용가능하도록 구현
-         *  4. 최근 chat 참가 기준으로 전체 return 후 진행
+         *  3. 최근 chat 참가 기준으로 전체 return 후 진행
          *  - 부가
-         *  5. 채팅 list에 동적으로 가능인 지도 front와 상의
+         *  4. 채팅 list에 동적으로 가능인 지도 front와 상의
          * */
         Integer decryptRoomId = Integer.parseInt(aesUtil.decrypt(roomId));
 
@@ -281,6 +215,22 @@ public class ChatService {
         }
 
         return null;
+    }
+
+    private String getLastMessage(ChatListResponse chatListResponse) {
+        return messageDetailService.find(
+                chattingTotalMessageService.getLatestMessageId(
+                        chatListResponse.roomId())).message();
+    }
+
+    private int getNonReadCount(Integer userId, ChatListResponse chatListResponse) {
+        return (int) chattingTotalMessageService.count(
+                chatListResponse.roomId(),
+                chattingReadPointService.find(
+                        ChattingReadPointRequest.builder()
+                                .channelId(chatListResponse.roomId())
+                                .userId(String.valueOf(userId))
+                                .build()));
     }
 
     private String redirectUrlExistChatting(Optional<ChattingList> optionalChattingList) {

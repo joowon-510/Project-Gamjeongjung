@@ -92,7 +92,6 @@ public class ItemController extends BaseController {
     //상품 검색
     @GetMapping("/search-item")
     public Api<List<ItemListDto>> searchItem(@RequestParam String itemName) {
-        System.out.println(itemName);
         List<ItemListDto> itemList = itemService.searchItem(itemName);
         log.info("search-item result:{}", itemList);
         return Api.OK(itemList);
@@ -103,12 +102,10 @@ public class ItemController extends BaseController {
     public Api<Map<String, Object>> getItemInfo(@RequestParam Integer itemId,
                                                 @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
         ItemDto item = itemService.getItemInfo(itemId);
-        String userName = userService.getUserNameById(item.getUserId());
-        boolean isFavorite = itemService.isFavorite(itemId, getUserId(memberDetails));
         Map<String, Object> response = new HashMap<>();
         response.put("item", item);
-        response.put("userName", userName);
-        response.put("isFavorite", isFavorite);
+        response.put("userName", userService.getUserNameById(item.getUserId()));
+        response.put("isFavorite", itemService.isFavorite(itemId, getUserId(memberDetails)));
 
         return Api.OK(response);
     }
@@ -116,7 +113,8 @@ public class ItemController extends BaseController {
     //찜한 목록 조회
     @GetMapping("/wishlist")
     public Api<List<ItemListDto>> getWishList(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        List<ItemListDto> wishList = itemService.getWishList(getUserId(memberDetails));
+        List<ItemListDto> wishList =
+                itemService.getWishList(getUserId(memberDetails));
         log.info("wish-list result:{}", wishList);
         return Api.OK(wishList);
     }
@@ -124,7 +122,8 @@ public class ItemController extends BaseController {
     //유저가 판매하는 상품 목록 조회
     @GetMapping("/item-list")
     public Api<List<ItemListDto>> getSalesItemList(@AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        List<ItemListDto> itemList = itemService.getSalesItemList(getUserId(memberDetails));
+        List<ItemListDto> itemList =
+                itemService.getSalesItemList(getUserId(memberDetails));
         log.info("sales-item-list result:{}", itemList);
         return Api.OK(itemList);
     }
