@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import nologo from "../../assets/icons/nologo.svg";
+import thumbnail from "../../assets/example.svg";
 import useChat from "../../hooks/useChat";
 import {
   ChatUser,
@@ -18,11 +19,13 @@ import { getChatMessages, getUserChatInfo, readChatRoom } from "../../api/chat";
 import { useChatContext } from "../../contexts/ChatContext";
 import { format, isToday, isYesterday } from "date-fns";
 import { useChatService } from "../../poviders/ChatServiceProvider";
+import { getGoodsDetail } from "../../api/goods";
 
 const ChatPage: React.FC = () => {
   const { chatid } = useParams<{ chatid: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  console.log("===========", location.state, "============");
   const [user, setUser] = useState<ChatUser | null>(() => {
     // 1. location.state에서 chattingUserNickname 확인 (최우선)
     const stateNickname = location.state?.chattingUserNickname;
@@ -48,6 +51,17 @@ const ChatPage: React.FC = () => {
       id: 0, // ID는 API 응답에서 업데이트 예정
       name: finalNickname,
     };
+  });
+  const [goodsId, setGoodsId] = useState<number | null>(() => {
+    const itemIdFromState = location.state?.itemId;
+    if (itemIdFromState) return itemIdFromState;
+
+    const chatItemMapString = localStorage.getItem("chatItemMap");
+    if (chatItemMapString && chatid) {
+      const chatItemMap = JSON.parse(chatItemMapString);
+      return chatItemMap[chatid] || null;
+    }
+    return null;
   });
   const hasCheckedReadStatus = useRef(false);
   const processedRoomIds = useRef(new Set<string>());
@@ -135,6 +149,43 @@ const ChatPage: React.FC = () => {
       }
     };
     fetchUserId(); // 조건문 제거 → 무조건 실행
+  }, []);
+
+  const [goods, setGoods] = useState<{ title: string; goodsId: number }>({
+    title: "",
+    goodsId: (() => {
+      const stateItemId = location.state?.itemId;
+      if (stateItemId) return stateItemId;
+
+      const chatItemMapString = localStorage.getItem("chatItemMap");
+      if (chatItemMapString && chatid) {
+        const chatItemMap = JSON.parse(chatItemMapString);
+        return chatItemMap[chatid] || 0; // fallback
+      }
+      return 0;
+    })(),
+  });
+  // 상품 정보 불러오기
+  useEffect(() => {
+    const fetchGoods = async () => {
+      // if (goodsId) {
+      try {
+        const response = await getGoodsDetail(goods.goodsId);
+        console.log("상품 상세정보 조회: ", response);
+        setGoods({
+          title: response.body.item.title,
+          goodsId: response.body.item.itemId,
+        });
+        console.log(goods);
+      } catch (error) {
+        console.log("상품 상세정보 조회 실패: ", error);
+      }
+      // } else {
+      //   console.log("⚠️ itemId가 없어서 상품 상세를 불러올 수 없습니다.");
+      // }
+    };
+    fetchGoods();
+    console.log("===========", goods);
   }, []);
 
   // 날짜 포맷팅 함수
@@ -678,6 +729,24 @@ const ChatPage: React.FC = () => {
     }
   }, [messages]);
 
+  useEffect(() => {
+    if (!chatid || !goodsId) return;
+
+    // 1. 기존 chatItemMap 불러오기
+    const chatItemMapString = localStorage.getItem("chatItemMap");
+    const chatItemMap = chatItemMapString ? JSON.parse(chatItemMapString) : {};
+
+    // 2. 현재 roomId에 해당하는 itemId가 없으면 저장
+    if (!chatItemMap[chatid]) {
+      chatItemMap[chatid] = goodsId;
+      localStorage.setItem("chatItemMap", JSON.stringify(chatItemMap));
+      console.log("💾 chatItemMap에 itemId 저장 완료:", {
+        roomId: chatid,
+        itemId: goodsId,
+      });
+    }
+  }, [chatid, goodsId]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -822,6 +891,12 @@ const ChatPage: React.FC = () => {
       loadMessages(false);
     }
   };
+
+  // 거래 상태
+  const tradeStatus = () => {
+    // return ();
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* 배경 이미지 */}
@@ -833,24 +908,45 @@ const ChatPage: React.FC = () => {
 
       {/* 헤더 */}
       <header className="sticky top-0 z-50 bg-white border-b">
-        <div className="flex items-center h-16 px-4">
-          <button onClick={handleGoBack} className="p-2">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <div className="ml-4 text-lg font-semibold">
-            {user?.name || "채팅"}
+        <div className="border-b flex items-center justify-between pr-4">
+          <div className="flex items-center h-16 px-4 ">
+            <button onClick={handleGoBack} className="p-2">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <div className="ml-4 text-lg font-semibold">
+              {user?.name || "채팅"}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button>거래중</button>
+            <button>리뷰 작성</button>
+          </div>
+        </div>
+
+        <div className="flex p-2 justify-between items-center">
+          <div className="flex gap-2 items-center">
+            <img src={thumbnail} alt="" className="w-[100px]" />
+            <p>{goods.title}</p>
+          </div>
+          <div
+            onClick={() => {
+              navigate(`/goods/detail/${goods.goodsId}`);
+            }}
+            className="text-first/60 underline"
+          >
+            바로가기
           </div>
         </div>
       </header>
@@ -899,7 +995,7 @@ const ChatPage: React.FC = () => {
                     </span>
                   )}
                   <div
-                    className={`rounded-xl px-4 py-2 max-w-[100%] ml-auto whitespace-pre-wrap ${
+                    className={`rounded-xl px-4 py-2 max-w-[100%] ml-auto break-words whitespace-pre-wrap ${
                       message.isMe
                         ? "bg-blue-500 text-white rounded-tr-none"
                         : "bg-gray-200 text-gray-800 rounded-tl-none"
