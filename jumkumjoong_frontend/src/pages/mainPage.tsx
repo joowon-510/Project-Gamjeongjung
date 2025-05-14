@@ -108,28 +108,34 @@ const MainPage: React.FC = () => {
     const mention =
       key === "recent"
         ? "등록된 상품이 없습니다."
-        : "찜한 상품이 없습니다.\n상품을 보러가볼까요?";
+        : useAuthStore.getState().nickname
+        ? "찜한 상품이 없습니다.\n상품을 보러가볼까요?"
+        : "로그인이 필요한 서비스입니다.\n로그인해주세요.";
     return (
-      <div className="grid grid-cols-2 gap-4 mt-2 flex items-center">
+      <div className=" my-2 flex items-center">
         {items.length > 0 ? (
-          items.map((item, idx) => (
-            <div
-              key={idx}
-              className=""
-              onClick={() => {
-                navigate(`/goods/detail/${item.id}`);
-              }}
-            >
-              <img
-                src={item.img}
-                alt={`thumbnail-${idx}`}
-                className=" rounded-xl"
-              />
-              <p>{item.title}</p>
-            </div>
-          ))
+          <div className="grid grid-cols-2 gap-4 ">
+            {items.map((item, idx) => (
+              <div
+                key={idx}
+                className=""
+                onClick={() => {
+                  navigate(`/goods/detail/${item.id}`);
+                }}
+              >
+                <img
+                  src={item.img}
+                  alt={`thumbnail-${idx}`}
+                  className=" rounded-xl"
+                />
+                <p>{item.title}</p>
+              </div>
+            ))}
+          </div>
         ) : (
-          <p className="mt-5 whitespace-pre-wrap">{mention}</p>
+          <div className="whitespace-pre-wrap w-full border-l pl-4 py-2 border-l-4">
+            {mention}
+          </div>
         )}
       </div>
     );

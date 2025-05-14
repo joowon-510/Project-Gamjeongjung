@@ -1,6 +1,6 @@
 // src/pages/ReviewPage/ReviewRegisterPage.tsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import NavigationBar from "../../components/common/NavigationBar";
 import Header from "../../components/common/Header";
@@ -20,13 +20,14 @@ export interface ReviewItemProps {
 
 const ReviewRegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // 하드코딩
-  const userName = "박수연.";
+  const itemId = location.state?.itemId;
+  const userName = location.state?.userName;
 
   const [formData, setFormData] = useState<ReviewItemProps>({
     stars: 0,
-    itemId: 4,
+    itemId: itemId,
     content: "",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -71,12 +72,6 @@ const ReviewRegisterPage: React.FC = () => {
         content: formData.content.trim(),
       };
 
-      // 상품 등록 API 호출
-      // const submissionData = {
-      //   ...formData,
-      //   content: finalDescription,
-      //   stars: formData.stars,
-      // };
       console.log("submission: ", submissionData);
 
       const response = await postReviewRegist(submissionData);
