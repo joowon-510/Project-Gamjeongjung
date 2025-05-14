@@ -89,12 +89,11 @@ public class ChatService {
     ) {
         /*
          * TODO:
-         *  - 일단 Test 기본 값으로 구현
          *  - 필수
-         *  2. Test 값 -> Redis 적용으로 동적으로
-         *  3. 최근 chat 참가 기준으로 전체 return 후 진행
+         *  1. Test 값 -> Redis 적용으로 동적으로
+         *  2. 최근 chat 참가 기준으로 전체 return 후 진행
          *  - 부가
-         *  4. 채팅 list에 동적으로 가능인 지도 front와 상의
+         *  3. 채팅 list에 동적으로 가능인 지도 front와 상의
          * */
         Integer decryptRoomId = Integer.parseInt(aesUtil.decrypt(roomId));
 
@@ -138,7 +137,7 @@ public class ChatService {
                         .createdAt(dto.createdAt())
                         .build());
             } catch (Exception e) {
-                log.warn("❌ 역직렬화 실패 - messageId: {}", messageList.toArray()[i], e);
+                log.warn("역직렬화 실패 - messageId: {}", messageList.toArray()[i], e);
             }
             i++;
         }
@@ -228,7 +227,7 @@ public class ChatService {
                 chatListResponse.roomId(),
                 chattingReadPointService.find(
                         ChattingReadPointRequest.builder()
-                                .channelId(chatListResponse.roomId())
+                                .channelId(aesUtil.decrypt(chatListResponse.roomId()))
                                 .userId(String.valueOf(userId))
                                 .build()));
     }
