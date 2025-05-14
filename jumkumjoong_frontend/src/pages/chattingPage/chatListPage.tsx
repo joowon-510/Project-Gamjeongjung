@@ -18,8 +18,6 @@ import { useChatStore } from "../../stores/chatStore";
 // localStorage에 저장할 키
 const CHAT_REFRESH_KEY = "chatListRefresh";
 const CHAT_CONTEXT_KEY = "chatContextInfo";
-const CHAT_ITEM_KEY = "chatItemMap";
-
 const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 
 // 채팅방 정보 인터페이스
@@ -268,13 +266,6 @@ const ChatListPage: React.FC = () => {
         delete chatContext[roomId];
         localStorage.setItem(CHAT_CONTEXT_KEY, JSON.stringify(chatContext));
 
-        const chatItemMapString = localStorage.getItem("chatItemMap");
-        if (chatItemMapString) {
-          const chatItemMap = JSON.parse(chatItemMapString);
-          delete chatItemMap[roomId];
-          localStorage.setItem("chatItemMap", JSON.stringify(chatItemMap));
-        }
-
         // 성공 메시지 표시
         alert("채팅방이 삭제되었습니다.");
       } else {
@@ -433,86 +424,78 @@ const ChatListPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto" onScroll={handleScroll}>
         {chatRooms.length > 0 ? (
           <ul className="divide-y divide-gray-200">
-            {chatRooms.map((chat) => {
-              // ✅ 각 채팅방의 itemId 로컬스토리지에서 불러오기
-              const itemIdMap = JSON.parse(
-                localStorage.getItem(CHAT_ITEM_KEY) || "{}"
-              );
-              const itemId = itemIdMap[chat.roomId];
-              return (
-                <Link
-                  key={chat.roomId}
-                  to={`/chatting/${chat.roomId}`}
-                  state={{
-                    roomId: chat.roomId,
-                    chattingUserNickname: chat.chattingUserNickname,
-                    postTitle: chat.postTitle,
-                    accessToken: localStorage.getItem("accessToken"),
-                    itemId: itemId,
-                  }}
-                  onClick={(e) => {
-                    console.log(
-                      "💾 전달할 닉네임 확인:",
+            {chatRooms.map((chat) => (
+              <Link
+                key={chat.roomId}
+                to={`/chatting/${chat.roomId}`}
+                state={{
+                  roomId: chat.roomId,
+                  chattingUserNickname: chat.chattingUserNickname,
+                  postTitle: chat.postTitle,
+                  accessToken: localStorage.getItem("accessToken"),
+                }}
+                onClick={(e) => {
+                  console.log(
+                    "💾 전달할 닉네임 확인:",
+                    chat.chattingUserNickname
+                  );
+
+                  try {
+                    localStorage.setItem("currentRoomId", chat.roomId);
+                    localStorage.setItem(
+                      "currentChatUserNickname",
                       chat.chattingUserNickname
                     );
+                    localStorage.setItem(
+                      "currentPostTitle",
+                      chat.postTitle || ""
+                    );
 
-                    try {
-                      localStorage.setItem("currentRoomId", chat.roomId);
+                    const currentToken = localStorage.getItem("accessToken");
+                    if (currentToken) {
                       localStorage.setItem(
-                        "currentChatUserNickname",
-                        chat.chattingUserNickname
+                        `token_${chat.roomId}`,
+                        currentToken
                       );
-                      localStorage.setItem(
-                        "currentPostTitle",
-                        chat.postTitle || ""
-                      );
-
-                      const currentToken = localStorage.getItem("accessToken");
-                      if (currentToken) {
-                        localStorage.setItem(
-                          `token_${chat.roomId}`,
-                          currentToken
-                        );
-                      }
-
-                      const storedNickname = localStorage.getItem(
-                        "currentChatUserNickname"
-                      );
-                      console.log("💾 저장된 정보 확인:", {
-                        roomId: chat.roomId,
-                        nickname: storedNickname,
-                        postTitle: chat.postTitle,
-                        저장성공여부:
-                          storedNickname === chat.chattingUserNickname
-                            ? "✅ 성공"
-                            : "❌ 실패",
-                      });
-
-                      // 채팅방으로 이동 시 해당 채팅방을 읽음 상태로 표시
-                      if (chat.nonReadCount > 0) {
-                        markRoomAsRead(chat.roomId);
-                      }
-                    } catch (error) {
-                      console.error("로컬스토리지 저장 중 오류:", error);
                     }
-                  }}
-                >
-                  <ChatItem
-                    key={chat.roomId}
-                    roomId={chat.roomId}
-                    chattingUserNickname={chat.chattingUserNickname}
-                    nonReadCount={chat.nonReadCount}
-                    lastMessage={chat.lastMessage}
-                    postTitle={chat.postTitle}
-                    createdAt={chat.createdAt}
-                    lastUpdatedAt={chat.lastUpdatedAt}
-                    isSelected={chat.roomId === selectedRoomId}
-                    onSelect={(roomId) => handleSelectChatRoom(roomId)}
-                    onDelete={(e) => handleDeleteChatRoom(chat.roomId, e)}
-                  />
-                </Link>
-              );
-            })}
+
+                    const storedNickname = localStorage.getItem(
+                      "currentChatUserNickname"
+                    );
+                    console.log("💾 저장된 정보 확인:", {
+                      roomId: chat.roomId,
+                      nickname: storedNickname,
+                      postTitle: chat.postTitle,
+                      저장성공여부:
+                        storedNickname === chat.chattingUserNickname
+                          ? "✅ 성공"
+                          : "❌ 실패",
+                    });
+
+                    // 채팅방으로 이동 시 해당 채팅방을 읽음 상태로 표시
+                    if (chat.nonReadCount > 0) {
+                      markRoomAsRead(chat.roomId);
+                    }
+                  } catch (error) {
+                    console.error("로컬스토리지 저장 중 오류:", error);
+                  }
+                }}
+              >
+                <ChatItem
+                  key={chat.roomId}
+                  roomId={chat.roomId}
+                  chattingUserNickname={chat.chattingUserNickname}
+                  nonReadCount={chat.nonReadCount}
+                  lastMessage={chat.lastMessage}
+                  postTitle={chat.postTitle}
+                  createdAt={chat.createdAt}
+                  lastUpdatedAt={chat.lastUpdatedAt}
+                  isSelected={chat.roomId === selectedRoomId}
+                  onSelect={(roomId) => handleSelectChatRoom(roomId)}
+                  onDelete={(e) => handleDeleteChatRoom(chat.roomId, e)}
+                />
+              </Link>
+            ))}
           </ul>
         ) : !loading && !error ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
