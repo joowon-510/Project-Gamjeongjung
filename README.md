@@ -118,7 +118,7 @@
 
 ## 7️⃣프로젝트 산출물
 ### 📌 ERD
-![ERD](./images/gamjeongjung_ERD.PNG)
+![ERD](./images/gamjeongjung_ERD.png)
 ---
 
 ### 📌 Flow chart
