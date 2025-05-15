@@ -9,7 +9,7 @@
     "@types/react-dom": "^18.3.6",
     "@types/react-easy-crop": "^1.16.0",
     "autoprefixer": "^10.4.15",
-    "axios": "^1.8.4",
+    "axios": "^1.9.0",
     "cra-template-pwa-typescript": "2.0.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.503.0",
