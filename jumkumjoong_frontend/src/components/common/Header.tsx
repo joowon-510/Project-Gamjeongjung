@@ -45,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 left-0 w-full h-[96px] flex items-center shadow-md bg-white px-4 pt-2 z-10">
+    <header className="sticky top-0 left-0 w-full h-[96px] flex items-center shadow-md bg-white px-4 pt-2 z-5">
       <Link to="/">
         <img src={yeslogo} alt="logo" className="w-[96px] h-[96px] block" />
       </Link>
