@@ -35,7 +35,7 @@ public class ChattingReadPointService {
         redisTemplate.opsForHash().put(
                 getKey(chattingReadPointRequest),
                 chattingReadPointRequest.userId(),
-                LocalDateTime.now().minusHours(9).toString()
+                LocalDateTime.now()
         );
     }
 
