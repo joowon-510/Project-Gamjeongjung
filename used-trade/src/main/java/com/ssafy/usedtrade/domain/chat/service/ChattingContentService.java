@@ -5,7 +5,6 @@ import com.ssafy.usedtrade.domain.chat.entity.ChattingContent;
 import com.ssafy.usedtrade.domain.chat.entity.ChattingList;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingContentRepository;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +24,7 @@ public class ChattingContentService {
                                         .build()
                         )
                         .contents(chatMessageDto.message())
-                        .createdAt(LocalDateTime.now())
+                        .createdAt(chatMessageDto.createdAt())
                         .build());
     }
 }
