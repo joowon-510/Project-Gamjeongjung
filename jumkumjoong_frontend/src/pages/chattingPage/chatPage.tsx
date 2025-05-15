@@ -939,7 +939,7 @@ const ChatPage: React.FC = () => {
       <img
         src={nologo}
         alt="logo"
-        className="absolute w-[216px] h-[216px] top-1/3 left-1/4 opacity-40 pointer-events-none z-0"
+        className="fixed w-[216px] h-[216px] top-1/3 left-1/4 opacity-40 pointer-events-none z-0"
       />
 
       {/* 헤더 */}
