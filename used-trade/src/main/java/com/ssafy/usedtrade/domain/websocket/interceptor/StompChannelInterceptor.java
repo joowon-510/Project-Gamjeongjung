@@ -16,6 +16,7 @@ import com.ssafy.usedtrade.domain.redis.service.UserWebsocketSessionService;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatReadDto;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -134,11 +135,12 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                                 .sessionId(accessor.getSessionId())
                                 .build());
 
+                LocalDateTime now = chatMessageDto.createdAt().plusHours(9);
+
                 // +9
                 // 메세지 내용
                 messageDetailService.save(MessageDetail.builder()
-                        .messageId(chatMessageDto.createdAt().plusHours(9)
-                                + "_" + chatMessageDto.sender())
+                        .messageId(now + "_" + chatMessageDto.sender())
                         .message(chatMessageDto)
                         .build());
 
@@ -147,9 +149,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 chattingTotalMessageService.save(
                         ChattingTotalMessageRequest.builder()
                                 .chattingRoomId(chatMessageDto.roomId())
-                                .messageId(chatMessageDto.createdAt().plusHours(9)
-                                        + "_" + chatMessageDto.sender())
-                                .timestamp(chatMessageDto.createdAt())
+                                .messageId(now + "_" + chatMessageDto.sender())
+                                .timestamp(now)
                                 .build());
             }
             case "RECEIVE" -> {

@@ -106,6 +106,7 @@ public class ChatService {
             throw new IllegalArgumentException("해당 유저는 해당 채팅방에 입장할 수 없습니다.");
         }
 
+        // +9
         // 최신순 메시지 ID 최대 100개 조회
         List<String> messageList = chattingTotalMessageService.multiGetMessage(
                 roomId,

@@ -33,10 +33,12 @@ public class ChattingReadPointService {
 
     // +9
     public void saveOrUpdate(ChattingReadPointRequest chattingReadPointRequest) {
+        LocalDateTime now = chattingReadPointRequest.createdAt().plusHours(9);
+
         redisTemplate.opsForHash().put(
                 getKey(chattingReadPointRequest),
                 chattingReadPointRequest.userId(),
-                chattingReadPointRequest.createdAt().plusHours(9).toString()
+                now.toString()
         );
     }
 
