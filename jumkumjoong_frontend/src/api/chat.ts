@@ -235,7 +235,10 @@ export const getUserChatInfo = async (): Promise<UserChatInfoResponse> => {
 export const readChatRoom = async (roomId: string) => {
   try {
     console.log(`🔍 채팅방 읽음 요청 시작: ${roomId}`);
-    
+
+    const token = localStorage.getItem('accessToken');
+    console.log('🔑 현재 토큰:', token ? '있음' : '없음');
+
     const response = await axiosInstance.get(`/chatting/${roomId}/reading`);
     
     console.log('✅ 채팅방 읽음 응답:', {
@@ -253,8 +256,14 @@ export const readChatRoom = async (roomId: string) => {
       console.error('📡 상세 에러 정보:', {
         response: error.response?.data,
         status: error.response?.status,
-        headers: error.response?.headers
+        headers: error.response?.headers,
+        config: error.config, // 요청 설정 정보
+        url: error.config?.url, // 전체 URL
+        method: error.config?.method // HTTP 메서드
       });
+      if (error.response?.data) {
+        console.error('서버 에러 메시지:', error.response.data);
+      }
     }
     
     // 기본 응답 구조 반환
