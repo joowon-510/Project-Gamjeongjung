@@ -202,19 +202,15 @@ const ChatPage: React.FC = () => {
 
   // 날짜 포맷팅 함수
   const formatMessageTime = (timestamp: string) => {
-    // UTC 시간을 한국 시간으로 변환
+    // UTC 변환 없이 바로 사용
     const date = new Date(timestamp);
-    const koreaTime = new Date(date.getTime() + (9 * 60 * 60 * 1000)); // UTC+9
-
-    if (isToday(koreaTime)) {
-      // 오늘이면 시간만 표시
-      return format(koreaTime, 'a h:mm', { locale: ko }); // 오전/오후 h:mm
-    } else if (isYesterday(koreaTime)) {
-      // 어제면 '어제' 표시
-      return `어제 ${format(koreaTime, 'a h:mm', { locale: ko })}`;
+    
+    if (isToday(date)) {
+      return format(date, 'a h:mm', { locale: ko });
+    } else if (isYesterday(date)) {
+      return `어제 ${format(date, 'a h:mm', { locale: ko })}`;
     } else {
-      // 그 외의 경우 날짜와 시간 표시
-      return format(koreaTime, 'MM월 dd일 a h:mm', { locale: ko });
+      return format(date, 'MM월 dd일 a h:mm', { locale: ko });
     }
   };
 
