@@ -26,7 +26,6 @@ class ChatService {
   private reconnectAttempts = 0;
   private readonly maxReconnectAttempts = 5;
   private reconnectTimeout: NodeJS.Timeout | null = null;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
   
   // 콜백 핸들러들
   private onConnectCallback: (() => void) | null = null;
@@ -60,14 +59,21 @@ class ChatService {
 
   // 토큰 가져오기
   private getToken(): string | null {
-    return useAuthStore.getState().accessToken || localStorage.getItem('accessToken');
+    const authStore = useAuthStore.getState();
+    return authStore.accessToken || localStorage.getItem('accessToken');
   }
 
   // 연결 시작
   async connect(): Promise<void> {
     // 이미 연결 중이거나 연결됨
     if (this.connectionState !== 'disconnected') {
-      console.log(`🔄 현재 연결 상태: ${this.connectionState}`);
+      console.log(`🔄 이미 ${this.connectionState} 상태입니다. 재연결하지 않습니다.`);
+      
+      // 이미 연결된 상태라면 콜백 실행
+      if (this.connectionState === 'connected' && this.client?.connected) {
+        this.onConnectCallback?.();
+        this.options.onConnect?.();
+      }
       return;
     }
 
@@ -84,6 +90,13 @@ class ChatService {
     try {
       console.log('🔌 WebSocket 연결 시작...');
       
+      // 이미 클라이언트가 존재하면 재사용
+      if (this.client) {
+        console.log('♻️ 기존 클라이언트 재사용');
+        await this.client.activate();
+        return;
+      }
+      
       this.client = new Client({
         brokerURL: this.options.url,
         connectHeaders: {
@@ -94,9 +107,9 @@ class ChatService {
             console.log('STOMP Debug:', str);
           }
         },
-        reconnectDelay: 0,
-        heartbeatIncoming: 30000,
-        heartbeatOutgoing: 30000,
+        reconnectDelay: 5000, // 재연결 딜레이 5초
+        heartbeatIncoming: 0, // 하트비트 완전 비활성화
+        heartbeatOutgoing: 0, // 하트비트 완전 비활성화
       });
 
       this.setupEventHandlers();
@@ -119,35 +132,64 @@ class ChatService {
       this.connectionState = 'connected';
       this.reconnectAttempts = 0;
       
+      // 상태 변경 알림
+      this.options.onStateChange?.(true);
+      
       // 콜백 실행
       this.onConnectCallback?.();
       this.options.onConnect?.();
-      this.options.onStateChange?.(true);
       
       // 대기 중인 구독 처리
       this.processPendingSubscriptions();
-      
-      // 하트비트 시작
-      this.startHeartbeat();
     };
 
     this.client.onStompError = (frame) => {
       console.error('❌ STOMP 에러:', frame);
-      this.onErrorCallback?.(frame);
-      this.options.onError?.(frame);
+      this.handleError(frame);
     };
 
     this.client.onWebSocketClose = (event) => {
       console.log('🔌 WebSocket 닫힘:', event);
+      this.handleDisconnection(event);
+    };
+  }
+
+  // 에러 처리 메서드
+  private handleError(error: any): void {
+    // 하트비트 관련 에러는 무시
+    if (error?.headers?.message?.includes('Failed to send message to ExecutorSubscribableChannel')) {
+      console.warn('⚠️ 채널 에러 감지 - 무시');
+      return;
+    }
+    
+    // 프로토콜 버전 불일치 에러
+    if (error?.headers?.message?.includes('protocol')) {
+      console.error('❌ 프로토콜 버전 불일치');
+      return;
+    }
+    
+    this.onErrorCallback?.(error);
+    this.options.onError?.(error);
+    
+    // 인증 에러인 경우 재연결 시도하지 않음
+    if (error?.headers?.message?.includes('Authentication') || 
+        error?.headers?.message?.includes('Unauthorized')) {
+      console.error('❌ 인증 오류 - 재연결 시도하지 않음');
       this.connectionState = 'disconnected';
       this.options.onStateChange?.(false);
-      
-      this.stopHeartbeat();
-      
-      if (event.code !== 1000) {
-        this.scheduleReconnect();
-      }
-    };
+      return;
+    }
+  }
+
+  // 연결 해제 처리
+  private handleDisconnection(event: CloseEvent): void {
+    this.connectionState = 'disconnected';
+    this.options.onStateChange?.(false);
+    
+    // 정상적인 종료가 아닌 경우에만 재연결 시도
+    if (event.code !== 1000) {
+      this.scheduleReconnect();
+    }
   }
 
   // 재연결 스케줄링
@@ -163,35 +205,14 @@ class ChatService {
     }
 
     this.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000);
+    // 지수 백오프 전략 사용 (1초, 2초, 4초, 8초, 16초)
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 16000);
     
     console.log(`🔄 ${this.reconnectAttempts}/${this.maxReconnectAttempts} 재연결 시도, ${delay/1000}초 후...`);
     
     this.reconnectTimeout = setTimeout(() => {
       this.connect();
     }, delay);
-  }
-
-  // 하트비트 시작
-  private startHeartbeat(): void {
-    this.stopHeartbeat();
-    
-    this.heartbeatInterval = setInterval(() => {
-      if (this.isConnected()) {
-        this.client?.publish({
-          destination: '/heartbeat',
-          body: JSON.stringify({ timestamp: Date.now() }),
-        });
-      }
-    }, 30000);
-  }
-
-  // 하트비트 중지
-  private stopHeartbeat(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
   }
 
   // 구독
@@ -211,19 +232,13 @@ class ChatService {
     }
 
     try {
-      const subscription = this.client!.subscribe(destination, (message: IMessage) => {
-        if (message.body) {
-          try {
-            const parsedMessage = JSON.parse(message.body) as WebSocketMessage;
-            
-            // 메시지 콜백 실행
-            this.onMessageCallback?.(parsedMessage);
-            this.options.onMessage?.(parsedMessage);
-          } catch (error) {
-            console.error('메시지 파싱 오류:', error);
-          }
+      const subscription = this.client!.subscribe(
+        destination, 
+        (message: IMessage) => this.handleMessage(message),
+        {
+          id: `sub-${roomId}` // 구독 ID 추가
         }
-      });
+      );
 
       this.subscriptions.set(destination, subscription);
       this.pendingSubscriptions.delete(roomId);
@@ -234,6 +249,21 @@ class ChatService {
       console.error('❌ 구독 실패:', error);
       this.pendingSubscriptions.add(roomId);
       return null;
+    }
+  }
+
+  // 메시지 처리 메서드
+  private handleMessage(message: IMessage): void {
+    if (!message.body) return;
+    
+    try {
+      const parsedMessage = JSON.parse(message.body) as WebSocketMessage;
+      
+      // 메시지 콜백 실행
+      this.onMessageCallback?.(parsedMessage);
+      this.options.onMessage?.(parsedMessage);
+    } catch (error) {
+      console.error('메시지 파싱 오류:', error);
     }
   }
 
@@ -269,7 +299,9 @@ class ChatService {
       this.client!.publish({
         destination,
         body: JSON.stringify(message),
-        headers: { 'content-type': 'application/json' }
+        headers: { 
+          'content-type': 'application/json'
+        }
       });
       
       console.log('✅ 메시지 전송:', message);
@@ -289,16 +321,24 @@ class ChatService {
       this.reconnectTimeout = null;
     }
     
-    this.stopHeartbeat();
+    // 모든 구독 해제
+    this.subscriptions.forEach((subscription) => {
+      subscription.unsubscribe();
+    });
+    this.subscriptions.clear();
+    this.pendingSubscriptions.clear();
     
     if (this.client) {
       this.connectionState = 'disconnected';
+      this.options.onStateChange?.(false);
       this.client.deactivate();
       this.client = null;
     }
-    
-    this.subscriptions.clear();
-    this.pendingSubscriptions.clear();
+  }
+
+  // 연결 상태 가져오기
+  getConnectionState(): 'disconnected' | 'connecting' | 'connected' {
+    return this.connectionState;
   }
 }
 
