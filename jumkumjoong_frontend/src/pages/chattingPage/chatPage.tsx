@@ -1018,7 +1018,7 @@ const ChatPage: React.FC = () => {
 
       {/* 메시지 목록 */}
       <div
-        className="flex-1 overflow-y-auto p-4 z-10"
+        className="flex-1 overflow-y-auto p-4 z-10 mb-10"
         ref={messagesContainerRef}
         onScroll={(e) => {
           const { scrollTop } = e.currentTarget;
@@ -1031,15 +1031,19 @@ const ChatPage: React.FC = () => {
           {messages.map((message, index) => (
             <div
               key={`${message.id}-${index}`}
-              className={`flex flex-col ${
-                message.isMe ? "items-end" : "items-start"
+              className={`flex ${
+                message.isMe ? "justify-end" : "justify-start"
               }`}
+              // className={`flex flex-col ${
+              //   message.isMe ? "items-end" : "items-start"
+              // }`}
             >
-              <div
+              {/* <div
                 className={`max-w-[70%] ${
                   message.isMe ? "order-1" : "order-2"
                 }`}
-              >
+              > */}
+              <div className="flex flex-col max-w-[70%]">
                 {/* 상대방 메시지인 경우 닉네임 표시 */}
                 {!message.isMe && (
                   <div className="ml-1 text-xs text-gray-600 mb-1">
@@ -1048,11 +1052,13 @@ const ChatPage: React.FC = () => {
                 )}
 
                 {/* 메시지 말풍선 */}
-                <div className="flex">
+                {/* <div className="flex"> */}
+                <div className="flex items-end gap-1">
                   {/* 내가 보낸 메시지이고 읽지 않은 경우만 1 표시 - 읽음 상태 디버깅용 data-read 속성 추가 */}
                   {message.isMe && !message.read && (
                     <span
-                      className="mr-1 text-l mt-2 text-black font-bold"
+                      // className="mr-1 text-l mt-2 text-black font-bold"
+                      className="text-l text-black font-bold"
                       data-testid={`unread-marker-${message.id}`}
                       data-read={message.read ? "false" : "true"}
                     >
@@ -1060,7 +1066,13 @@ const ChatPage: React.FC = () => {
                     </span>
                   )}
                   <div
-                    className={`rounded-xl px-4 py-2 max-w-[100%] ml-auto break-words whitespace-pre-wrap ${
+                    // className={`rounded-xl px-4 py-2 max-w-[100%] break-words whitespace-pre-wrap ${
+                    //   // className={`rounded-xl px-4 py-2 max-w-[100%] mr-auto break-words whitespace-pre-wrap ${
+                    //   message.isMe
+                    //     ? "bg-blue-500 text-white rounded-tr-none self-end"
+                    //     : "bg-gray-200 text-gray-800 rounded-tl-none self-start"
+                    // }`}
+                    className={`rounded-xl px-4 py-2 break-words break-all overflow-wrap whitespace-pre-wrap ${
                       message.isMe
                         ? "bg-blue-500 text-white rounded-tr-none"
                         : "bg-gray-200 text-gray-800 rounded-tl-none"
@@ -1071,8 +1083,11 @@ const ChatPage: React.FC = () => {
                 </div>
                 {/* 메시지 시간 표시 */}
                 <div
-                  className={`flex items-center mt-1 ${
-                    message.isMe ? "justify-end" : "justify-start"
+                  // className={`flex items-center mt-1 ${
+                  //   message.isMe ? "justify-end" : "justify-start"
+                  // }`}
+                  className={`text-xs text-gray-500 mt-1 ${
+                    message.isMe ? "text-right" : "text-left"
                   }`}
                 >
                   <span className="text-xs text-gray-500">
@@ -1087,7 +1102,7 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* 메시지 입력 영역 */}
-      <div className="bg-white border-t p-2 z-10">
+      <div className="fixed bottom-0 w-full bg-white border-t p-2 z-10">
         <div className="flex items-center">
           <div className="flex-1 bg-gray-100 rounded-full px-4 py-2">
             <input
