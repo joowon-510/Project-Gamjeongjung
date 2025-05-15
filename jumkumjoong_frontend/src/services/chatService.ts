@@ -26,7 +26,6 @@ class ChatService {
   private reconnectAttempts = 0;
   private readonly maxReconnectAttempts = 5;
   private reconnectTimeout: NodeJS.Timeout | null = null;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
   
   // 콜백 핸들러들
   private onConnectCallback: (() => void) | null = null;
@@ -95,8 +94,8 @@ class ChatService {
           }
         },
         reconnectDelay: 0,
-        heartbeatIncoming: 30000,
-        heartbeatOutgoing: 30000,
+        heartbeatIncoming: 0,  // 서버 하트비트 비활성화
+        heartbeatOutgoing: 0,  // 클라이언트 하트비트 비활성화
       });
 
       this.setupEventHandlers();
@@ -126,9 +125,6 @@ class ChatService {
       
       // 대기 중인 구독 처리
       this.processPendingSubscriptions();
-      
-      // 하트비트 시작
-      this.startHeartbeat();
     };
 
     this.client.onStompError = (frame) => {
@@ -141,8 +137,6 @@ class ChatService {
       console.log('🔌 WebSocket 닫힘:', event);
       this.connectionState = 'disconnected';
       this.options.onStateChange?.(false);
-      
-      this.stopHeartbeat();
       
       if (event.code !== 1000) {
         this.scheduleReconnect();
@@ -170,28 +164,6 @@ class ChatService {
     this.reconnectTimeout = setTimeout(() => {
       this.connect();
     }, delay);
-  }
-
-  // 하트비트 시작
-  private startHeartbeat(): void {
-    this.stopHeartbeat();
-    
-    this.heartbeatInterval = setInterval(() => {
-      if (this.isConnected()) {
-        this.client?.publish({
-          destination: '/heartbeat',
-          body: JSON.stringify({ timestamp: Date.now() }),
-        });
-      }
-    }, 30000);
-  }
-
-  // 하트비트 중지
-  private stopHeartbeat(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
   }
 
   // 구독
@@ -288,8 +260,6 @@ class ChatService {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
-    
-    this.stopHeartbeat();
     
     if (this.client) {
       this.connectionState = 'disconnected';
