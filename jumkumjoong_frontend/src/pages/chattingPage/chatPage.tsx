@@ -21,6 +21,7 @@ import { format, isToday, isYesterday } from "date-fns";
 import { useChatService } from "../../poviders/ChatServiceProvider";
 import { getGoodsDetail, postGoodsChangeStatus } from "../../api/goods";
 import { useAuthStore } from "../../stores/useUserStore";
+import { ko } from "date-fns/locale"; // 한국어 locale 추가
 
 const ChatPage: React.FC = () => {
   const { chatid } = useParams<{ chatid: string }>();
@@ -201,17 +202,19 @@ const ChatPage: React.FC = () => {
 
   // 날짜 포맷팅 함수
   const formatMessageTime = (timestamp: string) => {
+    // UTC 시간을 한국 시간으로 변환
     const date = new Date(timestamp);
+    const koreaTime = new Date(date.getTime() + (9 * 60 * 60 * 1000)); // UTC+9
 
-    if (isToday(date)) {
+    if (isToday(koreaTime)) {
       // 오늘이면 시간만 표시
-      return format(date, "p");
-    } else if (isYesterday(date)) {
+      return format(koreaTime, 'a h:mm', { locale: ko }); // 오전/오후 h:mm
+    } else if (isYesterday(koreaTime)) {
       // 어제면 '어제' 표시
-      return format(date, "어제 p");
+      return `어제 ${format(koreaTime, 'a h:mm', { locale: ko })}`;
     } else {
       // 그 외의 경우 날짜와 시간 표시
-      return format(date, "yy.MM.dd p");
+      return format(koreaTime, 'MM월 dd일 a h:mm', { locale: ko });
     }
   };
 

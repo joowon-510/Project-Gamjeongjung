@@ -31,8 +31,18 @@ export const ChatServiceProvider: React.FC<ChatServiceProviderProps> = ({
           console.log('ChatService connected globally');
         },
         onError: (error) => {
+          // 상세한 에러 정보 확인
           console.error('ChatService global error:', error);
-        }
+          
+          if (error && error.headers) {
+            console.error('에러 헤더 정보:', error.headers);
+            console.error('에러 메시지:', error.headers.message);
+          }
+          
+          if (error && error.body) {
+            console.error('에러 본문:', error.body);
+          }
+        },
       });
     }
     return chatServiceRef.current;

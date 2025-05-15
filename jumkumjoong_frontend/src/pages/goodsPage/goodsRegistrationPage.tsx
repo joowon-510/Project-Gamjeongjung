@@ -133,7 +133,7 @@ const GoodsRegistrationPage: React.FC = () => {
 
     setFormData((prev) => ({
       ...prev,
-      configuration: configValueMap[selected], // ✅ 숫자로 저장
+      configuration: Number(e.target.value),  // ✅ 숫자로 저장
       packageType: selected, // 표시용으로 유지
     }));
   };
@@ -400,9 +400,12 @@ const GoodsRegistrationPage: React.FC = () => {
               onChange={handlePackageTypeChange}
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="full">풀박스</option>
+              <option value={0}>풀박스</option>
+              <option value={2}>단품</option>
+              <option value={1}>일부구성품</option>
+              {/* <option value="full">풀박스</option>
               <option value="single">단품</option>
-              <option value="partial">일부구성품</option>
+              <option value="partial">일부구성품</option> */}
             </select>
             {formData.configuration === 1 && (
               <p className="mt-1 text-sm text-red-500">
