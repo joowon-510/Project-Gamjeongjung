@@ -18,6 +18,8 @@ import com.ssafy.usedtrade.domain.websocket.dto.request.ChatReadDto;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
     private final AESUtil aesUtil;
     private final ObjectMapper objectMapper;
 
+    private final Map<String, Set<String>> sessions = new ConcurrentHashMap<>();
+
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor =
@@ -56,6 +60,21 @@ public class StompChannelInterceptor implements ChannelInterceptor {
         String sessionId = accessor.getSessionId();
         if (sessionId == null || sessionId.isBlank()) {
             throw new IllegalStateException("Missing session ID in STOMP message");
+        }
+
+        if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+            String destination = accessor.getDestination();
+
+            Set<String> destinations = sessions.computeIfAbsent(sessionId,
+                    k -> ConcurrentHashMap.newKeySet());
+
+            if (destinations.contains(destination)) {
+                // 중복 구독 -> 예외 발생 또는 무시
+                throw new IllegalArgumentException("이미 구독 중인 destination입니다: " + destination);
+                // 또는 return null; // 무시할 수도 있음
+            }
+
+            destinations.add(destination);
         }
 
         switch (accessor.getCommand()) {
@@ -71,6 +90,10 @@ public class StompChannelInterceptor implements ChannelInterceptor {
         }
 
         return message;
+    }
+
+    public void removeSession(String sessionId) {
+        sessions.remove(sessionId);
     }
 
     private void handleDisconnect(StompHeaderAccessor accessor) {
