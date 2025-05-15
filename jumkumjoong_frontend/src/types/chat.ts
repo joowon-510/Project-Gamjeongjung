@@ -166,7 +166,7 @@ export interface ChatHookParams {
   roomId: string;
   userId: number;
   recipientName: string;
-  processMessage?: (message: WebSocketMessage) => Message | null;
+  processMessage?: (message: WebSocketMessage) => Message | null;  // void가 아닌 Message | null 반환
 }
 
 // 채팅방 라우트 상태

@@ -18,6 +18,7 @@ import { getChatMessages, getUserChatInfo, readChatRoom } from "../../api/chat";
 import { useChatContext } from "../../contexts/ChatContext";
 import { format, isToday, isYesterday } from "date-fns";
 import { useChatService } from "../../poviders/ChatServiceProvider";
+import { ko } from "date-fns/locale"; // 한국어 locale 추가
 
 const ChatPage: React.FC = () => {
   const { chatid } = useParams<{ chatid: string }>();
@@ -140,16 +141,43 @@ const ChatPage: React.FC = () => {
   // 날짜 포맷팅 함수
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
+    
+    // 한국 시간대 옵션
+    const koreanOptions: Intl.DateTimeFormatOptions = {
+      timeZone: 'Asia/Seoul',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    };
 
-    if (isToday(date)) {
+    const koreanDateOptions: Intl.DateTimeFormatOptions = {
+      timeZone: 'Asia/Seoul',
+      month: 'numeric',
+      day: 'numeric'
+    };
+
+    // 한국 시간으로 변환
+    const koreanDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+    const today = new Date();
+    const todayKorean = new Date(today.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+
+    // 날짜 비교
+    const isToday = koreanDate.toDateString() === todayKorean.toDateString();
+    const yesterday = new Date(todayKorean);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = koreanDate.toDateString() === yesterday.toDateString();
+
+    if (isToday) {
       // 오늘이면 시간만 표시
-      return format(date, "p");
-    } else if (isYesterday(date)) {
+      return date.toLocaleTimeString('ko-KR', koreanOptions);
+    } else if (isYesterday) {
       // 어제면 '어제' 표시
-      return format(date, "어제 p");
+      return `어제 ${date.toLocaleTimeString('ko-KR', koreanOptions)}`;
     } else {
       // 그 외의 경우 날짜와 시간 표시
-      return format(date, "yy.MM.dd p");
+      const dateStr = date.toLocaleDateString('ko-KR', koreanDateOptions);
+      const timeStr = date.toLocaleTimeString('ko-KR', koreanOptions);
+      return `${dateStr} ${timeStr}`;
     }
   };
 
