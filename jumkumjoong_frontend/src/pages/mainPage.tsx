@@ -21,9 +21,6 @@ import heart from "../assets/icons/Heart.svg";
 import newGoods from "../assets/icons/new.svg";
 // 썸네일 이미지 임포트
 import thumbnail from "../assets/goods/thumbnail.png";
-import thumbnail2 from "../assets/goods/thumbnail2.png";
-import thumbnail3 from "../assets/goods/thumbnail3.png";
-import thumbnail4 from "../assets/goods/thumbnail4.png";
 
 const categories = [
   { id: "laptop", label: "노트북", icon: laptop },
@@ -31,20 +28,6 @@ const categories = [
   { id: "phone", label: "휴대폰", icon: phone },
   { id: "tablet", label: "태블릿", icon: tablet },
 ];
-
-// const popularItems = [
-//   { img: thumbnail2, title: "갤북5(S)급 팝니다" },
-//   { img: thumbnail3, title: "맥북pro 팔아용" },
-//   { img: thumbnail4, title: "갤북4 싸게 팝니다" },
-//   { img: thumbnail5, title: "그램 14인치" },
-// ];
-
-// const recentItems = [
-//   { img: thumbnail, title: "갤북5(S)급 팝니다" },
-//   { img: thumbnail2, title: "맥북pro 팔아용" },
-//   { img: thumbnail3, title: "갤북4 싸게 팝니다" },
-//   { img: thumbnail4, title: "그램 14인치" },
-// ];
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
@@ -56,15 +39,14 @@ const MainPage: React.FC = () => {
     const checkUser = async () => {
       try {
         const user = await getUserInfo();
+        console.log("----------", user, "----------");
         console.log("User: ", useAuthStore.getState());
-        const wishItem = await getGoodsFavorites();
-        useWishItemStore.getState().setItems(wishItem);
-        console.log("Wish item: ", useWishItemStore.getState().items);
 
         if (!user) {
-          // navigate("/login");
-
-          return;
+        } else {
+          const wishItem = await getGoodsFavorites();
+          useWishItemStore.getState().setItems(wishItem);
+          console.log("Wish item: ", useWishItemStore.getState().items);
         }
       } catch (error) {}
     };
@@ -108,9 +90,9 @@ const MainPage: React.FC = () => {
     const mention =
       key === "recent"
         ? "등록된 상품이 없습니다."
-        : useAuthStore.getState().nickname
-        ? "찜한 상품이 없습니다.\n상품을 보러가볼까요?"
-        : "로그인이 필요한 서비스입니다.\n로그인해주세요.";
+        : !useAuthStore.getState().nickname
+        ? "로그인이 필요한 서비스입니다.\n로그인해주세요."
+        : "찜한 상품이 없습니다.\n상품을 보러가볼까요?";
     return (
       <div className=" my-2 flex items-center">
         {items.length > 0 ? (
