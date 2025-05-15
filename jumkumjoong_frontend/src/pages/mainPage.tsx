@@ -34,6 +34,8 @@ const MainPage: React.FC = () => {
   const [recentItems, setRecentItem] = useState<
     { img: string; title: string; id: number }[]
   >([]);
+  const [userLoaded, setUserLoaded] = useState(false);
+  const [wishLoaded, setWishLoaded] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -43,12 +45,19 @@ const MainPage: React.FC = () => {
         console.log("User: ", useAuthStore.getState());
 
         if (!user) {
+          const wishItem = await getGoodsFavorites();
+          useWishItemStore.getState().setItems(wishItem);
         } else {
           const wishItem = await getGoodsFavorites();
           useWishItemStore.getState().setItems(wishItem);
           console.log("Wish item: ", useWishItemStore.getState().items);
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error("유저 정보 로딩 실패:", error);
+      } finally {
+        setUserLoaded(true);
+        setWishLoaded(true);
+      }
     };
 
     const checkGoods = async () => {
@@ -87,12 +96,17 @@ const MainPage: React.FC = () => {
     items: { img: string; title: string; id: number }[],
     key: "recent" | "wish"
   ) => {
+    const isLoggedIn = !!useAuthStore.getState().nickname;
     const mention =
       key === "recent"
         ? "등록된 상품이 없습니다."
-        : !useAuthStore.getState().nickname
+        : !userLoaded
+        ? "로딩 중입니다..." // ✅ 로딩 전엔 아무 메시지도 보여주지 않게 할 수도 있음
+        : !isLoggedIn
         ? "로그인이 필요한 서비스입니다.\n로그인해주세요."
-        : "찜한 상품이 없습니다.\n상품을 보러가볼까요?";
+        : items.length === 0
+        ? "찜한 상품이 없습니다.\n상품을 보러가볼까요?"
+        : "";
     return (
       <div className=" my-2 flex items-center">
         {items.length > 0 ? (
