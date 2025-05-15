@@ -62,6 +62,7 @@ public class ChatService {
                 .findByBuyerIdOrSellerId_toChatListResponse(userId, lastChatTime, pageable)
                 .stream().map(chatListResponse -> {
                     return ChatListResponse.builder()
+                            .postId(chatListResponse.postId())
                             .roomId(chatListResponse.roomId())
                             .chattingUserNickname(chatListResponse.chattingUserNickname())
                             .nonReadCount(

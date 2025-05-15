@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record ChatListResponse(
+        String postId,
         String roomId,
         String chattingUserNickname,
         int nonReadCount,

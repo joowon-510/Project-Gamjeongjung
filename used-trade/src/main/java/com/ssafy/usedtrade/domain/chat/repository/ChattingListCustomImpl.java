@@ -41,7 +41,8 @@ public class ChattingListCustomImpl implements ChattingListCustom {
                 .select(
                         chat.id,
                         opponentNickname,
-                        post.title
+                        post.title,
+                        post.id
                 )
                 .from(chat)
                 .rightJoin(buyer).on(chat.buyerId.eq(buyer.id))
@@ -60,8 +61,10 @@ public class ChattingListCustomImpl implements ChattingListCustom {
             String encryptedRoomId = aesUtil.encrypt(String.valueOf(dto.get(chat.id)));
             String nickname = dto.get(opponentNickname);
             String title = dto.get(post.title); // fetch join or projection 필요
+            String postId = String.valueOf(dto.get(post.id));
 
             return ChatListResponse.builder()
+                    .postId(postId)
                     .roomId(encryptedRoomId)
                     .chattingUserNickname(nickname) // 임시
                     .nonReadCount(0)
