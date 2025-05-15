@@ -141,7 +141,13 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 // 메세지 내용
                 messageDetailService.save(MessageDetail.builder()
                         .messageId(now + "_" + chatMessageDto.sender())
-                        .message(chatMessageDto)
+                        .message(ChatMessageDto.builder()
+                                .type(chatMessageDto.type())
+                                .roomId(chatMessageDto.roomId())
+                                .sender(chatMessageDto.sender())
+                                .message(chatMessageDto.message())
+                                .createdAt(now)
+                                .build())
                         .build());
 
                 // +9

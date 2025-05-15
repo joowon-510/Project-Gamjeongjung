@@ -1,6 +1,7 @@
 package com.ssafy.usedtrade.domain.websocket.controller;
 
 import com.ssafy.usedtrade.domain.redis.service.UserWebsocketSessionService;
+import java.time.LocalDateTime;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -22,6 +23,9 @@ public class WebsocketController {
             @DestinationVariable("roomId") String roomId,
             @Header("simpSessionId") String sessionId
     ) {
+        message.put("createdAt",
+                String.valueOf(LocalDateTime.parse(message.get("createdAt")).plusHours(9)));
+
         simpMessagingTemplate.convertAndSend(
                 "/receive/" + roomId, message);
     }
