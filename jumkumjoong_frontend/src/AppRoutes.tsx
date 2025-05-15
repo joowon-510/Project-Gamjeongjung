@@ -42,8 +42,15 @@ const AppRoutes = () => {
     const checkUser = async () => {
       const isPublic = PUBLIC_PATHS.includes(location.pathname);
       if (!isPublic) {
-        const user = await fetchUser();
-        if (!user) {
+        try {
+          const user = await fetchUser();
+          if (!user) {
+            navigate("/login");
+            return;
+          }
+        } catch (error) {
+          console.log("로그인 실패");
+          alert("로그인 실패");
           navigate("/login");
         }
       }
