@@ -134,18 +134,20 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                                 .sessionId(accessor.getSessionId())
                                 .build());
 
+                // +9
                 // 메세지 내용
                 messageDetailService.save(MessageDetail.builder()
-                        .messageId(chatMessageDto.createdAt()
+                        .messageId(chatMessageDto.createdAt().plusHours(9)
                                 + "_" + chatMessageDto.sender())
                         .message(chatMessageDto)
                         .build());
 
+                // +9
                 // 채팅 방 전체 메세지 key 저장
                 chattingTotalMessageService.save(
                         ChattingTotalMessageRequest.builder()
                                 .chattingRoomId(chatMessageDto.roomId())
-                                .messageId(chatMessageDto.createdAt()
+                                .messageId(chatMessageDto.createdAt().plusHours(9)
                                         + "_" + chatMessageDto.sender())
                                 .timestamp(chatMessageDto.createdAt())
                                 .build());

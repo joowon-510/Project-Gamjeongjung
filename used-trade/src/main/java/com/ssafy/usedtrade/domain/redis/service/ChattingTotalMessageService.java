@@ -72,11 +72,17 @@ public class ChattingTotalMessageService {
         return "channel:" + roomId;
     }
 
+    // +9
     private static long getEpochMilli(ChattingTotalMessageRequest chattingTotalMessageRequest) {
-        return chattingTotalMessageRequest.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return chattingTotalMessageRequest.getTimestamp()
+                .plusHours(9).atZone(ZoneId.systemDefault())
+                .toInstant().toEpochMilli();
     }
 
+    // +9
     private static long getEpochMilli(LocalDateTime localDateTime) {
-        return localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return localDateTime.plusHours(9)
+                .atZone(ZoneId.systemDefault())
+                .toInstant().toEpochMilli();
     }
 }

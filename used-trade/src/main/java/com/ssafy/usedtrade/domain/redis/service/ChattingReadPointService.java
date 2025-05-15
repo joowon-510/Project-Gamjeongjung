@@ -31,11 +31,12 @@ public class ChattingReadPointService {
         return redisTemplate.opsForHash().entries("readPoint:" + channelId);
     }
 
+    // +9
     public void saveOrUpdate(ChattingReadPointRequest chattingReadPointRequest) {
         redisTemplate.opsForHash().put(
                 getKey(chattingReadPointRequest),
                 chattingReadPointRequest.userId(),
-                chattingReadPointRequest.createdAt().toString()
+                chattingReadPointRequest.createdAt().plusHours(9).toString()
         );
     }
 

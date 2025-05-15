@@ -111,14 +111,15 @@ public class ChatService {
                 roomId,
                 createdAt == null
                         ? Double.MAX_VALUE
-                        : Timestamp.valueOf(createdAt).getTime() - 1);
+                        : Timestamp.valueOf(createdAt.plusHours(9)).getTime() - 1);
 
+        // +9
         boolean hasMoreMessage =
                 chattingTotalMessageService.hasMoreMessage(
                         roomId,
                         createdAt == null
                                 ? Double.MAX_VALUE
-                                : Timestamp.valueOf(createdAt).getTime() - 1
+                                : Timestamp.valueOf(createdAt.plusHours(9)).getTime() - 1
                 );
 
         // Redis에서 메시지 JSON 한꺼번에 조회
@@ -161,24 +162,27 @@ public class ChatService {
                 chattingListRepository.findByBuyerIdAndPostId(userId, salesItem.getId());
 
         if (optionalChattingList.isEmpty()) {
+            LocalDateTime now = LocalDateTime.now();
+
+            // +9
             ChattingList chattingList = chattingListRepository.save(
                     ChattingList.builder()
                             .postId(salesItem.getId())
                             .sellerId(salesItem.getUserId())
                             .buyerId(userId)
-                            .lastChatTime(LocalDateTime.now())
+                            .lastChatTime(now.plusHours(9))
                             .build());
 
             // 초기 읽기 시간 세팅
             chattingReadPointService.saveOrUpdate(ChattingReadPointRequest.builder()
                     .userId(String.valueOf(salesItem.getUserId()))
                     .channelId(String.valueOf(salesItem.getId()))
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(now)
                     .build());
             chattingReadPointService.saveOrUpdate(ChattingReadPointRequest.builder()
                     .userId(String.valueOf(userId))
                     .channelId(String.valueOf(salesItem.getId()))
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(now)
                     .build());
 
             // 생성된 채팅방의 id를 return

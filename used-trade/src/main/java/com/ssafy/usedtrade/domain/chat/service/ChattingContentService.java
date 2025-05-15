@@ -24,7 +24,7 @@ public class ChattingContentService {
                                         .build()
                         )
                         .contents(chatMessageDto.message())
-                        .createdAt(chatMessageDto.createdAt())
+                        .createdAt(chatMessageDto.createdAt().plusHours(9))
                         .build());
     }
 }
