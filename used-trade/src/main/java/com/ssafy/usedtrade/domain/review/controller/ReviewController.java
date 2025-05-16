@@ -36,13 +36,15 @@ public class ReviewController {
             @AuthenticationPrincipal SecurityMemberDetails memberDetails,
             @RequestParam(value = "created-at", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime createdAt) {
-        return Api.OK(reviewService.findAllReview(memberDetails.getId(), createdAt));
+            LocalDateTime createdAt,
+            @RequestParam(required = false, name = "sellerId") String sellerId) {
+        return Api.OK(reviewService.findAllReview(memberDetails.getId(), createdAt, sellerId));
     }
 
     @GetMapping("/stars")
     public Api<Float> countAllReview(
-            @AuthenticationPrincipal SecurityMemberDetails memberDetails) {
-        return Api.OK(reviewService.countAllReview(memberDetails.getId()));
+            @AuthenticationPrincipal SecurityMemberDetails memberDetails,
+            @RequestParam(required = false, name = "sellerId") String sellerId) {
+        return Api.OK(reviewService.countAllReview(memberDetails.getId(), sellerId));
     }
 }
