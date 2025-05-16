@@ -120,7 +120,7 @@ public class ItemController extends BaseController {
     }
 
     //유저가 판매하는 상품 목록 조회
-    @GetMapping("/item-list")
+    @PostMapping("/item-list")
     public Api<List<ItemListDto>> getSalesItemList(@RequestBody Integer userId){
         List<ItemListDto> itemList =
                 itemService.getSalesItemList(userId);
