@@ -127,6 +127,7 @@
 
 ### 📌Figma
 
+![FIGMA](./images/gamjeongjung_FIGMA.png)
 
 ---
 
