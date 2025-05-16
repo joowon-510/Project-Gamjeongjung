@@ -34,7 +34,7 @@ const GoodsImage: React.FC<GoodsImageProps> = ({
           target.src = defaultImage;
         }}
       />
-      <span className="absolute top-5 right-5 text-[#ffffff] self-end mb-1">
+      <span className="absolute top-6 right-5 text-[#ffffff] self-end mb-1">
         {canChangeStatus ? (
           <span className="rounded-md bg-fifth p-[6px]">거래 중</span>
         ) : (
@@ -55,7 +55,7 @@ const GoodsImage: React.FC<GoodsImageProps> = ({
       {/* 뒤로가기 버튼 */}
       <button
         onClick={onGoBack}
-        className="absolute top-4 left-4 bg-white/80 hover:bg-white rounded-full p-2 shadow-md"
+        className="fixed top-4 left-4 bg-white/90 hover:bg-white rounded-full p-2 shadow-md"
       >
         <svg
           className="w-6 h-6"

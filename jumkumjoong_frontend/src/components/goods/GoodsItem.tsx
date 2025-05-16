@@ -119,10 +119,10 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   };
 
   return (
-    <li className="px-4 py-4 bg-white border-b last:border-b-0 text-first">
+    <li className="px-4 py-4  border-b last:border-b-0 text-first">
       <Link to={`/goods/detail/${itemId}`} className="flex space-x-4 ">
         {/* 상품 이미지 */}
-        <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded overflow-hidden">
+        <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded -z-10">
           <img
             src={images[0]}
             alt={itemName}

@@ -295,7 +295,9 @@ const GoodsDetailPage: React.FC = () => {
 
         {/* 상품 설명 */}
         <div className="p-4 border-b">
-          <p className="text-gray-800">{goods.item.description}</p>
+          <p className="text-gray-800 whitespace-pre-line">
+            {goods.item.description}
+          </p>
         </div>
 
         {/* 시리얼 넘버 */}
@@ -306,20 +308,20 @@ const GoodsDetailPage: React.FC = () => {
           </div>
         </div>
         {/* 기종 정보 */}
-        <div className="p-4 border-b">
+        {/* <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-700">기종</span>
             <span className="font-medium">갤럭시북 5 PRO</span>
           </div>
-        </div>
+        </div> */}
 
         {/* 가격 정보 */}
-        <div className="p-4 border-b">
+        {/* <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-700">AI의 평가점수</span>
             <span className="font-medium">92점</span>
           </div>
-        </div>
+        </div> */}
 
         {/* 판매가 정보 */}
         <div className="p-4 border-b">
@@ -347,6 +349,19 @@ const GoodsDetailPage: React.FC = () => {
           screenPan={productStatus.screenPan}
         />
 
+        {images.length > 0 ? (
+          images.map((itemImg) => {
+            return (
+              <div className="flex flex-col items-center">
+                <img src={itemImg} alt="item-image" className="w-[60%]" />
+              </div>
+            );
+          })
+        ) : (
+          <></>
+        )}
+        <img src="" alt="" />
+
         {/* 하단 여백 (네비게이션 바와 액션 바 높이만큼) */}
         <div className="h-8"></div>
       </div>
@@ -357,17 +372,21 @@ const GoodsDetailPage: React.FC = () => {
           <span className="text-gray-700 mr-2">가격:</span>
           <span className="text-xl font-bold">{goods.item.price} 원</span>
         </div>
-        <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
+        <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 mb-1 flex items-center">
           <div className="flex-1">
             <span className="text-gray-700 mr-2">가격:</span>
             <span className="text-xl font-bold">{goods.item.price} 원</span>
           </div>
-          <ChatButton
-            sellerId={goods.item.userId}
-            itemId={goods.item.itemId || parseInt(itemId!, 10)} // 명시적으로 itemId 전달
-            sellerName={goods.userName}
-            itemTitle={goods.item.title}
-          />
+          {nickname !== goods.userName ? (
+            <ChatButton
+              sellerId={goods.item.userId}
+              itemId={goods.item.itemId || parseInt(itemId!, 10)} // 명시적으로 itemId 전달
+              sellerName={goods.userName}
+              itemTitle={goods.item.title}
+            />
+          ) : (
+            <></>
+          )}
         </div>
       </div>
 

@@ -83,7 +83,7 @@ const MyPostsPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
+    <div className="min-h-screen pb-16">
       {/* 헤더 */}
       <Header />
 

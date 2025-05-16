@@ -98,7 +98,7 @@ const GoodsListPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen">
       {/* 통일된 헤더 사용 */}
       <Header
         showBackButton={false}
