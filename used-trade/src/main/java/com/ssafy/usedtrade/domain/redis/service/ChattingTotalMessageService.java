@@ -1,7 +1,6 @@
 package com.ssafy.usedtrade.domain.redis.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ssafy.usedtrade.domain.redis.dto.ChannelTotalMessageResponse;
 import com.ssafy.usedtrade.domain.redis.entity.ChattingTotalMessageRequest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -17,10 +16,8 @@ public class ChattingTotalMessageService {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
 
-    public ChannelTotalMessageResponse find(ChattingTotalMessageRequest chattingTotalMessageRequest) {
-        // ChannelTotalMessageResponse로 return 하는데, 특정 구간동안을 제공
-        // 채팅의 페이지 네이션
-        return null;
+    public Set<String> findAllKeys() {
+        return redisTemplate.keys("channel:*");
     }
 
     public void save(ChattingTotalMessageRequest chattingTotalMessageRequest) {
