@@ -152,7 +152,13 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
         {/* 상품 정보 */}
         <div className="flex-1 flex flex-col justify-between">
           {/* 상품 제목 */}
-          <div className="text-lg font-medium text-gray-900">{itemName}</div>
+          {itemName.length > 30 ? (
+            <div className="text-lg font-medium text-gray-900">
+              {itemName.slice(0, 22)} ...
+            </div>
+          ) : (
+            <div className="text-lg font-medium text-gray-900">{itemName}</div>
+          )}
 
           {/* 상품 가격 */}
           <div className="text-xl font-bold text-gray-900 mt-1">

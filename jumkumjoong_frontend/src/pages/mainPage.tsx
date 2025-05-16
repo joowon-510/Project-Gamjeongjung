@@ -122,7 +122,12 @@ const MainPage: React.FC = () => {
                     item.img === thumbnail ? "opacity-50 bg-first/20" : ""
                   }`}
                 />
-                <p>{item.title}</p>
+
+                {item.title.length > 12 ? (
+                  <p>{item.title.slice(0, 12)} ...</p>
+                ) : (
+                  <p>{item.title}</p>
+                )}
               </div>
             ))}
           </div>
