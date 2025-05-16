@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 
+import NavigationBar from "./NavigationBar";
+
 import yeslogo from "../../assets/icons/yeslogo.svg";
 import close from "../../assets/icons/close.svg";
 import laptop from "../../assets/icons/laptop.svg";
@@ -15,9 +17,10 @@ import Logout from "../../utils/logout";
 
 interface MenuModalProps {
   onClose: () => void;
+  onOpen: () => void;
 }
 
-export default function MenuModal({ onClose }: MenuModalProps) {
+export default function MenuModal({ onClose, onOpen }: MenuModalProps) {
   const navigate = useNavigate();
 
   const categoryActions = [
@@ -159,29 +162,28 @@ export default function MenuModal({ onClose }: MenuModalProps) {
                 <p className="">{action.label}</p>
               </Link>
             ))}
+            {/* 회원정보변경 */}
+            <div
+              className="flex flex-1  items-center pb-2 border-b border-gray-200 last:border-b-0"
+              onClick={handleEditInfo}
+            >
+              <img src={settings} alt="settings" className="w-7 h-7 mr-4" />
+              <p>회원정보변경</p>
+            </div>
+            {/* 로그아웃 */}
+            <div
+              className="flex flex-1 items-center pb-2 border-b border-gray-200 last:border-b-0"
+              onClick={handleLogout}
+            >
+              <img src={logout} alt="logout" className="w-7 h-7 mr-4" />
+              <p>로그아웃</p>
+            </div>
           </div>
         </div>
       </main>
-      <footer className="sticky bottom-0 w-full shadow-[0_-3px_5px_rgba(0,0,0,0.15)] z-50 p-2 py-6 bg-white">
-        <div className="flex divide-x-2 divide-first/30">
-          {/* 회원정보변경 */}
-          <div
-            className="flex flex-1 gap-2 items-center justify-center"
-            onClick={handleEditInfo}
-          >
-            <img src={settings} alt="settings" className="w-7 h-7" />
-            <p>회원정보변경</p>
-          </div>
-          {/* 로그아웃 */}
-          <div
-            className="flex flex-1 gap-2 items-center justify-center"
-            onClick={handleLogout}
-          >
-            <img src={logout} alt="logout" className="w-7 h-7" />
-            <p>로그아웃</p>
-          </div>
-        </div>
-      </footer>
+      <div className="fixed bottom-0 left-0 w-full z-[110]">
+        <NavigationBar />
+      </div>
     </div>
   );
 }
