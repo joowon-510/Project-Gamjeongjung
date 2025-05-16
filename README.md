@@ -8,7 +8,7 @@
 
 - 전자기기 중고거래 플랫폼
 - AI 기반 흠집 탐지 및 게시글 자동 생성성
-- 서비스명 : **감정중**
+- 서비스명 : 감정중
 
 ### 타겟층 🎯
 
@@ -76,6 +76,8 @@
 - Node.js
 - NPM
 - TypeScript
+- Tailwindcss
+- PWA
 - React
 - Axios
 - Zustand
@@ -120,9 +122,6 @@
 ### 📌 ERD
 ![ERD](./images/gamjeongjung_ERD.png)
 ---
-
-### 📌 Flow chart
-![FlowChart](./images/Flow_chart.png)
 
 ---
 
