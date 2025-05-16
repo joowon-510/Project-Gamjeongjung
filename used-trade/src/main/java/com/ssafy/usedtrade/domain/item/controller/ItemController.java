@@ -11,6 +11,8 @@ import com.ssafy.usedtrade.domain.item.dto.ItemStatusDto;
 import com.ssafy.usedtrade.domain.item.dto.RegistResponse;
 import com.ssafy.usedtrade.domain.item.service.ItemService;
 import com.ssafy.usedtrade.domain.user.service.UserService;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 @Slf4j
 @RestController
@@ -53,8 +56,17 @@ public class ItemController extends BaseController {
     public Api<Boolean> deviceImageUpload(
             @RequestPart("images") List<MultipartFile> file,
             @RequestPart("imageUploadRequest") ImageUploadRequest imageUploadRequest,
-            @AuthenticationPrincipal SecurityMemberDetails memberDetails
-    ) throws IOException {
+            @AuthenticationPrincipal SecurityMemberDetails memberDetails,
+            MultipartHttpServletRequest request
+    ) throws IOException, ServletException {
+        Part jsonPart = request.getPart("imageUploadRequest");
+        log.info("Part 'imageUploadRequest' content type: {}", jsonPart.getContentType());
+
+        // 이미지 하나도 확인
+        for (MultipartFile f : file) {
+            log.info("Image file name: {}, content-type: {}", f.getOriginalFilename(), f.getContentType());
+        }
+
         return Api.OK(awsFileService.savePhoto(file, imageUploadRequest, memberDetails.getId()));
     }
 
