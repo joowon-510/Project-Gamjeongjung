@@ -20,8 +20,8 @@ const TransactionsPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      const response = await getGoodsUsers();
+      // 하드코딩
+      const response = await getGoodsUsers(0);
 
       if (response) {
         const filteredGoods = response.filter(

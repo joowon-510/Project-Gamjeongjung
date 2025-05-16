@@ -154,6 +154,7 @@ const GoodsListPage: React.FC = () => {
                     itemName={item.itemName}
                     itemPrice={item.itemPrice}
                     itemStatus={item.itemStatus}
+                    deviceImageUrl={item.deviceImageUrl}
                     // canChangeStatus={true}
                   />
                 ))

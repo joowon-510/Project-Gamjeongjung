@@ -1,6 +1,7 @@
 // src/components/goods/GoodsImage.tsx
 import React from "react";
 import check from "../../assets/icons/check.svg";
+import thumbnail from "../../assets/icons/nologo.svg";
 
 interface GoodsImageProps {
   imageUrl?: string;
@@ -22,9 +23,11 @@ const GoodsImage: React.FC<GoodsImageProps> = ({
     <div className="relative w-full">
       {/* 상품 이미지 */}
       <img
-        src={imageUrl || defaultImage}
+        src={imageUrl || thumbnail}
         alt={title}
-        className="w-full aspect-square object-cover"
+        className={`w-full aspect-square object-cover ${
+          !imageUrl || imageUrl === thumbnail ? "opacity-50 bg-first/20" : ""
+        }`}
         onError={(e) => {
           const target = e.target as HTMLImageElement;
           target.onerror = null;

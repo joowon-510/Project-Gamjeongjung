@@ -38,7 +38,7 @@ const PriceInput: React.FC<PriceInputProps> = ({
   //   : "";
 
   return (
-    <div className="relative flex items-baseline">
+    <div className="flex items-baseline">
       <div className="flex">
         <input
           type="text"

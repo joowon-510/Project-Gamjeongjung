@@ -8,11 +8,15 @@ import GoodsItem, { GoodsItemProps } from "../../components/goods/GoodsItem";
 import { getGoodsUsers } from "../../api/goods";
 
 import { sortGoodsByDateDesc } from "../../utils/sortUtils";
+import { useLocation } from "react-router-dom";
 
 const MyPostsPage: React.FC = () => {
   const [myGoods, setMyGoods] = useState<GoodsItemProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number>(0);
+  const location = useLocation();
+  const userInfo = location && location.state ? location.state : undefined;
 
   useEffect(() => {
     fetchMyPosts();
@@ -22,7 +26,10 @@ const MyPostsPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await getGoodsUsers();
+      if (userInfo) {
+        setUserId(userInfo);
+      }
+      const response = await getGoodsUsers(userId);
       console.log("유저가 만든 게시물: ", response);
       if (response) {
         setMyGoods(response);

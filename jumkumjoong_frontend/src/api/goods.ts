@@ -12,10 +12,40 @@ export const postGoods = async (itemData: ItemRegistParams): Promise<any> => {
     if (response.data.status_code === 200) {
       console.log("상품 등록 성공, 상세 페이지로 이동 필요");
     }
-    return response.data.body;
+    return response.data.body.itemId;
   } catch (error) {
     console.log("상품 등록 실패: ", error);
     return null;
+  }
+};
+
+// 상품 이미지 등록
+export const postGoodsImage = async (
+  imageFiles: File[],
+  itemId: Number
+): Promise<any> => {
+  try {
+    const formData = new FormData();
+    // 이미지 파일들 추가
+    imageFiles.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    // JSON 객체를 string으로 변환 후 append
+    const imageUploadRequest = JSON.stringify({ itemId: itemId });
+    formData.append(
+      "imageUploadRequest",
+      // new Blob([imageUploadRequest], { type: "application/json" })
+      new Blob([JSON.stringify({ itemId })], {
+        type: "application/json",
+      })
+    );
+
+    const response = await axiosInstance.post("/items/upload", formData);
+    return response.data?.body ? true : false;
+  } catch (error) {
+    console.log("이미지 등록 실패: ", error);
+    return false;
   }
 };
 
@@ -145,9 +175,11 @@ export const postGoodsFavorites = async (itemId: number): Promise<any> => {
 };
 
 // 유저가 업로드한 상품 조회
-export const getGoodsUsers = async (): Promise<any> => {
+export const getGoodsUsers = async (userId: number): Promise<any> => {
   try {
-    const response = await axiosInstance.get("/items/item-list");
+    const response = await axiosInstance.post("/items/item-list", {
+      userId: userId,
+    });
     if (response.data.status_code === 200 && response.data.body.length > 0) {
       console.log("유저가 올린 상품 목록 조회 성공: ", response);
       return response.data.body;

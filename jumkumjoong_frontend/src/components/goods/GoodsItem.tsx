@@ -5,6 +5,7 @@ import { formatRelativeTime } from "../../utils/dateFormatter";
 import Heart from "../../assets/icons/Heart.svg";
 import HeartEmpty from "../../assets/icons/HeartEmpty.svg";
 import check from "../../assets/icons/check.svg";
+import thumbnail from "../../assets/icons/nologo.svg";
 import { postGoodsChangeStatus, postGoodsFavorites } from "../../api/goods";
 import { useWishItemStore, WishItemState } from "../../stores/useUserStore";
 
@@ -38,6 +39,7 @@ export interface GoodsItemProps {
   imageUrl?: string;
   isFavorite?: boolean;
   canChangeStatus?: boolean; // ✅ 추가: 거래 상태 변경 가능 여부
+  deviceImageUrl: string[];
 }
 
 const GoodsItem: React.FC<GoodsItemProps> = ({
@@ -46,15 +48,16 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   itemName,
   itemPrice,
   itemStatus,
-  imageUrl,
   isFavorite = false,
   canChangeStatus, // ✅ 기본값 false
+  deviceImageUrl,
 }) => {
   const navigate = useNavigate();
 
   const { items, addItem, removeItem } = useWishItemStore();
   const [favorite, setFavorite] = useState(isFavorite);
   const [status, setStatus] = useState<boolean>(itemStatus);
+  const images = deviceImageUrl ? deviceImageUrl : [thumbnail];
 
   useEffect(() => {
     const exists = items.some((item) => item.itemId === itemId);
@@ -115,22 +118,21 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
     navigate("/reviews/register");
   };
 
-  // 기본 이미지 URL (public 폴더에 default_image.png 파일을 추가해야 함)
-  const defaultImage = "/goods/default_image.png";
-
   return (
     <li className="px-4 py-4 bg-white border-b last:border-b-0 text-first">
       <Link to={`/goods/detail/${itemId}`} className="flex space-x-4 relative">
         {/* 상품 이미지 */}
         <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded overflow-hidden relative">
           <img
-            src={imageUrl || defaultImage}
+            src={images[0]}
             alt={itemName}
-            className="h-full w-full object-cover"
+            className={`h-full w-full object-cover ${
+              images[0] === thumbnail ? "opacity-50 bg-first/20" : ""
+            }`}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null;
-              target.src = defaultImage;
+              target.src = images[0];
             }}
           />
         </div>
