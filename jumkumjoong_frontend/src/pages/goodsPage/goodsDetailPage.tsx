@@ -30,6 +30,7 @@ const GoodsDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();
   const [goods, setGoods] = useState<GoodsDetailProps | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { nickname } = useAuthStore();
@@ -82,6 +83,7 @@ const GoodsDetailPage: React.FC = () => {
           };
 
           setGoods(updatedGoodsData);
+          setImages(goodsData.body.item.deviceImageList);
           const exits = goodsData.body.isFavorite;
           setFavorite(exits);
           console.log(exits);
@@ -251,7 +253,7 @@ const GoodsDetailPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto pb-20">
         {/* 상품 이미지 컴포넌트 */}
         <GoodsImage
-          imageUrl="../../assets/goods/thumbnail.png"
+          imageUrl={images[0]}
           title={goods.item.title}
           canChangeStatus={goods.item.status}
           onGoBack={handleGoBack}

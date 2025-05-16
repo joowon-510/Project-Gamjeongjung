@@ -10,124 +10,124 @@ export interface GoodsRegistrationData {
 }
 
 // 기본 하드코딩된 상품 데이터 (API 호출 실패 시 폴백으로 사용)
-const defaultGoodsData: GoodsItemProps[] = [
-  {
-    itemId: 1,
-    itemName: "갤럭5(S급) 팝니다",
-    itemPrice: 9600000,
-    createdAt: "2시간전",
-    // seller: '재드래곤',
-    itemStatus: false,
-    imageUrl: "/images/laptop.jpg", // 실제 이미지 경로로 수정해야 함
-  },
-  // 다른 상품 데이터는 그대로 유지
-  {
-    itemId: 2,
-    itemName: "맥북pro 팔아용",
-    itemPrice: 9600000,
-    createdAt: "16시간전",
-    itemStatus: false,
-    imageUrl: "/images/laptop.jpg",
-  },
-  {
-    itemId: 3,
-    itemName: "갤럭5(S급) 팝니다",
-    itemPrice: 9600000,
-    createdAt: "1일전",
-    itemStatus: false,
-    imageUrl: "/images/laptop.jpg",
-  },
-  {
-    itemId: 4,
-    itemName: "애플워치 SE",
-    itemPrice: 9600000,
-    createdAt: "3일전",
-    itemStatus: false,
-    imageUrl: "/images/laptop.jpg",
-  },
-  {
-    itemId: 5,
-    itemName: "아이폰 15 미개봉",
-    itemPrice: 9600000,
-    createdAt: "5일전",
-    itemStatus: false,
-    imageUrl: "/images/laptop.jpg",
-  },
-  {
-    itemId: 6,
-    itemName: "닌텐도 스위치 팝니다",
-    itemPrice: 9600000,
-    createdAt: "6일전",
-    itemStatus: false,
-    imageUrl: "/images/laptop.jpg",
-  },
-  {
-    itemId: 7,
-    itemName: "갤럭시 버즈2 미개봉",
-    itemPrice: 9600000,
-    createdAt: "1주일전",
-    itemStatus: false,
-    imageUrl: "/images/laptop.jpg",
-  },
-];
+// const defaultGoodsData: GoodsItemProps[] = [
+//   {
+//     itemId: 1,
+//     itemName: "갤럭5(S급) 팝니다",
+//     itemPrice: 9600000,
+//     createdAt: "2시간전",
+//     // seller: '재드래곤',
+//     itemStatus: false,
+//     imageUrl: "/images/laptop.jpg", // 실제 이미지 경로로 수정해야 함
+//   },
+//   // 다른 상품 데이터는 그대로 유지
+//   {
+//     itemId: 2,
+//     itemName: "맥북pro 팔아용",
+//     itemPrice: 9600000,
+//     createdAt: "16시간전",
+//     itemStatus: false,
+//     imageUrl: "/images/laptop.jpg",
+//   },
+//   {
+//     itemId: 3,
+//     itemName: "갤럭5(S급) 팝니다",
+//     itemPrice: 9600000,
+//     createdAt: "1일전",
+//     itemStatus: false,
+//     imageUrl: "/images/laptop.jpg",
+//   },
+//   {
+//     itemId: 4,
+//     itemName: "애플워치 SE",
+//     itemPrice: 9600000,
+//     createdAt: "3일전",
+//     itemStatus: false,
+//     imageUrl: "/images/laptop.jpg",
+//   },
+//   {
+//     itemId: 5,
+//     itemName: "아이폰 15 미개봉",
+//     itemPrice: 9600000,
+//     createdAt: "5일전",
+//     itemStatus: false,
+//     imageUrl: "/images/laptop.jpg",
+//   },
+//   {
+//     itemId: 6,
+//     itemName: "닌텐도 스위치 팝니다",
+//     itemPrice: 9600000,
+//     createdAt: "6일전",
+//     itemStatus: false,
+//     imageUrl: "/images/laptop.jpg",
+//   },
+//   {
+//     itemId: 7,
+//     itemName: "갤럭시 버즈2 미개봉",
+//     itemPrice: 9600000,
+//     createdAt: "1주일전",
+//     itemStatus: false,
+//     imageUrl: "/images/laptop.jpg",
+//   },
+// ];
 
 /**
  * 상품 목록을 가져오는 함수
  * API 연동 실패 시 기본 데이터 반환
  */
-export const getGoodsList = async (
-  searchTerm?: string
-): Promise<GoodsItemProps[]> => {
-  try {
-    // 실제 API 구현이 완료되면 아래 주석을 해제
-    /*
-    const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-    const url = searchTerm 
-      ? `${API_BASE_URL}/goods?search=${encodeURIComponent(searchTerm)}` 
-      : `${API_BASE_URL}/goods`;
-    
-    const response = await axios.get(url);
-    
-    // 백엔드 응답 형식에 맞게 변환
-    return response.data.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      price: `${item.price.toLocaleString()}원`,
-      time: formatTimeAgo(new Date(item.createdAt)),
-      seller: item.sellerName,
-      imageUrl: item.imageUrl
-    }));
-    */
+// export const getGoodsList = async (
+//   searchTerm?: string
+// ): Promise<GoodsItemProps[]> => {
+//   try {
+//     // 실제 API 구현이 완료되면 아래 주석을 해제
+//     /*
+//     const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+//     const url = searchTerm
+//       ? `${API_BASE_URL}/goods?search=${encodeURIComponent(searchTerm)}`
+//       : `${API_BASE_URL}/goods`;
 
-    // API 미구현 또는 테스트를 위한 모의 데이터 반환
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (!searchTerm?.trim()) {
-          resolve(defaultGoodsData);
-          return;
-        }
+//     const response = await axios.get(url);
 
-        const lowerTerm = searchTerm.toLowerCase();
-        const result = defaultGoodsData.filter((item) =>
-          item.itemName.toLowerCase().includes(lowerTerm)
-        );
-        resolve(result);
-      }, 300);
-    });
-  } catch (error) {
-    console.warn("API 호출 실패, 기본 데이터 사용:", error);
+//     // 백엔드 응답 형식에 맞게 변환
+//     return response.data.map((item: any) => ({
+//       id: item.id,
+//       title: item.title,
+//       price: `${item.price.toLocaleString()}원`,
+//       time: formatTimeAgo(new Date(item.createdAt)),
+//       seller: item.sellerName,
+//       imageUrl: item.imageUrl
+//     }));
+//     */
 
-    // API 호출 실패 시 기본 데이터로
-    if (!searchTerm?.trim()) {
-      return defaultGoodsData;
-    }
+//     // API 미구현 또는 테스트를 위한 모의 데이터 반환
+//     return new Promise((resolve) => {
+//       setTimeout(() => {
+//         if (!searchTerm?.trim()) {
+//           resolve(defaultGoodsData);
+//           return;
+//         }
 
-    const lowerTerm = searchTerm.toLowerCase();
-    return defaultGoodsData.filter((item) =>
-      item.itemName.toLowerCase().includes(lowerTerm)
-    );
-  }
-};
+//         const lowerTerm = searchTerm.toLowerCase();
+//         const result = defaultGoodsData.filter((item) =>
+//           item.itemName.toLowerCase().includes(lowerTerm)
+//         );
+//         resolve(result);
+//       }, 300);
+//     });
+//   } catch (error) {
+//     console.warn("API 호출 실패, 기본 데이터 사용:", error);
+
+//     // API 호출 실패 시 기본 데이터로
+//     if (!searchTerm?.trim()) {
+//       return defaultGoodsData;
+//     }
+
+//     const lowerTerm = searchTerm.toLowerCase();
+//     return defaultGoodsData.filter((item) =>
+//       item.itemName.toLowerCase().includes(lowerTerm)
+//     );
+//   }
+// };
 
 /**
  * 상품 상세 정보를 가져오는 함수

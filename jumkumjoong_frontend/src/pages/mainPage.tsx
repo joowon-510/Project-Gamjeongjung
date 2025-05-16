@@ -4,11 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import NavigationBar from "../components/common/NavigationBar";
 import { getUserInfo } from "../api/users";
-import {
-  getGoodsFavorites,
-  getGoodsRecent,
-  getGoodsSearch,
-} from "../api/goods";
+import { getGoodsFavorites, getGoodsRecent } from "../api/goods";
 
 // 상태관리 임포트
 import { useAuthStore, useWishItemStore } from "../stores/useUserStore";
@@ -20,7 +16,7 @@ import tablet from "../assets/icons/tablet.svg";
 import heart from "../assets/icons/Heart.svg";
 import newGoods from "../assets/icons/new.svg";
 // 썸네일 이미지 임포트
-import thumbnail from "../assets/goods/thumbnail.png";
+import thumbnail from "../assets/icons/nologo.svg";
 
 const categories = [
   { id: "laptop", label: "노트북", icon: laptop },
@@ -32,7 +28,7 @@ const categories = [
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const [recentItems, setRecentItem] = useState<
-    { img: string; title: string; id: number }[]
+    { img: string; title: string; id: number; image: string[] }[]
   >([]);
   const [userLoaded, setUserLoaded] = useState(false);
   const [wishLoaded, setWishLoaded] = useState(false);
@@ -68,7 +64,7 @@ const MainPage: React.FC = () => {
           setRecentItem([]);
         }
         const parsedItems = goods.map((item: any) => ({
-          img: item.imageUrl || thumbnail, // 실제로는 item.imageUrl 같은 값이 들어가야 할 수도 있음
+          img: item.deviceImageUrl || thumbnail, // 실제로는 item.imageUrl 같은 값이 들어가야 할 수도 있음
           id: item.itemId,
           title: item.itemName,
         }));
@@ -122,7 +118,9 @@ const MainPage: React.FC = () => {
                 <img
                   src={item.img}
                   alt={`thumbnail-${idx}`}
-                  className=" rounded-xl"
+                  className={`rounded-xl w-[200px] h-[130px] ${
+                    item.img === thumbnail ? "opacity-50 bg-first/20" : ""
+                  }`}
                 />
                 <p>{item.title}</p>
               </div>
