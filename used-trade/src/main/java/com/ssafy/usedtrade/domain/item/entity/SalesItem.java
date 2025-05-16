@@ -40,7 +40,7 @@ public class SalesItem {
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @NotNull

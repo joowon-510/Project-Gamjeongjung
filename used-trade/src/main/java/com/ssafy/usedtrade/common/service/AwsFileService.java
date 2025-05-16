@@ -9,13 +9,9 @@ import com.ssafy.usedtrade.domain.item.entity.ItemImage;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 import com.ssafy.usedtrade.domain.item.repository.ItemImageRepository;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,10 +48,8 @@ public class AwsFileService {
         List<ItemImage> itemImageList = new ArrayList<>();
 
         for (int idx = 0; idx < multipartFileList.size(); idx++) {
-            File uploadFile = convert(multipartFileList.get(idx))  // 파일 변환할 수 없으면 에러
-                    .orElseThrow(() -> new IllegalArgumentException("error: MultipartFile -> File convert fail"));
             String uploadUrl =
-                    upload(uploadFile, imageUploadRequest.itemId(), idx + 1);
+                    upload(multipartFileList.get(idx), imageUploadRequest.itemId(), idx + 1);
 
             if (!uploadUrl.isBlank()) {
                 itemImageList.add(ItemImage.builder()
@@ -69,45 +63,17 @@ public class AwsFileService {
     }
 
     // S3로 파일 업로드하기
-    private String upload(File uploadFile, Integer itemId, int idx) {
-        String fileName = itemId + "/" + UUID.randomUUID() + idx;   // S3에 저장된 파일 이름
-        String uploadImageUrl = putS3(uploadFile, fileName); // s3로 업로드
-        removeNewFile(uploadFile);
-        return uploadImageUrl;
-    }
+    private String upload(MultipartFile multipartFile, Integer itemId, int idx) throws IOException {
+        String fileName = itemId + "/" + UUID.randomUUID() + idx;
 
-    // S3로 업로드
-    private String putS3(File uploadFile, String fileName) {
-        amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, uploadFile).withCannedAcl(
-                CannedAccessControlList.PublicRead));
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(multipartFile.getSize());
+        metadata.setContentType(multipartFile.getContentType());
+
+        amazonS3Client.putObject(
+                new PutObjectRequest(bucket, fileName, multipartFile.getInputStream(), metadata)
+                        .withCannedAcl(
+                                CannedAccessControlList.PublicRead));
         return amazonS3Client.getUrl(bucket, fileName).toString();
-    }
-
-    // 로컬에 저장된 이미지 지우기
-    private void removeNewFile(File targetFile) {
-        if (targetFile.delete()) {
-            log.info("File delete success");
-            return;
-        }
-        log.info("File delete fail");
-    }
-
-    // 로컬에 파일 업로드 하기
-    private Optional<File> convert(MultipartFile file) throws IOException {
-        File convertFile =
-                new File(System.getProperty("user.home") + "/" + file.getOriginalFilename());
-        if (convertFile.createNewFile()) { // 바로 위에서 지정한 경로에 File이 생성됨 (경로가 잘못되었다면 생성 불가능)
-            try (FileOutputStream fos = new FileOutputStream(
-                    convertFile)) { // FileOutputStream 데이터를 파일에 바이트 스트림으로 저장하기 위함
-                fos.write(file.getBytes());
-            }
-            return Optional.of(convertFile);
-        }
-        return Optional.empty();
-    }
-
-    public void createDir(String bucketName, String folderName) {
-        amazonS3Client.putObject(bucketName, folderName + "/", new ByteArrayInputStream(new byte[0]),
-                new ObjectMetadata());
     }
 }
