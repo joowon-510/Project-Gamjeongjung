@@ -121,9 +121,9 @@ public class ItemController extends BaseController {
 
     //유저가 판매하는 상품 목록 조회
     @PostMapping("/item-list")
-    public Api<List<ItemListDto>> getSalesItemList(@RequestBody Integer userId){
-        List<ItemListDto> itemList =
-                itemService.getSalesItemList(userId);
+    public Api<List<ItemListDto>> getSalesItemList(@RequestBody Integer userId,@AuthenticationPrincipal SecurityMemberDetails memberDetails){
+        int targetUserId = (userId == 0) ? getUserId(memberDetails) : userId;
+        List<ItemListDto> itemList = itemService.getSalesItemList(targetUserId);
         log.info("sales-item-list result:{}", itemList);
         return Api.OK(itemList);
     }
