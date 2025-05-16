@@ -91,8 +91,10 @@ public class ReviewService {
     }
 
     public float countAllReview(Integer id, @Nullable String sellerId) {
-        return sellerId == null
+        Float value = sellerId == null
                 ? reviewRepository.findAverageStarsBySellerId(id)
                 : reviewRepository.findAverageStarsBySellerId(Integer.valueOf(sellerId));
+
+        return value == null ? 0 : value;
     }
 }
