@@ -34,21 +34,21 @@ const GoodsImage: React.FC<GoodsImageProps> = ({
           target.src = defaultImage;
         }}
       />
+      <span className="absolute top-5 right-5 text-[#ffffff] self-end mb-1">
+        {canChangeStatus ? (
+          <span className="rounded-md bg-fifth p-[6px]">거래 중</span>
+        ) : (
+          <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-[6px]">
+            <p>거래 완료</p>
+            <img src={check} alt="check" className="w-5 h-5" />
+          </div>
+        )}
+      </span>
 
       {/* 상품 제목과 거래 상태 (이미지 위에 오버레이) */}
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">{title}</h1>
-          <span className="text-[#ffffff] self-end mb-1">
-            {canChangeStatus ? (
-              <span className="rounded-md bg-fifth p-[6px]">거래 중</span>
-            ) : (
-              <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-[6px]">
-                <p>거래 완료</p>
-                <img src={check} alt="check" className="w-5 h-5" />
-              </div>
-            )}
-          </span>
         </div>
       </div>
 

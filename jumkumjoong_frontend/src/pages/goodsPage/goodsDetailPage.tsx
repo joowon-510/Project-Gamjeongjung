@@ -4,10 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsImage from "../../components/goods/GoodsImage";
 import GoodsStatus from "../../components/goods/GoodsStatus";
-import {
-  GoodsDetailProps,
-  GoodsItemDetailProps,
-} from "../../components/goods/GoodsItem";
+import { GoodsDetailProps } from "../../components/goods/GoodsItem";
 import {
   deleteGoods,
   getGoodsDetail,
@@ -16,6 +13,7 @@ import {
 
 import Heart from "../../assets/icons/Heart.svg";
 import HeartEmpty from "../../assets/icons/HeartEmpty.svg";
+import star from "../../assets/icons/starFilled.svg";
 
 import {
   useWishItemStore,
@@ -36,9 +34,7 @@ const GoodsDetailPage: React.FC = () => {
   const { nickname } = useAuthStore();
   const [edit, setEdit] = useState(false);
   const [favorite, setFavorite] = useState(false);
-
-  // 상품 평점 (하드코딩)
-  const [rating] = useState("4.5");
+  const [rating, setRating] = useState<number>(0);
 
   // 상품 상태 정보 (하드코딩)
   const [productStatus] = useState({
@@ -83,6 +79,7 @@ const GoodsDetailPage: React.FC = () => {
           };
 
           setGoods(updatedGoodsData);
+          setRating(goodsData.body.userRating.toFixed(2));
           setImages(goodsData.body.item.deviceImageList);
           const exits = goodsData.body.isFavorite;
           setFavorite(exits);
@@ -142,23 +139,7 @@ const GoodsDetailPage: React.FC = () => {
     }
   };
 
-  // 채팅하기 처리
-  // const handleChat = () => {
-  //   // 채팅 기능 미구현
-  //   alert("채팅 기능은 아직 구현되지 않았습니다.");
-  // };
-
-  // 로컬 상태로 찜하기 여부 관리 (목업용)
-
   const { items, addItem, removeItem } = useWishItemStore();
-
-  // useEffect(() => {
-  //   if (!itemId) return;
-
-  //   // 현재 상품이 찜 목록에 있는지 확인
-  //   const exists = items.some((item) => item.itemId === parseInt(itemId));
-  //   setFavorite(exists);
-  // }, [itemId, items]);
 
   // 찜하기 버튼 클릭 핸들러 (목업용)
   const handleFavoriteClick = async (e: React.MouseEvent) => {
@@ -273,17 +254,19 @@ const GoodsDetailPage: React.FC = () => {
           ) : (
             <></>
           )}
+
           <div className="flex justify-between items-center">
-            <p className="text-gray-700">판매자: {goods.userName}</p>
+            <div
+              className=""
+              onClick={() => {
+                navigate("/mypage");
+              }}
+            >
+              <p className="text-gray-700">판매자: {goods.userName}</p>
+            </div>
             <div className="flex gap-4">
               <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-yellow-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
+                <img src={star} alt="rating-start" className="w-5 h-5" />
                 <span className="ml-1">{rating}</span>
               </div>
               {/* 하트 버튼 (찜하기) - 이미지 위에 겹쳐서 표시 */}
@@ -342,7 +325,7 @@ const GoodsDetailPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-700">판매가</span>
-            <span className="font-bold text-lg">{goods.item.price}</span>
+            <span className="font-bold text-lg">{goods.item.price} 원</span>
           </div>
         </div>
 
@@ -372,12 +355,12 @@ const GoodsDetailPage: React.FC = () => {
       <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
         <div className="flex-1">
           <span className="text-gray-700 mr-2">가격:</span>
-          <span className="text-xl font-bold">{goods.item.price}</span>
+          <span className="text-xl font-bold">{goods.item.price} 원</span>
         </div>
         <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
           <div className="flex-1">
             <span className="text-gray-700 mr-2">가격:</span>
-            <span className="text-xl font-bold">{goods.item.price}</span>
+            <span className="text-xl font-bold">{goods.item.price} 원</span>
           </div>
           <ChatButton
             sellerId={goods.item.userId}

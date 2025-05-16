@@ -120,9 +120,9 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
 
   return (
     <li className="px-4 py-4 bg-white border-b last:border-b-0 text-first">
-      <Link to={`/goods/detail/${itemId}`} className="flex space-x-4 relative">
+      <Link to={`/goods/detail/${itemId}`} className="flex space-x-4 ">
         {/* 상품 이미지 */}
-        <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded overflow-hidden relative">
+        <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded overflow-hidden">
           <img
             src={images[0]}
             alt={itemName}
@@ -132,12 +132,13 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null;
-              target.src = images[0];
+              target.src = thumbnail;
+              target.classList.add("opacity-50", "bg-first/20");
             }}
           />
         </div>
         {/* 하트 버튼 (찜하기) */}
-        <button
+        {/* <button
           className="absolute top-0 right-1 p-1 rounded-full"
           onClick={handleFavoriteClick}
         >
@@ -146,7 +147,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
           ) : (
             <img src={HeartEmpty} alt="HeartEmpyt" className="w-6 h-6" />
           )}
-        </button>
+        </button> */}
 
         {/* 상품 정보 */}
         <div className="flex-1 flex flex-col justify-between">
@@ -155,7 +156,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
 
           {/* 상품 가격 */}
           <div className="text-xl font-bold text-gray-900 mt-1">
-            {itemPrice}
+            {itemPrice} 원
           </div>
 
           {/* 등록 시간과 판매자 닉네임을 같은 행의 양 끝으로 배치 */}
