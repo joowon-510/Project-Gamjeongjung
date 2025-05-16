@@ -10,6 +10,7 @@ import com.ssafy.usedtrade.domain.item.dto.ItemListDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemStatusDto;
 import com.ssafy.usedtrade.domain.item.dto.RegistResponse;
 import com.ssafy.usedtrade.domain.item.service.ItemService;
+import com.ssafy.usedtrade.domain.review.service.ReviewService;
 import com.ssafy.usedtrade.domain.user.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Part;
@@ -42,6 +43,7 @@ public class ItemController extends BaseController {
     private final ItemService itemService;
     private final UserService userService;
     private final AwsFileService awsFileService;
+    private final ReviewService reviewService;
 
     //물품 등록
     @PostMapping("/regist-item")
@@ -117,6 +119,7 @@ public class ItemController extends BaseController {
         Map<String, Object> response = new HashMap<>();
         response.put("item", item);
         response.put("userName", userService.getUserNameById(item.getUserId()));
+        response.put("userRating",reviewService.countAllReview(memberDetails.getId(), String.valueOf(item.getUserId())));
         response.put("isFavorite", itemService.isFavorite(itemId, getUserId(memberDetails)));
 
         return Api.OK(response);

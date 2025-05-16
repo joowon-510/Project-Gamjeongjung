@@ -38,4 +38,6 @@ public class UserService {
                 .map(User::getNickname)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저 ID에 대한 닉네임을 찾을 수 없습니다: "));
     }
+
+
 }
