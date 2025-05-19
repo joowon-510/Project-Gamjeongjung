@@ -20,7 +20,7 @@ const ReviewItem: React.FC<ReviewItemProps> = ({ review }) => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center">
           <img src={star} alt="star" className="w-5 h-5" />
-          <span className="ml-1 font-bold">{review.stars}</span>
+          <span className="ml-1 font-bold">{review.stars?.toFixed(2)}</span>
         </div>
         <div className="text-gray-500 text-sm">
           {review.createdAt ? (

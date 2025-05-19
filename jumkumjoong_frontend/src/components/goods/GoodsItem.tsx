@@ -105,32 +105,11 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
     }
   };
 
-  // const handleTransactionClick = async (
-  //   e: React.MouseEvent<HTMLButtonElement>
-  // ) => {
-  //   if (!canChangeStatus) return;
-  //   e.preventDefault();
-
-  //   try {
-  //     const newStatus = !status;
-  //     const response = await postGoodsChangeStatus(itemId, newStatus);
-  //     if (response) {
-  //       setStatus(newStatus);
-  //     }
-  //   } catch (error) {
-  //     console.error("거래 상태 변경 실패:", error);
-  //   }
-  // };
-
-  const handlePressReview = () => {
-    navigate("/reviews/register");
-  };
-
   return (
-    <li className="px-4 py-4  border-b last:border-b-0 text-first">
+    <li className="px-4 py-4  border-b last:border-b-0 text-first bg-white mx-2 rounded-md">
       <Link to={`/goods/detail/${itemId}`} className="flex space-x-4 ">
         {/* 상품 이미지 */}
-        <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded -z-10">
+        <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded ">
           <img
             src={images}
             alt={itemName}
@@ -141,7 +120,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
               const target = e.target as HTMLImageElement;
               target.onerror = null;
               target.src = thumbnail;
-              target.classList.add("opacity-50", "bg-first/20");
+              // target.classList.add("opacity-50", "bg-first/20");
             }}
           />
         </div>
@@ -181,16 +160,6 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
           )}
         </button>
       </Link>
-      {/* 리뷰 작성 */}
-      {!status && canChangeStatus ? (
-        <button className="w-full mt-4" onClick={handlePressReview}>
-          <div className="flex gap-1 justify-center items-center rounded-md bg-fifth p-[6px]">
-            <p className="text-white text-center">리뷰 작성</p>
-          </div>
-        </button>
-      ) : (
-        <div></div>
-      )}
     </li>
   );
 };

@@ -7,10 +7,16 @@ import GoodsItem from "../../components/goods/GoodsItem";
 
 import { getGoodsFavorites } from "../../api/goods";
 import { useAuthStore } from "../../stores/useUserStore";
+import { useNavigate } from "react-router-dom";
 
 const FavoritePage: React.FC = () => {
+  const navigate = useNavigate();
   const userInfo = useAuthStore();
   const [favoriteItems, setFavoriteItems] = useState<any>([]);
+
+  const onGoBack = () => {
+    navigate(-1);
+  };
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -28,12 +34,12 @@ const FavoritePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="text-first min-h-screen pb-16">
+    <div className="text-first min-h-screen pb-16 bg-gray-100">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
 
       {/* 찜한 목록 제목 */}
-      <div className="px-4 pt-6 bg-white">
+      <div className="px-4 pt-6">
         <h1 className="text-2xl font-bold">
           {userInfo.nickname ?? "user"} 님의 찜한 목록
         </h1>
@@ -56,6 +62,26 @@ const FavoritePage: React.FC = () => {
           <p className="p-4 text-center text-first/50">찜한 상품이 없습니다.</p>
         )}
       </ul>
+
+      {/* 뒤로가기 버튼 */}
+      <button
+        onClick={onGoBack}
+        className="fixed bottom-[110px] left-4 bg-white hover:bg-white rounded-full p-2 shadow-lg"
+      >
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
 
       {/* 여백 추가 */}
       <div className="h-16"></div>

@@ -7,10 +7,7 @@ import ProfileSection from "../../components/mypage/ProfileSection";
 import ReviewSection from "../../components/mypage/ReviewSection";
 import ActionSection from "../../components/mypage/ActionSection";
 
-import { useAuthStore } from "../../stores/useUserStore";
-import { useReviewStore } from "../../stores/useReviewStore";
-
-import { getReview, getReviewStars } from "../../api/reviews";
+import { getReview } from "../../api/reviews";
 import { useLocation } from "react-router-dom";
 
 const UserPage: React.FC = () => {
@@ -32,6 +29,7 @@ const UserPage: React.FC = () => {
   const loadReviewData = async () => {
     try {
       const response = await getReview(state.userId);
+      console.log(response);
 
       if (response) {
         setReview(response);
@@ -56,7 +54,11 @@ const UserPage: React.FC = () => {
           />
 
           {/* 리뷰 섹션 */}
-          <ReviewSection review={review} userName={state.userName} />
+          <ReviewSection
+            review={review}
+            userName={state.userName}
+            userId={state.userId}
+          />
 
           {/* 액션 섹션 (거래 내역, 찜한 목록, 내가 작성한 글) */}
           <ActionSection
