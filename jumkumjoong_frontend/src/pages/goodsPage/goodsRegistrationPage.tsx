@@ -13,6 +13,7 @@ import SerialNumberInput from "../../components/goods/SerialNumberInput";
 
 // 이미지 처리를 위한 API 함수 import
 import fastapiInstance from "../../api/fastapi"; // 기존 axios 인스턴스 활용
+import { useAuthStore } from "../../stores/useUserStore";
 
 // 구성여부 타입 정의
 type PackageType = "full" | "single" | "partial";
@@ -501,7 +502,9 @@ const GoodsRegistrationPage: React.FC = () => {
           console.log(data);
           if (data) {
             alert("상품이 등록되었습니다.");
-            navigate("/my-posts");
+            navigate("/my-posts", {
+              state: { userId: 0, userName: useAuthStore.getState().nickname },
+            });
           } else {
             alert("상품 등록에 실패하였습니다. 다시 시도해주세요.");
 
@@ -740,69 +743,38 @@ const GoodsRegistrationPage: React.FC = () => {
               </p>
             </div>
           )}
-
-          {/* 4. 판매글 생성 버튼 */}
-          {/* {isGenerated && (
-            <div className="mt-6 border-t pt-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                생성된 판매글
-              </h3>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  제목
-                </label>
-                <div className="p-3 bg-gray-50 rounded-md border">
-                  {formData.title}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  상품설명
-                </label>
-                <div
-                  className="p-3 bg-gray-50 rounded-md border whitespace-pre-line"
-                  style={{ maxHeight: "300px", overflowY: "auto" }}
-                >
-                  {formData.description}
-                </div>
-                <p className="mt-2 text-sm text-gray-500">
-                  * 판매글은 AI로 자동 생성되었습니다. 내용을 확인하고
-                  등록해주세요.
-                </p>
-              </div>
-            </div>
-          )} */}
         </div>
       </div>
 
       {/* 하단 버튼 영역 - sticky로 변경하여 스크롤과 무관하게 항상 표시 */}
-      <div className="flex-1 px-3 py-7 bg-white flex gap-2 grid grid-cols-6">
-        {/* <div className="sticky bottom-14 left-0 right-0 p-4 bg-white border-t flex space-x-2 z-10"> */}
-        <button
-          type="button"
-          onClick={handleCancel}
-          disabled={isLoading}
-          className="col-span-2 flex-1 py-3 bg-first/60 text-white font-medium rounded-md"
-        >
-          취소하기
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isLoading}
-          className="col-span-4 flex-1 py-3 bg-second text-white font-medium rounded-md"
-        >
-          {/* {isLoading ? "등록 중..." : "등록하기"} */}
-          {editItem ? "수정하기" : isLoading ? "등록 중..." : "등록하기"}
-        </button>
-      </div>
+      {capturedImages.length > 0 && isGenerated && (
+        <div className="flex-1 px-3 py-7 bg-white flex gap-2 grid grid-cols-6">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={isLoading}
+            className="col-span-2 flex-1 py-3 bg-first/60 text-white font-medium rounded-md"
+          >
+            취소하기
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="col-span-4 flex-1 py-3 bg-second text-white font-medium rounded-md"
+          >
+            {/* {isLoading ? "등록 중..." : "등록하기"} */}
+            {editItem ? "수정하기" : isLoading ? "등록 중..." : "등록하기"}
+          </button>
+        </div>
+      )}
+
+      <div className="h-20"></div>
 
       {/* 하단 네비게이션 바 */}
-      {/* <div className="fixed bottom-0 left-0 right-0 z-10"> */}
-      <NavigationBar />
-      {/* </div> */}
+      <div className="fixed bottom-0 left-0 right-0 z-10">
+        <NavigationBar />
+      </div>
     </div>
   );
 };

@@ -168,7 +168,7 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
   );
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black text-white">
+    <div className="fixed inset-0 z-[120] bg-black text-white">
       {/* <video
         ref={videoRef}
         className="absolute top-0 left-0 w-full h-full object-cover"
