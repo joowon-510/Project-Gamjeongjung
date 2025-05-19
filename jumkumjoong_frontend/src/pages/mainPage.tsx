@@ -31,7 +31,6 @@ const MainPage: React.FC = () => {
     { img: string; title: string; id: number; image: string[] }[]
   >([]);
   const [userLoaded, setUserLoaded] = useState(false);
-  const [wishLoaded, setWishLoaded] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -40,10 +39,7 @@ const MainPage: React.FC = () => {
         console.log("----------", user, "----------");
         console.log("User: ", useAuthStore.getState());
 
-        if (!user) {
-          const wishItem = await getGoodsFavorites();
-          useWishItemStore.getState().setItems(wishItem);
-        } else {
+        if (user) {
           const wishItem = await getGoodsFavorites();
           useWishItemStore.getState().setItems(wishItem);
           console.log("Wish item: ", useWishItemStore.getState().items);
@@ -52,7 +48,6 @@ const MainPage: React.FC = () => {
         console.error("유저 정보 로딩 실패:", error);
       } finally {
         setUserLoaded(true);
-        setWishLoaded(true);
       }
     };
 
@@ -83,7 +78,7 @@ const MainPage: React.FC = () => {
   };
 
   const wishItems = useWishItemStore.getState().items.map((item) => ({
-    img: thumbnail,
+    img: !item.deviceImageUrl ? thumbnail : item.deviceImageUrl,
     title: item.itemName,
     id: item.itemId,
   }));
@@ -107,7 +102,7 @@ const MainPage: React.FC = () => {
       <div className=" my-2 flex items-center">
         {items.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 ">
-            {items.map((item, idx) => (
+            {items.slice(0, 6).map((item, idx) => (
               <div
                 key={idx}
                 className=""
@@ -116,9 +111,10 @@ const MainPage: React.FC = () => {
                 }}
               >
                 <img
-                  src={item.img}
+                  src={item.img || thumbnail}
                   alt={`thumbnail-${idx}`}
                   className={`rounded-xl w-[200px] h-[130px] ${
+                    // !item.img ? "opacity-50 bg-first/20" : ""
                     item.img === thumbnail ? "opacity-50 bg-first/20" : ""
                   }`}
                 />
@@ -168,9 +164,19 @@ const MainPage: React.FC = () => {
 
         {/* 찜한 아이템 중 거래 중인 상품 */}
         <article className=" mx-4 border-b pb-5">
-          <div className="flex gap-2 pb-2">
-            <img src={heart} alt="heart" className="w-5" />
-            <p className=" text-[20px]">내가 찜한 아이템</p>
+          <div className="flex justify-between items-center pb-2">
+            <div className="flex gap-2">
+              <img src={heart} alt="heart" className="w-5" />
+              <p className=" text-[20px]">내가 찜한 아이템</p>
+            </div>
+            <div
+              className="text-first/70 text-[14px] underline underline-offset-2"
+              onClick={() => {
+                navigate("/favorites");
+              }}
+            >
+              <p>전체보기</p>
+            </div>
           </div>
           {renderItemGrid(wishItems, "wish")}
         </article>

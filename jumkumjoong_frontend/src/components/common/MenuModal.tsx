@@ -123,7 +123,7 @@ export default function MenuModal({ onClose, onOpen }: MenuModalProps) {
           <img src={close} alt="close" className="w-7 h-7" onClick={onClose} />
         </div>
       </header>
-      <main className="overflow-y-auto mx-5 mt-4 font-semibold flex  flex-col gap-4 mb-4 flex-1">
+      <main className="overflow-y-auto mx-5 mt-4 font-semibold flex flex-col gap-4 mb-4 flex-1 pb-[100px]">
         {/* 카테고리 */}
         <div className="flex flex-col gap-4">
           <div className="w-fill h-[44px] bg-fourth/70 justify-center content-center rounded-md">

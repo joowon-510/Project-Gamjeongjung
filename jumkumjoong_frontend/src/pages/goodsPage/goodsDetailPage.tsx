@@ -1,10 +1,12 @@
 // src/pages/goodsPage/goodsDetailPage.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsImage from "../../components/goods/GoodsImage";
 import GoodsStatus from "../../components/goods/GoodsStatus";
 import { GoodsDetailProps } from "../../components/goods/GoodsItem";
+
 import {
   deleteGoods,
   getGoodsDetail,
@@ -14,6 +16,7 @@ import {
 import Heart from "../../assets/icons/Heart.svg";
 import HeartEmpty from "../../assets/icons/HeartEmpty.svg";
 import star from "../../assets/icons/starFilled.svg";
+import thumbnail from "../../assets/icons/nologo.svg";
 
 import {
   useWishItemStore,
@@ -164,6 +167,9 @@ const GoodsDetailPage: React.FC = () => {
       itemName: goods.item.title,
       itemPrice: goods.item.price,
       itemStatus: goods.item.status,
+      deviceImageUrl: !goods.item.deviceImageUrl
+        ? thumbnail
+        : goods.item.deviceImageUrl[0],
     };
 
     // ✅ 하트 아이콘을 "바로" 바꾼다
