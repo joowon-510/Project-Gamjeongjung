@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../../stores/useUserStore";
+import Heart from "../../assets/icons/Heart.svg";
 
 interface ActionSectionProps {
   userId: number;
@@ -25,41 +26,9 @@ const ActionSection: React.FC<ActionSectionProps> = ({
   // 액션 항목 정의
   const actions = [
     {
-      id: "transactions",
-      status: nowStatus,
-      icon: (
-        <svg
-          className="w-6 h-6 text-gray-700"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
-          <path
-            fillRule="evenodd"
-            d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-      label: "거래 내역",
-      path: "/transactions", // 이 경로를 확인
-    },
-    {
       id: "favorites",
       status: nowStatus,
-      icon: (
-        <svg
-          className="w-6 h-6 text-red-500"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
+      icon: <img src={Heart} alt="" className="w-6 h-6" />,
       label: "찜한 목록",
       path: "/favorites",
     },

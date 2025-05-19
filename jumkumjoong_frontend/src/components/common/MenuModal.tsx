@@ -14,6 +14,7 @@ import settings from "../../assets/icons/settings.svg";
 import logout from "../../assets/icons/logout.svg";
 
 import Logout from "../../utils/logout";
+import { useAuthStore } from "../../stores/useUserStore";
 
 interface MenuModalProps {
   onClose: () => void;
@@ -51,25 +52,6 @@ export default function MenuModal({ onClose, onOpen }: MenuModalProps) {
   ];
 
   const actions = [
-    {
-      id: "transactions",
-      icon: (
-        <svg
-          className="w-8 h-8 text-gray-700"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
-          <path
-            fillRule="evenodd"
-            d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-      label: "거래 내역",
-      path: "/transactions", // 이 경로를 확인
-    },
     {
       id: "favorites",
       icon: <img src={heart} alt="heart" className="w-8 h-8" />,
@@ -157,6 +139,10 @@ export default function MenuModal({ onClose, onOpen }: MenuModalProps) {
                 key={action.id}
                 to={action.path}
                 className="flex items-center pb-2 border-b border-gray-200 last:border-b-0"
+                state={{
+                  userId: 0,
+                  userName: useAuthStore.getState().nickname,
+                }}
               >
                 <div className="mr-4">{action.icon}</div>
                 <p className="">{action.label}</p>

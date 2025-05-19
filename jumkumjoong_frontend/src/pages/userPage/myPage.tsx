@@ -11,6 +11,7 @@ import { useAuthStore } from "../../stores/useUserStore";
 import { useReviewStore } from "../../stores/useReviewStore";
 
 import { getReview, getReviewStars } from "../../api/reviews";
+import MyInfoSection from "../../components/mypage/MyInfoSection";
 
 const MyPage: React.FC = () => {
   const userInfo = useAuthStore();
@@ -47,7 +48,7 @@ const MyPage: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-100 text-first">
       {/* 헤더 - 로그아웃 버튼 표시 */}
-      <Header showLogout={true} />
+      <Header hideSearchButton={true} />
 
       <div className="flex-1 overflow-y-auto">
         {/* 컨텐츠 영역에 좌우 여백 적용 */}
@@ -64,12 +65,15 @@ const MyPage: React.FC = () => {
             userName={userInfo.nickname ? userInfo.nickname : "user123"}
           />
 
-          {/* 액션 섹션 (거래 내역, 찜한 목록, 내가 작성한 글) */}
+          {/* 액션 섹션 (찜한 목록, 내가 작성한 글) */}
           <ActionSection
             userId={0}
             userName={userInfo.nickname ? userInfo.nickname : "user123"}
             userRating={rating}
           />
+
+          {/* 내 정보 */}
+          <MyInfoSection />
         </div>
       </div>
 

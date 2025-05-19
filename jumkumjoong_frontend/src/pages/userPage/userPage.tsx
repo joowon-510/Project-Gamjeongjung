@@ -44,7 +44,7 @@ const UserPage: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-100 text-first">
       {/* 헤더 - 로그아웃 버튼 표시 */}
-      <Header showLogout={true} />
+      <Header hideSearchButton={true} />
 
       <div className="flex-1 overflow-y-auto">
         {/* 컨텐츠 영역에 좌우 여백 적용 */}
