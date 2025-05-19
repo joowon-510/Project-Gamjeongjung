@@ -1,8 +1,6 @@
 package com.ssafy.usedtrade.domain.websocket.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.usedtrade.common.encryption.AESUtil;
-import com.ssafy.usedtrade.domain.redis.service.UserWebsocketSessionService;
 import com.ssafy.usedtrade.domain.redis.stream.RedisStreamService;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,10 +18,8 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class WebsocketController {
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final UserWebsocketSessionService websocketSessionService;
     private final RedisStreamService redisStreamService;
     private final AESUtil aesUtil;
-    private final ObjectMapper objectMapper;
 
     @MessageMapping("/{roomId}")
     public void send(

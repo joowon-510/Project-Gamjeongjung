@@ -4,7 +4,6 @@ package com.ssafy.usedtrade.domain.websocket.interceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.usedtrade.common.encryption.AESUtil;
 import com.ssafy.usedtrade.common.jwt.JwtTokenProvider;
-import com.ssafy.usedtrade.domain.chat.service.ChattingContentService;
 import com.ssafy.usedtrade.domain.redis.entity.ChattingReadPointRequest;
 import com.ssafy.usedtrade.domain.redis.entity.ChattingTotalMessageRequest;
 import com.ssafy.usedtrade.domain.redis.entity.MessageDetail;
@@ -38,7 +37,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class StompChannelInterceptor implements ChannelInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
-    private final ChattingContentService chattingContentService;
+    //    private final ChattingContentService chattingContentService;
     private final ChattingReadPointService chattingReadPointService;
     private final UserWebsocketSessionService userWebsocketSessionService;
     private final MessageDetailService messageDetailService;
@@ -118,7 +117,7 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 ChatMessageDto chatMessageDto =
                         transToDto(payloadJson, ChatMessageDto.class);
 
-                chattingContentService.saveMessage(chatMessageDto);
+//                chattingContentService.saveMessage(chatMessageDto);
 
                 // read 시간 update
                 chattingReadPointService.saveOrUpdate(
