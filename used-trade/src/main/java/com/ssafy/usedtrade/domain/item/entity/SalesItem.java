@@ -38,7 +38,6 @@ public class SalesItem {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Size(max = 255)
     @NotNull
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
