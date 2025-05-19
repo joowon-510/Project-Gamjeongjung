@@ -12,7 +12,7 @@ spring:
       # update -> 기존 table에 새로 추가되는 컬럼들 적용
       # validate -> 작성된 entity와 DB가 다르면 예외 + App 종료
       # none -> 설정 사용안한다는 뜻!
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
