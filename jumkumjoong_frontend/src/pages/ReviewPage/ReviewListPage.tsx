@@ -3,11 +3,16 @@ import React from "react";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import ReviewItem from "../../components/review/ReviewItem";
-import { Link } from "react-router-dom";
-import { useReviewStore } from "../../stores/useReviewStore";
+import { Link, useLocation } from "react-router-dom";
+import { ReviewState, useReviewStore } from "../../stores/useReviewStore";
 
 const ReviewListPage: React.FC = () => {
   const reviewInfo = useReviewStore();
+  const location = useLocation();
+  const state = location.state as {
+    userName: string;
+    review: ReviewState[];
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -17,7 +22,9 @@ const ReviewListPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex justify-between items-baseline">
-            <h1 className="text-2xl font-bold mb-4">나의 리뷰</h1>
+            <h1 className="text-2xl font-bold mb-4">
+              {state.userName} 님의 리뷰
+            </h1>
 
             <Link
               to={"/reviews/register"}

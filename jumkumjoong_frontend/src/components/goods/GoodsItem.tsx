@@ -31,6 +31,7 @@ export interface GoodsItemDetailProps {
 
 export interface GoodsDetailProps {
   userName: string;
+  userRating: number;
   item: GoodsItemDetailProps;
   isFavorite: boolean;
 }
@@ -84,6 +85,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
 
     try {
       if (exists) {
+        await postGoodsFavorites(itemId);
         removeItem(itemId);
       } else {
         await postGoodsFavorites(itemId);

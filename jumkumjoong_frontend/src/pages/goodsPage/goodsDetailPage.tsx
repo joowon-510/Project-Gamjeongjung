@@ -178,15 +178,16 @@ const GoodsDetailPage: React.FC = () => {
     // 찜 요청 api 연결
     try {
       if (exists) {
-        removeItem(wishItem.itemId);
         console.log("찜 해제 요청 보내는 중...");
+        const response = await postGoodsFavorites(goodsId);
+        console.log(response);
+        removeItem(wishItem.itemId);
         console.log("removeItem: ", items);
       } else {
         console.log("찜 추가 요청 보내는 중...");
-        // const exists = items.some((item) => item.itemId === goodsId);
-        // console.log("exists: ", exists);
         if (!exists) {
-          await postGoodsFavorites(goodsId);
+          const response = await postGoodsFavorites(goodsId);
+          console.log(response);
           addItem(wishItem);
           console.log("wishItem: ", items);
         }
@@ -265,7 +266,13 @@ const GoodsDetailPage: React.FC = () => {
             <div
               className=""
               onClick={() => {
-                navigate("/mypage");
+                navigate(`/page/${goods.userName}`, {
+                  state: {
+                    userName: goods.userName,
+                    userRating: goods.userRating,
+                    userId: goods.item.userId,
+                  },
+                });
               }}
             >
               <p className="text-gray-700">판매자: {goods.userName}</p>

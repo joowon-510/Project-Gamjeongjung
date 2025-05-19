@@ -11,36 +11,33 @@ import { useAuthStore } from "../../stores/useUserStore";
 import { useReviewStore } from "../../stores/useReviewStore";
 
 import { getReview, getReviewStars } from "../../api/reviews";
+import { useLocation } from "react-router-dom";
 
-const MyPage: React.FC = () => {
-  const userInfo = useAuthStore();
-  const reviewInfo = useReviewStore();
-  const [rating, setRating] = useState<number>(3);
+const UserPage: React.FC = () => {
+  const [review, setReview] = useState<[]>([]);
+
+  const location = useLocation();
+
+  const state = location.state as {
+    userName: string;
+    userRating: number;
+    userId: number;
+  };
 
   useEffect(() => {
     loadReviewData();
+    console.log(review);
   }, []);
 
   const loadReviewData = async () => {
     try {
-      const [starRes, reviewRes] = await Promise.all([
-        getReviewStars(),
-        getReview(0),
-      ]);
+      const response = await getReview(state.userId);
 
-      if (reviewRes) {
-        reviewInfo.setContent(reviewRes);
-      }
-
-      if (starRes) {
-        setRating(starRes.data.body);
-        console.log(starRes);
-      } else {
-        setRating(0);
+      if (response) {
+        setReview(response);
       }
     } catch (error) {
       console.log("리뷰 로딩 실패: ", error);
-      setRating(0);
     }
   };
 
@@ -54,21 +51,18 @@ const MyPage: React.FC = () => {
         <div className="max-w-md mx-auto px-4">
           {/* 프로필 섹션 */}
           <ProfileSection
-            username={userInfo.nickname ? userInfo.nickname : "user123"}
-            rating={rating}
+            username={state ? state.userName : "user123"}
+            rating={state.userRating}
           />
 
           {/* 리뷰 섹션 */}
-          <ReviewSection
-            review={reviewInfo.content}
-            userName={userInfo.nickname ? userInfo.nickname : "user123"}
-          />
+          <ReviewSection review={review} userName={state.userName} />
 
           {/* 액션 섹션 (거래 내역, 찜한 목록, 내가 작성한 글) */}
           <ActionSection
-            userId={0}
-            userName={userInfo.nickname ? userInfo.nickname : "user123"}
-            userRating={rating}
+            userId={state.userId}
+            userName={state.userName}
+            userRating={state.userRating}
           />
         </div>
       </div>
@@ -78,4 +72,4 @@ const MyPage: React.FC = () => {
   );
 };
 
-export default MyPage;
+export default UserPage;

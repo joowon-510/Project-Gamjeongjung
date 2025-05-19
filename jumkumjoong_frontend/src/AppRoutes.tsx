@@ -23,6 +23,7 @@ import { getUserInfo } from "./api/users";
 
 import ReviewRegisterPage from "./pages/ReviewPage/ReviewRegisterPage";
 import InfoEditPage from "./pages/userPage/infoEditPage";
+import UserPage from "./pages/userPage/userPage";
 
 // import { useChatService } from "./poviders/ChatServiceProvider"; // 추가
 
@@ -86,6 +87,8 @@ const AppRoutes = () => {
       <Route path="/favorites" element={<FavoritePage />} />
       <Route path="/my-posts" element={<MyPostsPage />} />
       <Route path="/edit/nickname" element={<InfoEditPage />} />
+
+      <Route path="/page/:userName" element={<UserPage />} />
     </Routes>
   );
 };
