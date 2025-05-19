@@ -1,10 +1,13 @@
 package com.ssafy.usedtrade.domain.redis.stream;
 
+import com.ssafy.usedtrade.common.encryption.AESUtil;
 import com.ssafy.usedtrade.domain.chat.entity.ChattingContent;
 import com.ssafy.usedtrade.domain.chat.entity.ChattingList;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingContentRepository;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,8 @@ import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.scheduling.annotation.Async;
@@ -26,17 +31,44 @@ public class ChattingStreamConsumer {
     private final StreamOperations<String, String, String> streamOps;
     private final ChattingContentRepository chattingContentRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final AESUtil aesUtil;
+    private volatile boolean running;
 
-    final String streamKey = "chatting-message-stream";
-    final String group = "chatting-consumer-group";
-    final String consumer = "chatting-consumer";
+    final String streamKey = "chat-message-stream";
+    final String group = "chat-consumer-group";
+    final String consumer = "chat-consumer";
+
+    @PreDestroy
+    public void shutdown() {
+        running = true;
+    }
 
     public void init() {
         try {
             // Stream 없으면 dummy 삽입
             if (!Boolean.TRUE.equals(redisTemplate.hasKey(streamKey))) {
-                streamOps.createGroup(streamKey, ReadOffset.latest(), group);
+                Map<String, String> dummy = Map.of(
+                        "roomId", "0",
+                        "userId", "0",
+                        "contents", "init",
+                        "createdAt", LocalDateTime.now().toString()
+                );
+
+                streamOps.add(StreamRecords.mapBacked(dummy).withStreamKey(streamKey));
                 log.info("Initialized stream: {}", streamKey);
+            }
+
+            List<Object> groups = redisTemplate.execute((RedisCallback<List<Object>>) connection ->
+                    Collections.singletonList(connection.streamCommands().xInfoGroups(streamKey.getBytes()))
+            );
+
+            boolean groupExists = groups != null && groups.stream().anyMatch(info ->
+                    info.toString().contains(group) // 간단 비교
+            );
+
+            if (!groupExists) {
+                streamOps.createGroup(streamKey, ReadOffset.latest(), group);
+                log.info("Consumer group created: {}", group);
             }
 
             log.info("Group created: {}", group);
@@ -46,9 +78,9 @@ public class ChattingStreamConsumer {
     }
 
 
-    @Async("chattingStreamExecutor") // 별도 쓰레드
+    @Async("chatStreamExecutor") // 별도 쓰레드
     public void consumeChatMessages() {
-        while (true) {
+        while (!running) {
             try {
                 List<MapRecord<String, String, String>> records =
                         streamOps.read(
@@ -61,6 +93,8 @@ public class ChattingStreamConsumer {
                     continue;
                 }
 
+                log.info("inner" + LocalDateTime.now());
+
                 for (MapRecord<String, String, String> record : records) {
                     Map<String, String> msg = record.getValue();
 
@@ -68,7 +102,7 @@ public class ChattingStreamConsumer {
                             ChattingContent.builder()
                                     .chattingList(
                                             ChattingList.builder()
-                                                    .id(Integer.valueOf(msg.get("roomId")))
+                                                    .id(Integer.valueOf(aesUtil.decrypt(msg.get("roomId"))))
                                                     .build()
                                     )
                                     .userId(Integer.valueOf(msg.get("userId")))
