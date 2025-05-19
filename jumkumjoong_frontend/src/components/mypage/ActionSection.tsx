@@ -56,23 +56,19 @@ const ActionSection: React.FC<ActionSectionProps> = ({
   return (
     <div className="bg-white rounded-lg mt-4 p-4 mb-4">
       <div className="space-y-0">
-        {actions.map((action) => {
-          if (action.status) {
-            return (
-              <Link
-                key={action.id}
-                to={action.path}
-                className="flex items-center py-4 border-b border-gray-200 last:border-b-0"
-                state={{ userName: userName, userId: userId }}
-              >
-                <div className="mr-4">{action.icon}</div>
-                <div className="text-lg font-medium">{action.label}</div>
-              </Link>
-            );
-          } else {
-            return <></>;
-          }
-        })}
+        {actions
+          .filter((action) => action.status)
+          .map((action) => (
+            <Link
+              key={action.id}
+              to={action.path}
+              className="flex items-center py-4 border-b border-gray-200 last:border-b-0"
+              state={{ userName: userName, userId: userId }}
+            >
+              <div className="mr-4">{action.icon}</div>
+              <div className="text-lg font-medium">{action.label}</div>
+            </Link>
+          ))}
       </div>
     </div>
   );
