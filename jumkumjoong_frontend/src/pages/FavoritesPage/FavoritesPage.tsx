@@ -1,8 +1,10 @@
 // src/pages/FavoritePage.tsx
 import React, { useEffect, useState } from "react";
+
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsItem from "../../components/goods/GoodsItem";
+
 import { getGoodsFavorites } from "../../api/goods";
 import { useAuthStore } from "../../stores/useUserStore";
 

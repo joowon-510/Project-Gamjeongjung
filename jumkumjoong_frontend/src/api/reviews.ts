@@ -25,9 +25,14 @@ export const postReviewRegist = async (review: ReviewRegistProps) => {
 };
 
 // 리뷰 조회
-export const getReview = async () => {
+export const getReview = async (sellerId: number) => {
   try {
-    const response = await axiosInstance.get("/reviews");
+    const response = await axiosInstance.get("/reviews", {
+      params: {
+        sellerId: sellerId,
+        "created-at": "2025-04-30T14:50:37.982185",
+      },
+    });
     console.log("리뷰 조회: ", response);
     if (response.data.status_code === 200) {
       return response.data.body.content;

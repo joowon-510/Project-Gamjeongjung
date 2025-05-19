@@ -3,15 +3,10 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
-import chatting from "../../assets/message-chat.svg";
 import ChatItem from "../../components/chat/chatItem";
-import axios, { isAxiosError } from "axios"; // axios와 isAxiosError import
+import axios from "axios"; // axios와 isAxiosError import
 import { axiosInstance } from "../../api/axios"; // axiosInstance import 경로 확인
-import { deleteChatRoom } from "../../api/chat";
-import {
-  GoodsItemDetailProps,
-  GoodsDetailProps,
-} from "../../components/goods/GoodsItem";
+
 import { useChatContext } from "../../contexts/ChatContext"; // ChatContext import 확인
 import { useChatStore } from "../../stores/chatStore";
 
@@ -23,6 +18,7 @@ const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 // 채팅방 정보 인터페이스
 interface ChatRoomItem {
   roomId: string;
+  postId: string;
   chattingUserNickname: string;
   nonReadCount: number;
   lastMessage: string;
@@ -191,6 +187,7 @@ const ChatListPage: React.FC = () => {
           // 페이징 정보 업데이트
           setIsLastPage(responseBody.last);
           setPageNumber(responseBody.number);
+          console.log("=======", enhancedRooms, "========");
         }
       } else {
         console.error(`❌ [${source}] 채팅방 목록 조회 실패:`, response.data);
@@ -257,6 +254,7 @@ const ChatListPage: React.FC = () => {
         // 현재 활성화된 룸 ID가 삭제한 룸 ID와 같으면 제거
         if (localStorage.getItem("currentRoomId") === roomId) {
           localStorage.removeItem("currentRoomId");
+          localStorage.removeItem("currentItemId");
           localStorage.removeItem("currentChatUserNickname");
           localStorage.removeItem("currentPostTitle");
         }
@@ -430,6 +428,7 @@ const ChatListPage: React.FC = () => {
                 to={`/chatting/${chat.roomId}`}
                 state={{
                   roomId: chat.roomId,
+                  postId: chat.postId,
                   chattingUserNickname: chat.chattingUserNickname,
                   postTitle: chat.postTitle,
                   accessToken: localStorage.getItem("accessToken"),
@@ -441,7 +440,9 @@ const ChatListPage: React.FC = () => {
                   );
 
                   try {
+                    console.log("current item id: ", chat.postId);
                     localStorage.setItem("currentRoomId", chat.roomId);
+                    localStorage.setItem("currentPostId", chat.postId);
                     localStorage.setItem(
                       "currentChatUserNickname",
                       chat.chattingUserNickname
@@ -484,6 +485,7 @@ const ChatListPage: React.FC = () => {
                 <ChatItem
                   key={chat.roomId}
                   roomId={chat.roomId}
+                  postId={chat.postId}
                   chattingUserNickname={chat.chattingUserNickname}
                   nonReadCount={chat.nonReadCount}
                   lastMessage={chat.lastMessage}

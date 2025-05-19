@@ -32,10 +32,8 @@ export const postGoodsImage = async (
     });
 
     // JSON 객체를 string으로 변환 후 append
-    const imageUploadRequest = JSON.stringify({ itemId: itemId });
     formData.append(
       "imageUploadRequest",
-      // new Blob([imageUploadRequest], { type: "application/json" })
       new Blob([JSON.stringify({ itemId })], {
         type: "application/json",
       })
@@ -101,7 +99,6 @@ export const deleteGoods = async (itemId: number): Promise<any> => {
 };
 
 // 상품 검색
-// TODO: 한글 검색 지원 X, 백엔드 수정 중
 export const getGoodsSearch = async (itemName: string): Promise<any> => {
   try {
     console.log("item Name: ", itemName);

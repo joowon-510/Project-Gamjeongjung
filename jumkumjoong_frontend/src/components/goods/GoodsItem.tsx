@@ -1,13 +1,17 @@
 // src/components/goods/GoodsItem.tsx
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { formatRelativeTime } from "../../utils/dateFormatter";
+
+import thumbnail from "../../assets/icons/nologo.svg";
 import Heart from "../../assets/icons/Heart.svg";
 import HeartEmpty from "../../assets/icons/HeartEmpty.svg";
-import check from "../../assets/icons/check.svg";
-import thumbnail from "../../assets/icons/nologo.svg";
-import { postGoodsChangeStatus, postGoodsFavorites } from "../../api/goods";
+
+import {
+  // postGoodsChangeStatus,
+  postGoodsFavorites,
+} from "../../api/goods";
 import { useWishItemStore, WishItemState } from "../../stores/useUserStore";
+import { formatRelativeTime } from "../../utils/dateFormatter";
 
 export interface GoodsItemDetailProps {
   configuration: number;
@@ -22,10 +26,12 @@ export interface GoodsItemDetailProps {
   status: boolean;
   title: string;
   userId: number;
+  deviceImageUrl: string[];
 }
 
 export interface GoodsDetailProps {
   userName: string;
+  userRating: number;
   item: GoodsItemDetailProps;
   isFavorite: boolean;
 }
@@ -39,7 +45,7 @@ export interface GoodsItemProps {
   imageUrl?: string;
   isFavorite?: boolean;
   canChangeStatus?: boolean; // ✅ 추가: 거래 상태 변경 가능 여부
-  deviceImageUrl: string[];
+  deviceImageUrl: string;
 }
 
 const GoodsItem: React.FC<GoodsItemProps> = ({
@@ -54,10 +60,10 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const { items, addItem, removeItem } = useWishItemStore();
+  const { items, removeItem, addItem } = useWishItemStore();
   const [favorite, setFavorite] = useState(isFavorite);
   const [status, setStatus] = useState<boolean>(itemStatus);
-  const images = deviceImageUrl ? deviceImageUrl : [thumbnail];
+  const images = deviceImageUrl ? deviceImageUrl : thumbnail;
 
   useEffect(() => {
     const exists = items.some((item) => item.itemId === itemId);
@@ -79,6 +85,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
 
     try {
       if (exists) {
+        await postGoodsFavorites(itemId);
         removeItem(itemId);
       } else {
         await postGoodsFavorites(itemId);
@@ -88,6 +95,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
           itemName,
           itemPrice,
           itemStatus: status,
+          deviceImageUrl,
         };
         addItem(wishItem);
       }
@@ -97,65 +105,61 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
     }
   };
 
-  const handleTransactionClick = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    if (!canChangeStatus) return;
-    e.preventDefault();
+  // const handleTransactionClick = async (
+  //   e: React.MouseEvent<HTMLButtonElement>
+  // ) => {
+  //   if (!canChangeStatus) return;
+  //   e.preventDefault();
 
-    try {
-      const newStatus = !status;
-      const response = await postGoodsChangeStatus(itemId, newStatus);
-      if (response) {
-        setStatus(newStatus);
-      }
-    } catch (error) {
-      console.error("거래 상태 변경 실패:", error);
-    }
-  };
+  //   try {
+  //     const newStatus = !status;
+  //     const response = await postGoodsChangeStatus(itemId, newStatus);
+  //     if (response) {
+  //       setStatus(newStatus);
+  //     }
+  //   } catch (error) {
+  //     console.error("거래 상태 변경 실패:", error);
+  //   }
+  // };
 
   const handlePressReview = () => {
     navigate("/reviews/register");
   };
 
   return (
-    <li className="px-4 py-4 bg-white border-b last:border-b-0 text-first">
-      <Link to={`/goods/detail/${itemId}`} className="flex space-x-4 relative">
+    <li className="px-4 py-4  border-b last:border-b-0 text-first">
+      <Link to={`/goods/detail/${itemId}`} className="flex space-x-4 ">
         {/* 상품 이미지 */}
-        <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded overflow-hidden relative">
+        <div className="h-24 w-24 flex-shrink-0 bg-gray-100 border rounded -z-10">
           <img
-            src={images[0]}
+            src={images}
             alt={itemName}
             className={`h-full w-full object-cover ${
-              images[0] === thumbnail ? "opacity-50 bg-first/20" : ""
+              images === thumbnail ? "opacity-50 bg-first/20" : ""
             }`}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null;
-              target.src = images[0];
+              target.src = thumbnail;
+              target.classList.add("opacity-50", "bg-first/20");
             }}
           />
         </div>
-        {/* 하트 버튼 (찜하기) */}
-        <button
-          className="absolute top-0 right-1 p-1 rounded-full"
-          onClick={handleFavoriteClick}
-        >
-          {favorite ? (
-            <img src={Heart} alt="Heart" className="w-6 h-6" />
-          ) : (
-            <img src={HeartEmpty} alt="HeartEmpyt" className="w-6 h-6" />
-          )}
-        </button>
 
         {/* 상품 정보 */}
         <div className="flex-1 flex flex-col justify-between">
           {/* 상품 제목 */}
-          <div className="text-lg font-medium text-gray-900">{itemName}</div>
+          {itemName.length > 30 ? (
+            <div className="text-lg font-medium text-gray-900">
+              {itemName.slice(0, 22)} ...
+            </div>
+          ) : (
+            <div className="text-lg font-medium text-gray-900">{itemName}</div>
+          )}
 
           {/* 상품 가격 */}
           <div className="text-xl font-bold text-gray-900 mt-1">
-            {itemPrice}
+            {itemPrice} 원
           </div>
 
           {/* 등록 시간과 판매자 닉네임을 같은 행의 양 끝으로 배치 */}
@@ -164,18 +168,16 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
           </div>
         </div>
 
-        {/* 거래 상태 버튼 */}
+        {/* 하트 버튼 (찜하기) */}
         <button
-          className="text-[#ffffff] self-end mb-2"
-          onClick={handleTransactionClick}
+          className="self-start py-1"
+          // className="absolute top-0 right-1 p-1 rounded-full"
+          onClick={handleFavoriteClick}
         >
-          {status ? (
-            <span></span>
+          {favorite ? (
+            <img src={Heart} alt="Heart" className="w-6 h-6" />
           ) : (
-            <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-[6px]">
-              <p>거래 완료</p>
-              <img src={check} alt="check" className="w-5 h-5" />
-            </div>
+            <img src={HeartEmpty} alt="HeartEmpyt" className="w-6 h-6" />
           )}
         </button>
       </Link>

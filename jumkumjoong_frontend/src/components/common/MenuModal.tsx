@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 
+import NavigationBar from "./NavigationBar";
+
 import yeslogo from "../../assets/icons/yeslogo.svg";
 import close from "../../assets/icons/close.svg";
 import laptop from "../../assets/icons/laptop.svg";
@@ -12,12 +14,14 @@ import settings from "../../assets/icons/settings.svg";
 import logout from "../../assets/icons/logout.svg";
 
 import Logout from "../../utils/logout";
+import { useAuthStore } from "../../stores/useUserStore";
 
 interface MenuModalProps {
   onClose: () => void;
+  onOpen: () => void;
 }
 
-export default function MenuModal({ onClose }: MenuModalProps) {
+export default function MenuModal({ onClose, onOpen }: MenuModalProps) {
   const navigate = useNavigate();
 
   const categoryActions = [
@@ -48,25 +52,6 @@ export default function MenuModal({ onClose }: MenuModalProps) {
   ];
 
   const actions = [
-    {
-      id: "transactions",
-      icon: (
-        <svg
-          className="w-8 h-8 text-gray-700"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
-          <path
-            fillRule="evenodd"
-            d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-      label: "거래 내역",
-      path: "/transactions", // 이 경로를 확인
-    },
     {
       id: "favorites",
       icon: <img src={heart} alt="heart" className="w-8 h-8" />,
@@ -120,7 +105,7 @@ export default function MenuModal({ onClose }: MenuModalProps) {
           <img src={close} alt="close" className="w-7 h-7" onClick={onClose} />
         </div>
       </header>
-      <main className="overflow-y-auto mx-5 mt-4 font-semibold flex  flex-col gap-4 mb-4 flex-1">
+      <main className="overflow-y-auto mx-5 mt-4 font-semibold flex flex-col gap-4 mb-4 flex-1 pb-[100px]">
         {/* 카테고리 */}
         <div className="flex flex-col gap-4">
           <div className="w-fill h-[44px] bg-fourth/70 justify-center content-center rounded-md">
@@ -154,34 +139,37 @@ export default function MenuModal({ onClose }: MenuModalProps) {
                 key={action.id}
                 to={action.path}
                 className="flex items-center pb-2 border-b border-gray-200 last:border-b-0"
+                state={{
+                  userId: 0,
+                  userName: useAuthStore.getState().nickname,
+                }}
               >
                 <div className="mr-4">{action.icon}</div>
                 <p className="">{action.label}</p>
               </Link>
             ))}
+            {/* 회원정보변경 */}
+            <div
+              className="flex flex-1  items-center pb-2 border-b border-gray-200 last:border-b-0"
+              onClick={handleEditInfo}
+            >
+              <img src={settings} alt="settings" className="w-7 h-7 mr-4" />
+              <p>회원정보변경</p>
+            </div>
+            {/* 로그아웃 */}
+            <div
+              className="flex flex-1 items-center pb-2 border-b border-gray-200 last:border-b-0"
+              onClick={handleLogout}
+            >
+              <img src={logout} alt="logout" className="w-7 h-7 mr-4" />
+              <p>로그아웃</p>
+            </div>
           </div>
         </div>
       </main>
-      <footer className="sticky bottom-0 w-full shadow-[0_-3px_5px_rgba(0,0,0,0.15)] z-50 p-2 py-6 bg-white">
-        <div className="flex divide-x-2 divide-first/30">
-          {/* 회원정보변경 */}
-          <div
-            className="flex flex-1 gap-2 items-center justify-center"
-            onClick={handleEditInfo}
-          >
-            <img src={settings} alt="settings" className="w-7 h-7" />
-            <p>회원정보변경</p>
-          </div>
-          {/* 로그아웃 */}
-          <div
-            className="flex flex-1 gap-2 items-center justify-center"
-            onClick={handleLogout}
-          >
-            <img src={logout} alt="logout" className="w-7 h-7" />
-            <p>로그아웃</p>
-          </div>
-        </div>
-      </footer>
+      <div className="fixed bottom-0 left-0 w-full z-[110]">
+        <NavigationBar />
+      </div>
     </div>
   );
 }

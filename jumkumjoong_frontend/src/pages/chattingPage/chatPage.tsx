@@ -1,8 +1,8 @@
 // src/pages/chattingPage/chatPage.tsx - 디버깅 코드 추가된 버전
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import nologo from "../../assets/icons/nologo.svg";
-import thumbnail from "../../assets/example.svg";
+import thumbnail from "../../assets/icons/nologo.svg";
 import useChat from "../../hooks/useChat";
 import {
   ChatUser,
@@ -27,6 +27,19 @@ const ChatPage: React.FC = () => {
   const { chatid } = useParams<{ chatid: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const state = location.state as {
+    roomId: string;
+    postId: string;
+    chattingUserNickname: string;
+    postTitle: string;
+    accessToken: string;
+  };
+
+  console.log("전달받은 postId: ", state);
+
+  console.log(location);
+  console.log("localstorage : ", localStorage);
 
   const [user, setUser] = useState<ChatUser | null>(() => {
     // 1. location.state에서 chattingUserNickname 확인 (최우선)
@@ -55,13 +68,15 @@ const ChatPage: React.FC = () => {
     };
   });
   const [goodsId, setGoodsId] = useState<number | null>(() => {
-    const itemIdFromState = location.state?.itemId;
-    if (itemIdFromState) return itemIdFromState;
+    const postIdFromState = location.state?.postId;
+    console.log("=============", postIdFromState, "============");
+    if (postIdFromState) return Number(postIdFromState);
 
-    const chatItemMapString = localStorage.getItem("chatItemMap");
+    const chatItemMapString = localStorage.getItem("currentPostId");
     if (chatItemMapString && chatid) {
       const chatItemMap = JSON.parse(chatItemMapString);
-      return chatItemMap[chatid] || null;
+      console.log("===========", chatItemMap, "===============");
+      return chatItemMap || null;
     }
     return null;
   });
@@ -158,21 +173,23 @@ const ChatPage: React.FC = () => {
     goodsId: number;
     goodsStatus: boolean;
     userName: string;
+    img: string;
   }>({
     title: "",
     goodsId: (() => {
       const stateItemId = location.state?.itemId;
       if (stateItemId) return stateItemId;
 
-      const chatItemMapString = localStorage.getItem("chatItemMap");
+      const chatItemMapString = localStorage.getItem("currentPostId");
       if (chatItemMapString && chatid) {
         const chatItemMap = JSON.parse(chatItemMapString);
-        return chatItemMap[chatid] || 0; // fallback
+        return chatItemMap || 0; // fallback
       }
       return 0;
     })(),
     goodsStatus: true,
     userName: "",
+    img: "",
   });
   // 상품 정보 불러오기
   useEffect(() => {
@@ -186,6 +203,10 @@ const ChatPage: React.FC = () => {
           goodsId: response.body.item.itemId,
           goodsStatus: response.body.item.status,
           userName: response.body.userName,
+          img:
+            response.body.item.deviceImageList.length > 0
+              ? response.body.item.deviceImageList[0]
+              : thumbnail,
         };
         setGoods(updated);
         console.log("✅ 상품 정보 상태로 업데이트됨:", updated);
@@ -204,28 +225,15 @@ const ChatPage: React.FC = () => {
   const formatMessageTime = (timestamp: string) => {
     // UTC 변환 없이 바로 사용
     const date = new Date(timestamp);
-    
+
     if (isToday(date)) {
-      return format(date, 'a h:mm', { locale: ko });
+      return format(date, "a h:mm", { locale: ko });
     } else if (isYesterday(date)) {
-      return `어제 ${format(date, 'a h:mm', { locale: ko })}`;
+      return `어제 ${format(date, "a h:mm", { locale: ko })}`;
     } else {
-      return format(date, 'MM월 dd일 a h:mm', { locale: ko });
+      return format(date, "MM월 dd일 a h:mm", { locale: ko });
     }
   };
-
-  // 사용자 ID 수동 테스트 함수
-  // const manualFetchUserId = async () => {
-  //   try {
-  //     setApiStatus("수동 API 호출 시작...");
-  //     const response = await getUserChatInfo();
-  //     console.log("수동 API 호출 결과:", response);
-  //     setApiStatus(`수동 API 호출 결과: ${JSON.stringify(response)}`);
-  //   } catch (error) {
-  //     console.error("수동 API 호출 오류:", error);
-  //     setApiStatus(`수동 API 호출 오류: ${error}`);
-  //   }
-  // };
 
   // 웹소켓 메시지 처리 함수 - currentUserId와 비교하여 내 메시지인지 판단
   const processWebSocketMessage = (
@@ -274,84 +282,6 @@ const ChatPage: React.FC = () => {
     recipientName: user?.name || "",
     processMessage: processWebSocketMessage,
   });
-
-  // const saveMessageReadStatus = (messageId: string, read: boolean) => {
-  //   if (!roomId) {
-  //     console.error("roomId가 없어 읽음 상태를 저장할 수 없습니다.");
-  //     return;
-  //   }
-
-  //   const roomKey = `chat_read_status_${roomId}`;
-  //   let readStatuses: { [key: string]: boolean } = {};
-
-  //   // 기존 저장된 상태 확인
-  //   const savedStatuses = localStorage.getItem(roomKey);
-  //   if (savedStatuses) {
-  //     try {
-  //       readStatuses = JSON.parse(savedStatuses);
-  //     } catch (e) {
-  //       console.error("읽음 상태 파싱 오류:", e);
-  //       readStatuses = {};
-  //     }
-  //   }
-
-  //   // 상태 업데이트
-  //   readStatuses[messageId] = read;
-
-  //   // 메모리 캐시에도 저장
-  //   readStatusCache[messageId] = read;
-
-  //   // 로컬 스토리지에 저장
-  //   localStorage.setItem(roomKey, JSON.stringify(readStatuses));
-  //   console.log(
-  //     `메시지 ID ${messageId}의 읽음 상태 ${read}로 저장됨 (채팅방: ${roomId})`
-  //   );
-  // };
-
-  // const getMessageReadStatus = (messageId: string): boolean | null => {
-  //   if (!roomId) {
-  //     console.error("roomId가 없어 읽음 상태를 확인할 수 없습니다.");
-  //     return null;
-  //   }
-
-  //   const roomKey = getReadStatusKey(roomId);
-
-  //   // 1. 로컬 스토리지 확인
-  //   const localStatuses = localStorage.getItem(roomKey);
-  //   if (localStatuses) {
-  //     try {
-  //       const readStatuses = JSON.parse(localStatuses);
-  //       if (messageId in readStatuses) {
-  //         console.log(
-  //           `메시지 ID ${messageId}의 로컬 읽음 상태: ${readStatuses[messageId]}`
-  //         );
-  //         return readStatuses[messageId];
-  //       }
-  //     } catch (e) {
-  //       console.error("로컬 스토리지 읽음 상태 파싱 오류:", e);
-  //     }
-  //   }
-
-  //   // 2. 세션 스토리지 확인 (브라우저 충돌 등으로 로컬 스토리지가 손상된 경우 대비)
-  //   const sessionStatuses = sessionStorage.getItem(roomKey);
-  //   if (sessionStatuses) {
-  //     try {
-  //       const readStatuses = JSON.parse(sessionStatuses);
-  //       if (messageId in readStatuses) {
-  //         console.log(
-  //           `메시지 ID ${messageId}의 세션 읽음 상태: ${readStatuses[messageId]} (복구됨)`
-  //         );
-  //         // 로컬 스토리지에 복구
-  //         localStorage.setItem(roomKey, sessionStatuses);
-  //         return readStatuses[messageId];
-  //       }
-  //     } catch (e) {
-  //       console.error("세션 스토리지 읽음 상태 파싱 오류:", e);
-  //     }
-  //   }
-
-  //   return null; // 저장된 상태가 없음
-  // };
 
   useEffect(() => {
     // 채팅방 초기화 시 로컬 스토리지 상태 검증
@@ -910,6 +840,7 @@ const ChatPage: React.FC = () => {
     try {
       if (userInfo.nickname === goods.userName) {
         const newStatus = !status;
+        console.log("new statue: ", newStatus);
         const response = await postGoodsChangeStatus(goods.goodsId, newStatus);
         if (response) {
           setStatus(newStatus);
@@ -967,16 +898,17 @@ const ChatPage: React.FC = () => {
               className="text-[#ffffff] self-end "
               onClick={handleTransactionClick}
             >
-              {status ? (
+              {goods.goodsStatus ? (
                 userInfo.nickname === goods.userName ? (
-                  <span className="rounded-md bg-fifth p-[6px]">거래 중</span>
+                  <div className="rounded-md bg-fifth p-[6px]">
+                    <p>거래 중</p>
+                  </div>
                 ) : (
                   <span></span>
                 )
               ) : (
-                <div className="flex gap-1 justify-center items-center rounded-md bg-second/60 p-[6px]">
+                <div className=" rounded-md bg-second/60 p-[6px]">
                   <p>거래 완료</p>
-                  {/* <img src={} alt="check" className="w-5 h-5" /> */}
                 </div>
               )}
             </button>
@@ -988,20 +920,26 @@ const ChatPage: React.FC = () => {
               className="text-[#ffffff] self-end "
               onClick={handleReviewClick}
             >
-              {status && userInfo.nickname !== goods.userName ? (
+              {userInfo.nickname === goods.userName ? (
                 <span></span>
               ) : (
-                <span className="rounded-md bg-third text-white p-[6px]">
-                  리뷰 작성
-                </span>
+                <div className="rounded-md bg-third text-white p-[6px]">
+                  <p>리뷰 작성</p>
+                </div>
               )}
             </button>
           </div>
         </div>
 
         <div className="flex p-2 justify-between items-center">
-          <div className="flex gap-2 items-center">
-            <img src={thumbnail} alt="" className="w-[100px]" />
+          <div className="flex gap-2 items-center ml-1">
+            <img
+              src={goods.img}
+              alt="thumbnail"
+              className={`w-[90px] rounded-md ${
+                goods.img === thumbnail ? "opacity-50 bg-first/20" : ""
+              } `}
+            />
             <p>{goods.title}</p>
           </div>
           <div
