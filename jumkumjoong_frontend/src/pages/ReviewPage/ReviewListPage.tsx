@@ -26,12 +26,12 @@ const ReviewListPage: React.FC = () => {
               {state.userName} 님의 리뷰
             </h1>
 
-            <Link
+            {/* <Link
               to={"/reviews/register"}
               className="border rounded-md bg-third text-white px-3 py-2"
             >
               리뷰 작성
-            </Link>
+            </Link> */}
           </div>
 
           {reviewInfo.content.length > 0 ? (
