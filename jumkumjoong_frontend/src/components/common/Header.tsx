@@ -45,9 +45,13 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 left-0 w-full h-[96px] flex items-center shadow-md bg-white px-4 pt-2 z-">
+    <header className="sticky top-0 left-0 w-full h-[96px] md:h-[100px] flex items-center md:justify-center shadow-md bg-white px-4 pt-2 z-">
       <Link to="/">
-        <img src={yeslogo} alt="logo" className="w-[96px] h-[96px] block" />
+        <img
+          src={yeslogo}
+          alt="logo"
+          className="w-[96px] h-[96px] block md:w-[100px] md:h-[100px]"
+        />
       </Link>
 
       {/* 로그아웃 버튼 또는 검색창 표시 */}
@@ -74,7 +78,7 @@ const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       ) : !hideSearchButton ? (
-        <div className="flex w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4">
+        <div className="flex w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 px-4 md:w-[40%] md:h-[45px]">
           <input
             type="text"
             value={searchTerm}
@@ -85,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({
               }
             }}
             placeholder="검색어를 입력하세요."
-            className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70"
+            className="w-[100%] h-10 self-center rounded-md bg-fourth text-first/70 md:h-[45px] text-[16px]"
           />
           <img
             src={search}
