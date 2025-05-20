@@ -30,8 +30,8 @@ const GoodsListPage: React.FC = () => {
       setSearchTerm("키보드");
       searchItem = "키보드";
     } else if (item === "phone") {
-      setSearchTerm("폰");
-      searchItem = "폰";
+      setSearchTerm("휴대폰");
+      searchItem = "휴대폰";
     } else if (item === "tablet") {
       setSearchTerm("태블릿");
       searchItem = "태블릿";
@@ -98,29 +98,20 @@ const GoodsListPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-gray-100">
       {/* 통일된 헤더 사용 */}
       <Header
         showBackButton={false}
         title="LOGO"
         onSearch={handleSearchButtonClick}
       />
-
-      {/* 검색 바 (검색 모드일 때만 표시) */}
-      {isSearchVisible && (
-        <div className="bg-white p-4 border-b">
-          <SearchBar
-            searchTerm={searchTerm}
-            onSearch={handleSearch}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="상품 검색"
-            autoFocus={true}
-          />
-        </div>
-      )}
-
       {/* 상품 목록 - 안드로이드 네비게이션 바를 고려하여 여백 제거 */}
       <main className="flex-1 overflow-y-auto pb-0">
+        <div className="text-center bg-gray-100 py-3 font-semibold">
+          <p>
+            "{searchTerm}" 검색 결과 - 총 {goods.length} 건
+          </p>
+        </div>
         {isLoading ? (
           <LoadingSpinner />
         ) : error ? (

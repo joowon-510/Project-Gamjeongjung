@@ -8,9 +8,10 @@ import GoodsItem, { GoodsItemProps } from "../../components/goods/GoodsItem";
 import { getGoodsUsers } from "../../api/goods";
 
 import { sortGoodsByDateDesc } from "../../utils/sortUtils";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const MyPostsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [myGoods, setMyGoods] = useState<GoodsItemProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +31,7 @@ const MyPostsPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      // if (state.userId === 0) {
-      //   setUserId(userInfo);
-      // }
+
       const response = await getGoodsUsers(state.userId);
       console.log("유저가 만든 게시물: ", response);
       if (response) {
@@ -46,6 +45,10 @@ const MyPostsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const onGoBack = () => {
+    navigate(-1);
   };
 
   const renderContent = () => {
@@ -87,18 +90,37 @@ const MyPostsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-16">
+    <div className="flex flex-col h-screen bg-gray-100">
       {/* 헤더 */}
       <Header />
 
       {/* 내가 작성한 글 목록 제목 */}
-      <div className="px-4 pt-6 bg-white">
+      <div className="px-4 pt-6 ">
         <h1 className="text-2xl font-bold">{state.userName} 님이 작성한 글</h1>
       </div>
 
       {/* 내가 작성한 글 목록 */}
       <main className="flex-1 overflow-y-auto pb-0">{renderContent()}</main>
 
+      {/* 뒤로가기 버튼 */}
+      <button
+        onClick={onGoBack}
+        className="fixed bottom-[110px] left-4 bg-white hover:bg-white rounded-full p-2 shadow-lg"
+      >
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
       {/* 여백 추가 */}
       <div className="h-16" />
 

@@ -30,7 +30,6 @@ export const getReview = async (sellerId: number) => {
     const response = await axiosInstance.get("/reviews", {
       params: {
         sellerId: sellerId,
-        "created-at": "2025-04-30T14:50:37.982185",
       },
     });
     console.log("리뷰 조회: ", response);

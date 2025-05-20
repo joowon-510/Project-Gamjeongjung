@@ -1,17 +1,37 @@
 // src/pages/ReviewListPage.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import ReviewItem from "../../components/review/ReviewItem";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ReviewState, useReviewStore } from "../../stores/useReviewStore";
+import { getReview } from "../../api/reviews";
 
 const ReviewListPage: React.FC = () => {
-  const reviewInfo = useReviewStore();
+  const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as {
     userName: string;
     review: ReviewState[];
+    userId: number;
+  };
+
+  const onGoBack = () => {
+    navigate(-1);
+  };
+
+  useEffect(() => {
+    fetchReviewData();
+    console.log(state.review);
+  }, []);
+
+  const fetchReviewData = async () => {
+    try {
+      const response = await getReview(state.userId);
+      console.log(response);
+    } catch (error) {
+      console.log("review 불러오기 실패: ", error);
+    }
   };
 
   return (
@@ -25,18 +45,11 @@ const ReviewListPage: React.FC = () => {
             <h1 className="text-2xl font-bold mb-4">
               {state.userName} 님의 리뷰
             </h1>
-
-            {/* <Link
-              to={"/reviews/register"}
-              className="border rounded-md bg-third text-white px-3 py-2"
-            >
-              리뷰 작성
-            </Link> */}
           </div>
 
-          {reviewInfo.content.length > 0 ? (
+          {state.review.length > 0 ? (
             <div className="space-y-3">
-              {[...reviewInfo.content]
+              {[...state.review]
                 .sort(
                   (a, b) =>
                     new Date(
@@ -55,6 +68,26 @@ const ReviewListPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* 뒤로가기 버튼 */}
+      <button
+        onClick={onGoBack}
+        className="fixed bottom-[120px] left-4 bg-white/90 hover:bg-white rounded-full p-2 shadow-md"
+      >
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
 
       <NavigationBar />
     </div>

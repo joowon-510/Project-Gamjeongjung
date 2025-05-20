@@ -63,6 +63,7 @@ const MyPage: React.FC = () => {
           <ReviewSection
             review={reviewInfo.content}
             userName={userInfo.nickname ? userInfo.nickname : "user123"}
+            userId={0}
           />
 
           {/* 액션 섹션 (찜한 목록, 내가 작성한 글) */}
