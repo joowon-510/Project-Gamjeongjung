@@ -29,5 +29,6 @@ public interface SaveItemRepository extends JpaRepository<SaveItem, Integer> {
 
     Optional<SaveItem> findByUserIdAndItemId(Integer userId, Integer itemId);
 
+
     void deleteByUserIdAndItemId(Integer userId, Integer itemId);
 }

@@ -159,7 +159,7 @@ public class ItemService {
     }
 
     public boolean isFavorite(Integer itemId, Integer userId) {
-        return saveItemRepository.existsByUserIdAndItemId(itemId, userId);
+        return saveItemRepository.findByUserIdAndItemId(userId, itemId).isPresent();
     }
 
     public List<ItemListDto> searchNewItem() {
