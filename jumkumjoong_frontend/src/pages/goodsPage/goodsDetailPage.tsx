@@ -127,7 +127,9 @@ const GoodsDetailPage: React.FC = () => {
       const response = await deleteGoods(goodsId);
       if (response.data.status_code === 200) {
         alert("삭제가 완료되었습니다.");
-        navigate("/my-posts");
+        navigate("/my-posts", {
+          state: { userId: 0, userName: useAuthStore.getState().nickname },
+        });
       }
     } catch (error) {
       console.log();
