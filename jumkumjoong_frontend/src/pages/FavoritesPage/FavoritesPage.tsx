@@ -39,7 +39,7 @@ const FavoritePage: React.FC = () => {
       <Header />
 
       {/* 찜한 목록 제목 */}
-      <div className="px-4 pt-6">
+      <div className="px-4 pt-6 mb-4">
         <h1 className="text-2xl font-bold">
           {userInfo.nickname ?? "user"} 님의 찜한 목록
         </h1>
@@ -56,7 +56,11 @@ const FavoritePage: React.FC = () => {
                 new Date(a.createdAt).getTime()
             )
             .map((item, index) => (
-              <GoodsItem key={`${item.itemId}-${index}`} {...item} />
+              <GoodsItem
+                key={`${item.itemId}-${index}`}
+                {...item}
+                isFavorite={true}
+              />
             ))
         ) : (
           <p className="p-4 text-center text-first/50">찜한 상품이 없습니다.</p>

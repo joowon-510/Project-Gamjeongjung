@@ -36,7 +36,7 @@ const GoodsDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { nickname } = useAuthStore();
   const [edit, setEdit] = useState(false);
-  const [favorite, setFavorite] = useState(false);
+  const [favorite, setFavorite] = useState(true);
   const [rating, setRating] = useState<number>(0);
 
   // 상품 상태 정보 (하드코딩)

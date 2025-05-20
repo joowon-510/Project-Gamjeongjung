@@ -8,6 +8,7 @@ import SearchBar from "../../components/common/SearchBar";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { getGoodsSearch } from "../../api/goods";
 import { useLocation } from "react-router-dom";
+import { useWishItemStore } from "../../stores/useUserStore";
 
 const GoodsListPage: React.FC = () => {
   const location = useLocation();
@@ -136,19 +137,26 @@ const GoodsListPage: React.FC = () => {
                     new Date(b.createdAt).getTime() -
                     new Date(a.createdAt).getTime()
                 )
-                .map((item, index) => (
-                  // goods.map((item, index) => (
-                  <GoodsItem
-                    key={item.itemId}
-                    createdAt={item.createdAt}
-                    itemId={item.itemId}
-                    itemName={item.itemName}
-                    itemPrice={item.itemPrice}
-                    itemStatus={item.itemStatus}
-                    deviceImageUrl={item.deviceImageUrl}
-                    // canChangeStatus={true}
-                  />
-                ))
+                .map((item, index) => {
+                  const wishItemIds = new Set(
+                    useWishItemStore.getState().items.map((i) => i.itemId)
+                  );
+                  const isFavorite = wishItemIds.has(item.itemId);
+
+                  return (
+                    <GoodsItem
+                      key={item.itemId}
+                      createdAt={item.createdAt}
+                      itemId={item.itemId}
+                      itemName={item.itemName}
+                      itemPrice={item.itemPrice}
+                      itemStatus={item.itemStatus}
+                      deviceImageUrl={item.deviceImageUrl}
+                      isFavorite={isFavorite}
+                      // canChangeStatus={true}
+                    />
+                  );
+                })
             ) : (
               <li className="p-4 text-center text-gray-500">
                 {searchTerm
