@@ -54,6 +54,7 @@ jwt:
   refresh_expiration: 10000000000
 
 server:
+  forward-headers-strategy: native
   servlet:
     context-path: ${CONTEXT_PATH}
 
