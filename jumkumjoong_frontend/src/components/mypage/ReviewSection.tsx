@@ -8,9 +8,14 @@ import star from "../../assets/icons/starFilled.svg";
 interface ReviewSectionProps {
   review?: ReviewState[];
   userName: string;
+  userId: number;
 }
 
-const ReviewSection: React.FC<ReviewSectionProps> = ({ review, userName }) => {
+const ReviewSection: React.FC<ReviewSectionProps> = ({
+  review,
+  userName,
+  userId,
+}) => {
   const [reviews, setReviews] = useState<ReviewState[]>([]);
   const reviewInfo = useReviewStore();
 
@@ -37,19 +42,16 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ review, userName }) => {
         <Link
           to="/reviews"
           className="text-gray-500 text-sm"
-          state={{ userName: userName, review: review }}
+          state={{ userName: userName, review: review, userId: userId }}
         >
           전체 보기
         </Link>
       </div>
 
       <div className="space-y-3">
-        {reviews.length > 0 ? (
-          reviews.map((review) => (
-            <div
-              key={review.createdAt}
-              className="py-2 border-b flex flex-col gap-2"
-            >
+        {review && review.length > 0 ? (
+          review.map((review) => (
+            <div key={review.createdAt} className="py-2 border-b flex gap-4">
               {review.createdAt ? (
                 <div className="flex justify-between pppp">
                   {/* 별점 */}
@@ -57,18 +59,13 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ review, userName }) => {
                     <img src={star} alt="star" className="w-5 h-5" />
                     <p className="font-semibold">{review.stars}</p>
                   </div>
-                  {/* 작성 일자 */}
-                  <div className="flex gap-1">
-                    <p>{formatDateManually(review.createdAt).date}</p>
-                    <p>{formatDateManually(review.createdAt).time}</p>
-                  </div>
                 </div>
               ) : (
                 <p>--</p>
               )}
               <div className="text-gray-800">
                 {review.content && review.content.length > 20
-                  ? `${review.content?.slice(0, 20)}...`
+                  ? `${review.content?.slice(0, 15)}...`
                   : review.content}
               </div>
             </div>

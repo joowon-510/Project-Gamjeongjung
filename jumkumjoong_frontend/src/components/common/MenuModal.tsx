@@ -143,6 +143,9 @@ export default function MenuModal({ onClose, onOpen }: MenuModalProps) {
                   userId: 0,
                   userName: useAuthStore.getState().nickname,
                 }}
+                onClick={() => {
+                  onClose();
+                }}
               >
                 <div className="mr-4">{action.icon}</div>
                 <p className="">{action.label}</p>

@@ -5,12 +5,14 @@ interface SerialNumberInputProps {
   onChange: (value: string) => void;
   name: string;
   id: string;
+  disabled?: boolean;
 }
 
 const SerialNumberInput: React.FC<SerialNumberInputProps> = ({
   value,
   onChange,
   name,
+  disabled = false,
   id,
 }) => {
   // 화면에 표시될 값값 (입력값)
@@ -40,8 +42,11 @@ const SerialNumberInput: React.FC<SerialNumberInputProps> = ({
         name={name}
         value={displayValue || ""}
         onChange={(e) => onChange(e.target.value)}
-        // onChange={handleChange}
-        className="w-full p-2 pr-14 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        disabled={disabled}
+        // className="w-full p-2 pr-14 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className={`w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          disabled ? "bg-gray-100 cursor-not-allowed" : ""
+        }`}
         placeholder="시리얼 번호를 입력하세요"
       />
     </div>

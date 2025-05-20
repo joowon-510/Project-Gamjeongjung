@@ -853,7 +853,8 @@ const ChatPage: React.FC = () => {
 
   // 리뷰 작성
   const handleReviewClick = () => {
-    if (!status && userInfo.nickname !== goods.userName) {
+    if (userInfo.nickname !== goods.userName) {
+      // if (!status && userInfo.nickname !== goods.userName) {
       navigate("/reviews/register", {
         state: { itemId: goods.goodsId, userName: goods.userName },
       });
@@ -920,12 +921,12 @@ const ChatPage: React.FC = () => {
               className="text-[#ffffff] self-end "
               onClick={handleReviewClick}
             >
-              {userInfo.nickname === goods.userName ? (
-                <span></span>
-              ) : (
+              {status && userInfo.nickname !== goods.userName ? (
                 <div className="rounded-md bg-third text-white p-[6px]">
                   <p>리뷰 작성</p>
                 </div>
+              ) : (
+                <span></span>
               )}
             </button>
           </div>
