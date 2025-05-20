@@ -4,11 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import NavigationBar from "../components/common/NavigationBar";
 import { getUserInfo } from "../api/users";
-import {
-  getGoodsFavorites,
-  getGoodsRecent,
-  getGoodsSearch,
-} from "../api/goods";
+import { getGoodsFavorites, getGoodsRecent } from "../api/goods";
 
 // 상태관리 임포트
 import { useAuthStore, useWishItemStore } from "../stores/useUserStore";
@@ -20,7 +16,7 @@ import tablet from "../assets/icons/tablet.svg";
 import heart from "../assets/icons/Heart.svg";
 import newGoods from "../assets/icons/new.svg";
 // 썸네일 이미지 임포트
-import thumbnail from "../assets/goods/thumbnail.png";
+import thumbnail from "../assets/icons/nologo.svg";
 
 const categories = [
   { id: "laptop", label: "노트북", icon: laptop },
@@ -32,10 +28,9 @@ const categories = [
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const [recentItems, setRecentItem] = useState<
-    { img: string; title: string; id: number }[]
+    { img: string; title: string; id: number; image: string[] }[]
   >([]);
   const [userLoaded, setUserLoaded] = useState(false);
-  const [wishLoaded, setWishLoaded] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -44,10 +39,7 @@ const MainPage: React.FC = () => {
         console.log("----------", user, "----------");
         console.log("User: ", useAuthStore.getState());
 
-        if (!user) {
-          const wishItem = await getGoodsFavorites();
-          useWishItemStore.getState().setItems(wishItem);
-        } else {
+        if (user) {
           const wishItem = await getGoodsFavorites();
           useWishItemStore.getState().setItems(wishItem);
           console.log("Wish item: ", useWishItemStore.getState().items);
@@ -56,7 +48,6 @@ const MainPage: React.FC = () => {
         console.error("유저 정보 로딩 실패:", error);
       } finally {
         setUserLoaded(true);
-        setWishLoaded(true);
       }
     };
 
@@ -68,7 +59,7 @@ const MainPage: React.FC = () => {
           setRecentItem([]);
         }
         const parsedItems = goods.map((item: any) => ({
-          img: item.imageUrl || thumbnail, // 실제로는 item.imageUrl 같은 값이 들어가야 할 수도 있음
+          img: item.deviceImageUrl || thumbnail, // 실제로는 item.imageUrl 같은 값이 들어가야 할 수도 있음
           id: item.itemId,
           title: item.itemName,
         }));
@@ -87,7 +78,7 @@ const MainPage: React.FC = () => {
   };
 
   const wishItems = useWishItemStore.getState().items.map((item) => ({
-    img: thumbnail,
+    img: !item.deviceImageUrl ? thumbnail : item.deviceImageUrl,
     title: item.itemName,
     id: item.itemId,
   }));
@@ -111,7 +102,7 @@ const MainPage: React.FC = () => {
       <div className=" my-2 flex items-center">
         {items.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 ">
-            {items.map((item, idx) => (
+            {items.slice(0, 6).map((item, idx) => (
               <div
                 key={idx}
                 className=""
@@ -120,11 +111,19 @@ const MainPage: React.FC = () => {
                 }}
               >
                 <img
-                  src={item.img}
+                  src={item.img || thumbnail}
                   alt={`thumbnail-${idx}`}
-                  className=" rounded-xl"
+                  className={`rounded-xl w-[200px] h-[130px] ${
+                    // !item.img ? "opacity-50 bg-first/20" : ""
+                    item.img === thumbnail ? "opacity-50 bg-first/20" : ""
+                  }`}
                 />
-                <p>{item.title}</p>
+
+                {item.title.length > 12 ? (
+                  <p>{item.title.slice(0, 12)} ...</p>
+                ) : (
+                  <p>{item.title}</p>
+                )}
               </div>
             ))}
           </div>
@@ -165,9 +164,19 @@ const MainPage: React.FC = () => {
 
         {/* 찜한 아이템 중 거래 중인 상품 */}
         <article className=" mx-4 border-b pb-5">
-          <div className="flex gap-2 pb-2">
-            <img src={heart} alt="heart" className="w-5" />
-            <p className=" text-[20px]">내가 찜한 아이템</p>
+          <div className="flex justify-between items-center pb-2">
+            <div className="flex gap-2">
+              <img src={heart} alt="heart" className="w-5" />
+              <p className=" text-[20px]">내가 찜한 아이템</p>
+            </div>
+            <div
+              className="text-first/70 text-[14px] underline underline-offset-2"
+              onClick={() => {
+                navigate("/favorites");
+              }}
+            >
+              <p>전체보기</p>
+            </div>
           </div>
           {renderItemGrid(wishItems, "wish")}
         </article>

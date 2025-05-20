@@ -33,7 +33,7 @@ const SerialNumberInput: React.FC<SerialNumberInputProps> = ({
   };
 
   return (
-    <div className="relative">
+    <div className="">
       <input
         type="text"
         id={id}

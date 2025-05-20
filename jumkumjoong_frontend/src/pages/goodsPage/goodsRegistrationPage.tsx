@@ -8,24 +8,170 @@ import CameraModal from "../../components/goods/CameraModal";
 
 // Goods 타입 인터페이스 임포트
 import { ItemRegistParams } from "../../types/types";
-import { postGoods, postGoodsEdit } from "../../api/goods";
+import { postGoods, postGoodsEdit, postGoodsImage } from "../../api/goods";
 import SerialNumberInput from "../../components/goods/SerialNumberInput";
+
+// 이미지 처리를 위한 API 함수 import
+import fastapiInstance from "../../api/fastapi"; // 기존 axios 인스턴스 활용
+import { useAuthStore } from "../../stores/useUserStore";
 
 // 구성여부 타입 정의
 type PackageType = "full" | "single" | "partial";
 
 interface ExtendedGoodsData extends ItemRegistParams {
-  // images: File[];
   purchaseYear: string;
   purchaseMonth: string;
-  // purchaseDate: string;
 }
+
+interface ImageData {
+  images: File[]; // base64 형식의 이미지 문자열 배열
+  imageUrls?: string[]; // 서버에서 반환받은 이미지 URL 배열
+}
+
+// fastapi로 이미지 전송, 결과 받아오는 코드
+// base64 문자열을 Blob 형식으로 변환하는 헬퍼 함수
+const dataURLtoBlob = (dataURL: string): Blob => {
+  const arr = dataURL.split(",");
+  const mime = arr[0].match(/:(.*?);/)?.[1] || "image/jpeg";
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+};
+
+// fastapi 서버에서 멀티파트로 받은 데이터를 분리하는 함수
+async function parseMultipartBlob(blob: Blob): Promise<{
+  jsonData: any;
+  imageMap: { [key: string]: Blob };
+}> {
+  const text = await blob.text();
+
+  const boundaryMatch = text.match(/^--(.+?)\r\n/);
+  if (!boundaryMatch) throw new Error("boundary not found");
+  const boundary = boundaryMatch[1];
+
+  const parts = text
+    .split(`--${boundary}`)
+    .filter((p) => p.trim() && p.trim() !== "--");
+
+  const imageMap: { [key: string]: Blob } = {};
+  let jsonData: any = null;
+
+  for (let part of parts) {
+    const headerBodySplit = part.split("\r\n\r\n");
+    if (headerBodySplit.length < 2) continue;
+
+    const header = headerBodySplit[0];
+    const body = headerBodySplit.slice(1).join("\r\n\r\n").trimEnd();
+
+    const nameMatch = header.match(/name="(.+?)"/);
+    const filenameMatch = header.match(/filename="(.+?)"/);
+    const contentTypeMatch = header.match(/Content-Type: (.+)/);
+
+    const name = nameMatch?.[1];
+    const contentType = contentTypeMatch?.[1];
+
+    if (contentType?.includes("application/json")) {
+      jsonData = JSON.parse(body);
+    } else if (filenameMatch) {
+      // 바이너리 Blob 생성
+      const raw = new TextEncoder().encode(body);
+      const blob = new Blob([raw], {
+        type: contentType || "application/octet-stream",
+      });
+      imageMap[filenameMatch[1]] = blob; // 바이너리
+    }
+  }
+
+  return { jsonData, imageMap };
+}
+
+// 이미지를 서버에 업로드하고 이미지 URL 배열을 반환하는 함수
+export async function uploadProductAndImages(
+  images: File[],
+  productInfo: { name: any; price: any; description: any }
+) {
+  const formDataNew = new FormData();
+  images.forEach((img) => formDataNew.append("images", img));
+  formDataNew.append("product_name", productInfo.name);
+  formDataNew.append("price", productInfo.price);
+  formDataNew.append("description", "description_information");
+
+  const response = await fastapiInstance.post("/upload-info", formDataNew, {
+    responseType: "blob", // binary로 받기
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  const { jsonData, imageMap } = await parseMultipartBlob(response.data);
+  console.log("json 데이터 : ", jsonData);
+  console.log("image 데이터 : ", imageMap);
+  return { jsonData, imageMap };
+}
+
+// 프론트엔드에 추가할 함수 - 기존 uploadImagesToServer 함수 아래에 추가
+const generateSalesContent = async (
+  images: File[],
+  productInfo: {
+    name: string;
+    price: string;
+    serialNumber: string;
+    purchaseDate: string;
+    configuration: number;
+  }
+): Promise<{ title: string; description: string; imageUrls: string[] }> => {
+  if (images.length === 0) {
+    throw new Error("이미지를 최소 1장 이상 촬영해주세요.");
+  }
+
+  try {
+    const formDataNew = new FormData();
+
+    // 이미지 추가
+    images.forEach((file, index) => {
+      formDataNew.append("images", file);
+    });
+
+    // 제품 정보 추가
+    formDataNew.append("product_name", productInfo.name);
+    formDataNew.append("price", productInfo.price);
+    formDataNew.append("serial_number", productInfo.serialNumber);
+    formDataNew.append("purchase_date", productInfo.purchaseDate);
+    formDataNew.append("configuration", productInfo.configuration.toString());
+
+    formDataNew.forEach((value, key) => {
+      console.log(`${key}:`, value);
+    });
+
+    // 판매글 생성 API 호출
+    const response = await fastapiInstance.post(
+      "/generate-description",
+      formDataNew
+    );
+
+    console.log("✅ 판매글 생성 요청 성공");
+    console.log("🔄 response 객체:", response);
+    console.log("🟢 response.data:", response.data);
+
+    return {
+      title: response.data.title,
+      description: response.data.description,
+      imageUrls: response.data.image_urls || [],
+    };
+  } catch (error) {
+    console.error("판매글 생성 실패:", error);
+    throw new Error("판매글 생성에 실패했습니다.");
+  }
+};
+
+// fastapi로 이미지 전송, 결과 받아오는 코드 끝
 
 const GoodsRegistrationPage: React.FC = () => {
   const location = useLocation();
-  // const editItem = location.state as
-  //   | (ExtendedGoodsData & { itemId?: string })
-  //   | undefined;
+
   const editItem =
     location.state && "title" in location.state
       ? (location.state as ExtendedGoodsData & { itemId?: string })
@@ -37,23 +183,6 @@ const GoodsRegistrationPage: React.FC = () => {
   const yearOptions = Array.from({ length: 21 }, (_, i) =>
     (currentYear - i).toString()
   );
-
-  // const [formData, setFormData] = useState<ExtendedGoodsData>({
-  //   title: location.state.title,
-  //   description: location.state.description,
-  //   price: location.state.price, // This is causing the error
-  //   // images: [],
-  //   purchaseDate: location.state.purchaseDate,
-  //   grades: location.state.grades,
-  //   status: location.state.status,
-  //   configuration: location.state.configuration, // 구성품 0: 풀박 / 1: 일부 / 2: 단품
-  //   scratchesStatus: location.state.scratchesStatus,
-  //   createdAt: location.state.createdAt,
-  //   serialNumber: location.state.serialNumber,
-
-  //   purchaseYear: currentYear.toString(),
-  //   purchaseMonth: "0",
-  // });
 
   const [formData, setFormData] = useState<ExtendedGoodsData>(() => {
     if (editItem) {
@@ -90,7 +219,22 @@ const GoodsRegistrationPage: React.FC = () => {
     }
   });
 
+  const [imageData, setImageData] = useState<ImageData>(() => {
+    if (editItem) {
+      return {
+        images: [] as File[], // 빈 이미지 배열로 초기화
+        // imageUrls: editItem.imageUrls || [], // 기존 이미지 URL이 있으면 사용
+      };
+    } else {
+      return {
+        images: [] as File[], // 빈 이미지 배열로 초기화
+      };
+    }
+  });
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isGenerated, setIsGenerated] = useState<boolean>(false);
 
   // 입력 필드 변경 처리
   const handleInputChange = (
@@ -113,7 +257,7 @@ const GoodsRegistrationPage: React.FC = () => {
     }));
   };
 
-  // 시리얼 번호호 입력 처리
+  // 시리얼 번호 입력 처리
   const handleSerialNumberChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -133,32 +277,134 @@ const GoodsRegistrationPage: React.FC = () => {
 
     setFormData((prev) => ({
       ...prev,
-      configuration: Number(e.target.value),  // ✅ 숫자로 저장
+      configuration: Number(e.target.value), // ✅ 숫자로 저장
       packageType: selected, // 표시용으로 유지
     }));
   };
 
-  // 이미지 선택 처리
-  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (e.target.files && e.target.files.length > 0) {
-  //     // 파일 배열로 변환
-  //     const fileArray = Array.from(e.target.files);
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       images: fileArray,
-  //     }));
-  //   }
-  // };
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  // 받아오는 이미지(객체탐지 결과)를 저장하는 const
+  const [imageMap, setImageMap] = useState<Record<string, Blob>>({});
+
   // 이미지 캡처 콜백
+  function dataURLtoFile(dataurl: string, filename: string): File {
+    const arr = dataurl.split(",");
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  }
   const handleImageCapture = (imageDataUrl: string) => {
-    setCapturedImages((prev) => [...prev, imageDataUrl]);
+    const file = dataURLtoFile(imageDataUrl, `capture-${Date.now()}.jpg`);
+
+    setCapturedImages((prev) => [...prev, imageDataUrl]); // 화면용 URL
+    setImageData((prev) => ({
+      ...prev,
+      images: [...prev.images, file], // File 객체로 추가
+    }));
+  };
+
+  // 판매글 생성 처리 - handleSubmit 함수 위에 추가
+  const handleGenerateContent = async () => {
+    // 필수 필드 검증
+    if (
+      !formData.title.trim() ||
+      typeof formData.price !== "number" ||
+      isNaN(formData.price) ||
+      formData.price <= 0 ||
+      !formData.purchaseYear ||
+      formData.serialNumber.trim().length === 0 ||
+      imageData.images.length === 0
+    ) {
+      alert(
+        "상품명, 가격, 구매 년도, 시리얼 번호는 필수 입력 항목이며, 최소 1장의 이미지가 필요합니다."
+      );
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+
+      // 구매일자 YYYY-MM 포맷
+      const purchaseDateString =
+        formData.purchaseMonth === "0"
+          ? formData.purchaseYear
+          : `${formData.purchaseYear}-${formData.purchaseMonth.padStart(
+              2,
+              "0"
+            )}`;
+
+      // 1. 먼저 이미지를 업로드하고 객체 탐지 결과 받아오기
+      let processedImageMap = {};
+      if (imageData.images.length > 0) {
+        try {
+          console.log("fastapi에 전송준비");
+          // 기존에 정의한 uploadProductAndImages 함수 사용
+          const { jsonData, imageMap } = await uploadProductAndImages(
+            imageData.images,
+            {
+              name: formData.title,
+              price: formData.price.toString(),
+              description: formData.description || "",
+            }
+          );
+          console.log("이미지 업로드 및 객체 탐지 결과:", jsonData);
+
+          // 객체 탐지된 이미지를 상태에 저장
+          setImageMap(imageMap);
+          processedImageMap = imageMap;
+        } catch (error) {
+          console.error("이미지 업로드 실패:", error);
+          alert("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
+          setIsGenerating(false);
+          return;
+        }
+      }
+
+      // 2. 판매글 생성 API 호출
+      const { title, description, imageUrls } = await generateSalesContent(
+        imageData.images,
+        {
+          name: formData.title,
+          price: formData.price.toString(),
+          serialNumber: formData.serialNumber,
+          purchaseDate: purchaseDateString,
+          configuration: formData.configuration,
+        }
+      );
+
+      // 생성된 판매글 설정
+      setFormData((prev) => ({
+        ...prev,
+        title: title, // 제목도 AI가 생성한 것으로 업데이트
+        description: description,
+        // imageUrls: imageUrls,
+      }));
+
+      setImageData((prev) => ({
+        ...prev,
+        imageUrls: imageUrls,
+      }));
+
+      setIsGenerated(true);
+      alert("판매글이 생성되었습니다. 내용을 확인하고 등록해주세요.");
+    } catch (error) {
+      console.error("판매글 생성 오류:", error);
+      alert("판매글 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   // 폼 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("=====================", formData, "=================");
 
     // 필수 필드 검증
     if (!formData.title.trim()) {
@@ -181,16 +427,6 @@ const GoodsRegistrationPage: React.FC = () => {
       alert("상품 설명은 필수 입력 항목입니다.");
       return;
     }
-    // if (
-    //   !formData.title.trim() ||
-    //   formData.price <= 0 ||
-    //   // !formData.price.trim() ||
-    //   !formData.purchaseYear ||
-    //   formData.serialNumber.trim().length === 0
-    // ) {
-    //   alert("상품명, 가격, 구매 년도, 시리얼 번호는 필수 입력 항목입니다.");
-    //   return;
-    // }
 
     try {
       setIsLoading(true);
@@ -211,39 +447,33 @@ const GoodsRegistrationPage: React.FC = () => {
         finalDescription = `[구성품 안내가 필요합니다. 어떤 구성품이 포함되어 있는지 작성해주세요.]\n\n${finalDescription}`;
       }
 
-      // 구매일자 및 구성여부 정보 추가
-      // const packageTypeText = {
-      //   full: "풀박스",
-      //   single: "단품",
-      //   partial: "일부구성품",
-      // }[formData.configuration];
-
       console.log("formData.serialNumber:", formData.serialNumber);
 
       // 최종 설명에 구매일자와 구성여부 정보 포함
       finalDescription = `${finalDescription}`;
-      // finalDescription = `구매일자: ${purchaseDateString}\n구성여부: ${packageTypeText}\n\n${finalDescription}`;
+
       const date = new Date().toISOString();
       console.log(date);
-      // const now = new Date();
-      // const kstOffset = 9 * 60 * 60 * 1000; // 9시간(한국 시차)을 밀리초로 변환
-      // const kstDate = new Date(now.getTime() + kstOffset);
 
-      // const date = kstDate.toISOString().replace("Z", "+09:00");
-      // console.log(date); // 예: 2025-04-25T20:45:00+09:00
       // 상품 등록 API 호출
       const submissionData = {
-        ...formData,
+        // ...formData,
+        title: formData.title,
         description: finalDescription,
         price: formData.price, // 만원 단위를 원 단위로 변환 (예: 67 -> 670000)
         purchaseDate: purchaseDateString,
+        configuration: formData.configuration,
+        grades: formData.grades,
+        status: formData.status,
         createdAt: date.toString(),
         serialNumber: formData.serialNumber,
+        scratchesStatus: "scratchesStatus",
+        // imageUrls: formData.imageUrls, // 업로드된 이미지 URL 배열 추가
       };
-      console.log("submission: ", submissionData);
-      if (editItem && editItem.itemId) {
-        // TODO: 수정 API 호출 (예: await putGoods(itemId, submissionData))
 
+      console.log("submission: ", submissionData);
+
+      if (editItem && editItem.itemId) {
         try {
           const goodsId = parseInt(editItem.itemId);
           console.log("submissionData: ", {
@@ -261,16 +491,30 @@ const GoodsRegistrationPage: React.FC = () => {
           console.log("상품 상세 수정 실패 : ", error);
         }
       } else {
-        // await postGoods(submissionData);
-        // const response = await registerGoods(submissionData);
         const response = await postGoods(submissionData);
 
         console.log("등록된 상품 정보:", response);
 
-        // if (response.data)
-        // 성공 시 상품 목록 페이지로 이동
-        alert("상품이 등록되었습니다.");
-        navigate("/my-posts");
+        const itemId = response;
+
+        if (itemId && response && imageData.images) {
+          const data = await postGoodsImage(imageData.images, itemId);
+          console.log(data);
+          if (data) {
+            alert("상품이 등록되었습니다.");
+            navigate("/my-posts", {
+              state: { userId: 0, userName: useAuthStore.getState().nickname },
+            });
+          } else {
+            alert("상품 등록에 실패하였습니다. 다시 시도해주세요.");
+
+            return;
+          }
+        } else {
+          alert("상품 등록에 실패하였습니다. 다시 시도해주세요.");
+          return;
+        }
+        // }
       }
     } catch (error) {
       console.error("상품 등록 오류:", error);
@@ -294,7 +538,7 @@ const GoodsRegistrationPage: React.FC = () => {
       <div className="font-semibold mb-4 flex-1 overflow-y-auto">
         {/* <div className="font-semibold flex-1 overflow-y-auto pb-36"> */}
         <div className="p-4 space-y-6">
-          {/* 상품명 입력 */}
+          {/* 1. 상품 정보 입력 */}
           <div>
             <label
               htmlFor="title"
@@ -370,12 +614,6 @@ const GoodsRegistrationPage: React.FC = () => {
             >
               시리얼 넘버
             </label>
-            {/* <PriceInput
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handlePriceChange}
-            /> */}
             <SerialNumberInput
               // type="text"
               id="serialNumber"
@@ -403,9 +641,6 @@ const GoodsRegistrationPage: React.FC = () => {
               <option value={0}>풀박스</option>
               <option value={2}>단품</option>
               <option value={1}>일부구성품</option>
-              {/* <option value="full">풀박스</option>
-              <option value="single">단품</option>
-              <option value="partial">일부구성품</option> */}
             </select>
             {formData.configuration === 1 && (
               <p className="mt-1 text-sm text-red-500">
@@ -431,30 +666,36 @@ const GoodsRegistrationPage: React.FC = () => {
             />
           </div>
 
-          {/* 상품 설명 입력 */}
-          <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              상품설명
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows={4}
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={
-                formData.configuration === 1
-                  ? "상품 설명을 입력하세요. 어떤 구성품이 포함되어 있는지 자세히 작성해주세요."
-                  : "상품 설명을 입력하세요."
-              }
-            />
-          </div>
+          {/* 5. 직접 입력하는 상품설명 (맨 마지막) */}
+          {isGenerated && (
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                상품설명
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={4}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={
+                  formData.configuration === 1
+                    ? "어떤 구성품이 포함되어 있는지 자세히 작성해주세요."
+                    : "상품 설명을 입력하세요."
+                }
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                * 제목과 판매글이 AI로 자동 생성되었습니다. 내용을 확인하고
+                등록해주세요.
+              </p>
+            </div>
+          )}
 
-          {/* 사진 첨부 */}
+          {/* 2. 사진 촬영 */}
           <div className="flex justify-between items-baseline">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               사진 촬영하기
@@ -462,7 +703,7 @@ const GoodsRegistrationPage: React.FC = () => {
             <div className="flex items-center">
               <button
                 onClick={() => setIsCameraOpen(true)}
-                className="px-3 py-2 rounded-md bg-second/60 text-white test-sm"
+                className="px-3 py-2 rounded-md bg-second/60 text-white text-sm"
               >
                 촬영하기
               </button>
@@ -480,7 +721,6 @@ const GoodsRegistrationPage: React.FC = () => {
               ))}
             </div>
           )}
-
           {isCameraOpen && (
             <CameraModal
               onClose={() => setIsCameraOpen(false)}
@@ -488,49 +728,53 @@ const GoodsRegistrationPage: React.FC = () => {
             />
           )}
 
-          {/* 선택된 이미지 미리보기 */}
-          {/* {formData.images.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              {Array.from(formData.images).map((image, index) => (
-                <div key={index} className="relative h-24">
-                  <img
-                    src={URL.createObjectURL(image)}
-                    alt={`Preview ${index}`}
-                    className="h-full w-full object-cover rounded-md"
-                  />
-                </div>
-              ))}
+          {/* 3. 게시글 생성 버튼 */}
+          {capturedImages.length > 0 && !isGenerated && (
+            <div className="mt-2">
+              <button
+                onClick={handleGenerateContent}
+                disabled={isGenerating}
+                className="w-full py-3 bg-first text-white font-medium rounded-md"
+              >
+                {isGenerating ? "게시글 생성 중..." : "게시글 생성하기"}
+              </button>
+              <p className="mt-2 text-sm text-gray-500 text-center">
+                상품 이미지를 모두 업로드한 후 게시글 생성을 진행해주세요.
+              </p>
             </div>
-          )} */}
+          )}
         </div>
       </div>
 
       {/* 하단 버튼 영역 - sticky로 변경하여 스크롤과 무관하게 항상 표시 */}
-      <div className="flex-1 px-3 py-7 bg-white flex gap-2 grid grid-cols-6">
-        {/* <div className="sticky bottom-14 left-0 right-0 p-4 bg-white border-t flex space-x-2 z-10"> */}
-        <button
-          type="button"
-          onClick={handleCancel}
-          disabled={isLoading}
-          className="col-span-2 flex-1 py-3 bg-first/60 text-white font-medium rounded-md"
-        >
-          취소하기
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isLoading}
-          className="col-span-4 flex-1 py-3 bg-second text-white font-medium rounded-md"
-        >
-          {/* {isLoading ? "등록 중..." : "등록하기"} */}
-          {editItem ? "수정하기" : isLoading ? "등록 중..." : "등록하기"}
-        </button>
-      </div>
+      {capturedImages.length > 0 && isGenerated && (
+        <div className="flex-1 px-3 py-7 bg-white flex gap-2 grid grid-cols-6">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={isLoading}
+            className="col-span-2 flex-1 py-3 bg-first/60 text-white font-medium rounded-md"
+          >
+            취소하기
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="col-span-4 flex-1 py-3 bg-second text-white font-medium rounded-md"
+          >
+            {/* {isLoading ? "등록 중..." : "등록하기"} */}
+            {editItem ? "수정하기" : isLoading ? "등록 중..." : "등록하기"}
+          </button>
+        </div>
+      )}
+
+      <div className="h-20"></div>
 
       {/* 하단 네비게이션 바 */}
-      {/* <div className="fixed bottom-0 left-0 right-0 z-10"> */}
-      <NavigationBar />
-      {/* </div> */}
+      <div className="fixed bottom-0 left-0 right-0 z-10">
+        <NavigationBar />
+      </div>
     </div>
   );
 };

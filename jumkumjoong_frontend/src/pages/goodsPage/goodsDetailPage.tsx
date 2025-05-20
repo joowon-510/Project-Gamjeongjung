@@ -1,13 +1,12 @@
 // src/pages/goodsPage/goodsDetailPage.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsImage from "../../components/goods/GoodsImage";
 import GoodsStatus from "../../components/goods/GoodsStatus";
-import {
-  GoodsDetailProps,
-  GoodsItemDetailProps,
-} from "../../components/goods/GoodsItem";
+import { GoodsDetailProps } from "../../components/goods/GoodsItem";
+
 import {
   deleteGoods,
   getGoodsDetail,
@@ -16,6 +15,8 @@ import {
 
 import Heart from "../../assets/icons/Heart.svg";
 import HeartEmpty from "../../assets/icons/HeartEmpty.svg";
+import star from "../../assets/icons/starFilled.svg";
+import thumbnail from "../../assets/icons/nologo.svg";
 
 import {
   useWishItemStore,
@@ -30,14 +31,13 @@ const GoodsDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();
   const [goods, setGoods] = useState<GoodsDetailProps | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { nickname } = useAuthStore();
   const [edit, setEdit] = useState(false);
   const [favorite, setFavorite] = useState(false);
-
-  // 상품 평점 (하드코딩)
-  const [rating] = useState("4.5");
+  const [rating, setRating] = useState<number>(0);
 
   // 상품 상태 정보 (하드코딩)
   const [productStatus] = useState({
@@ -82,6 +82,8 @@ const GoodsDetailPage: React.FC = () => {
           };
 
           setGoods(updatedGoodsData);
+          setRating(goodsData.body.userRating.toFixed(2));
+          setImages(goodsData.body.item.deviceImageList);
           const exits = goodsData.body.isFavorite;
           setFavorite(exits);
           console.log(exits);
@@ -140,23 +142,7 @@ const GoodsDetailPage: React.FC = () => {
     }
   };
 
-  // 채팅하기 처리
-  // const handleChat = () => {
-  //   // 채팅 기능 미구현
-  //   alert("채팅 기능은 아직 구현되지 않았습니다.");
-  // };
-
-  // 로컬 상태로 찜하기 여부 관리 (목업용)
-
   const { items, addItem, removeItem } = useWishItemStore();
-
-  // useEffect(() => {
-  //   if (!itemId) return;
-
-  //   // 현재 상품이 찜 목록에 있는지 확인
-  //   const exists = items.some((item) => item.itemId === parseInt(itemId));
-  //   setFavorite(exists);
-  // }, [itemId, items]);
 
   // 찜하기 버튼 클릭 핸들러 (목업용)
   const handleFavoriteClick = async (e: React.MouseEvent) => {
@@ -181,6 +167,9 @@ const GoodsDetailPage: React.FC = () => {
       itemName: goods.item.title,
       itemPrice: goods.item.price,
       itemStatus: goods.item.status,
+      deviceImageUrl: !goods.item.deviceImageUrl
+        ? thumbnail
+        : goods.item.deviceImageUrl[0],
     };
 
     // ✅ 하트 아이콘을 "바로" 바꾼다
@@ -189,15 +178,16 @@ const GoodsDetailPage: React.FC = () => {
     // 찜 요청 api 연결
     try {
       if (exists) {
-        removeItem(wishItem.itemId);
         console.log("찜 해제 요청 보내는 중...");
+        const response = await postGoodsFavorites(goodsId);
+        console.log(response);
+        removeItem(wishItem.itemId);
         console.log("removeItem: ", items);
       } else {
         console.log("찜 추가 요청 보내는 중...");
-        // const exists = items.some((item) => item.itemId === goodsId);
-        // console.log("exists: ", exists);
         if (!exists) {
-          await postGoodsFavorites(goodsId);
+          const response = await postGoodsFavorites(goodsId);
+          console.log(response);
           addItem(wishItem);
           console.log("wishItem: ", items);
         }
@@ -251,7 +241,7 @@ const GoodsDetailPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto pb-20">
         {/* 상품 이미지 컴포넌트 */}
         <GoodsImage
-          imageUrl="../../assets/goods/thumbnail.png"
+          imageUrl={images[0]}
           title={goods.item.title}
           canChangeStatus={goods.item.status}
           onGoBack={handleGoBack}
@@ -271,17 +261,25 @@ const GoodsDetailPage: React.FC = () => {
           ) : (
             <></>
           )}
+
           <div className="flex justify-between items-center">
-            <p className="text-gray-700">판매자: {goods.userName}</p>
+            <div
+              className=""
+              onClick={() => {
+                navigate(`/page/${goods.userName}`, {
+                  state: {
+                    userName: goods.userName,
+                    userRating: goods.userRating,
+                    userId: goods.item.userId,
+                  },
+                });
+              }}
+            >
+              <p className="text-gray-700">판매자: {goods.userName}</p>
+            </div>
             <div className="flex gap-4">
               <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-yellow-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
+                <img src={star} alt="rating-start" className="w-5 h-5" />
                 <span className="ml-1">{rating}</span>
               </div>
               {/* 하트 버튼 (찜하기) - 이미지 위에 겹쳐서 표시 */}
@@ -310,7 +308,9 @@ const GoodsDetailPage: React.FC = () => {
 
         {/* 상품 설명 */}
         <div className="p-4 border-b">
-          <p className="text-gray-800">{goods.item.description}</p>
+          <p className="text-gray-800 whitespace-pre-line">
+            {goods.item.description}
+          </p>
         </div>
 
         {/* 시리얼 넘버 */}
@@ -321,26 +321,26 @@ const GoodsDetailPage: React.FC = () => {
           </div>
         </div>
         {/* 기종 정보 */}
-        <div className="p-4 border-b">
+        {/* <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-700">기종</span>
             <span className="font-medium">갤럭시북 5 PRO</span>
           </div>
-        </div>
+        </div> */}
 
         {/* 가격 정보 */}
-        <div className="p-4 border-b">
+        {/* <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-700">AI의 평가점수</span>
             <span className="font-medium">92점</span>
           </div>
-        </div>
+        </div> */}
 
         {/* 판매가 정보 */}
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-700">판매가</span>
-            <span className="font-bold text-lg">{goods.item.price}</span>
+            <span className="font-bold text-lg">{goods.item.price} 원</span>
           </div>
         </div>
 
@@ -362,6 +362,19 @@ const GoodsDetailPage: React.FC = () => {
           screenPan={productStatus.screenPan}
         />
 
+        {images.length > 0 ? (
+          images.map((itemImg) => {
+            return (
+              <div className="flex flex-col items-center">
+                <img src={itemImg} alt="item-image" className="w-[60%]" />
+              </div>
+            );
+          })
+        ) : (
+          <></>
+        )}
+        <img src="" alt="" />
+
         {/* 하단 여백 (네비게이션 바와 액션 바 높이만큼) */}
         <div className="h-8"></div>
       </div>
@@ -370,19 +383,23 @@ const GoodsDetailPage: React.FC = () => {
       <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
         <div className="flex-1">
           <span className="text-gray-700 mr-2">가격:</span>
-          <span className="text-xl font-bold">{goods.item.price}</span>
+          <span className="text-xl font-bold">{goods.item.price} 원</span>
         </div>
-        <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 flex items-center">
+        <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t p-3 mb-1 flex items-center">
           <div className="flex-1">
             <span className="text-gray-700 mr-2">가격:</span>
-            <span className="text-xl font-bold">{goods.item.price}</span>
+            <span className="text-xl font-bold">{goods.item.price} 원</span>
           </div>
-          <ChatButton
-            sellerId={goods.item.userId}
-            itemId={goods.item.itemId || parseInt(itemId!, 10)} // 명시적으로 itemId 전달
-            sellerName={goods.userName}
-            itemTitle={goods.item.title}
-          />
+          {nickname !== goods.userName ? (
+            <ChatButton
+              sellerId={goods.item.userId}
+              itemId={goods.item.itemId || parseInt(itemId!, 10)} // 명시적으로 itemId 전달
+              sellerName={goods.userName}
+              itemTitle={goods.item.title}
+            />
+          ) : (
+            <></>
+          )}
         </div>
       </div>
 

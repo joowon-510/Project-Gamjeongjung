@@ -8,11 +8,19 @@ import GoodsItem, { GoodsItemProps } from "../../components/goods/GoodsItem";
 import { getGoodsUsers } from "../../api/goods";
 
 import { sortGoodsByDateDesc } from "../../utils/sortUtils";
+import { useLocation } from "react-router-dom";
 
 const MyPostsPage: React.FC = () => {
   const [myGoods, setMyGoods] = useState<GoodsItemProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number>(0);
+  const location = useLocation();
+  const state = location.state as {
+    userName: string;
+    userId: number;
+  };
+  const userInfo = location && location.state ? location.state : undefined;
 
   useEffect(() => {
     fetchMyPosts();
@@ -22,7 +30,10 @@ const MyPostsPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await getGoodsUsers();
+      // if (state.userId === 0) {
+      //   setUserId(userInfo);
+      // }
+      const response = await getGoodsUsers(state.userId);
       console.log("유저가 만든 게시물: ", response);
       if (response) {
         setMyGoods(response);
@@ -76,13 +87,13 @@ const MyPostsPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
+    <div className="min-h-screen pb-16">
       {/* 헤더 */}
       <Header />
 
       {/* 내가 작성한 글 목록 제목 */}
       <div className="px-4 pt-6 bg-white">
-        <h1 className="text-2xl font-bold">내가 작성한 글</h1>
+        <h1 className="text-2xl font-bold">{state.userName} 님이 작성한 글</h1>
       </div>
 
       {/* 내가 작성한 글 목록 */}

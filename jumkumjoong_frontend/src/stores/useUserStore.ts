@@ -24,6 +24,7 @@ export interface WishItemState {
   itemName: string;
   itemPrice: number;
   itemStatus: boolean;
+  deviceImageUrl: string;
 }
 
 interface WishListState {
