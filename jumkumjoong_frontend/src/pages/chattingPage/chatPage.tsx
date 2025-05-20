@@ -921,7 +921,7 @@ const ChatPage: React.FC = () => {
               className="text-[#ffffff] self-end "
               onClick={handleReviewClick}
             >
-              {status && userInfo.nickname !== goods.userName ? (
+              {!status && userInfo.nickname !== goods.userName ? (
                 <div className="rounded-md bg-third text-white p-[6px]">
                   <p>리뷰 작성</p>
                 </div>
@@ -937,11 +937,15 @@ const ChatPage: React.FC = () => {
             <img
               src={goods.img}
               alt="thumbnail"
-              className={`w-[90px] rounded-md ${
+              className={`w-[90px] h-[90px] rounded-md ${
                 goods.img === thumbnail ? "opacity-50 bg-first/20" : ""
               } `}
             />
-            <p>{goods.title}</p>
+            {goods.title.length > 15 ? (
+              <p>{goods.title.slice(0, 15)} ...</p>
+            ) : (
+              goods.title
+            )}
           </div>
           <div
             onClick={() => {

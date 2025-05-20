@@ -91,7 +91,9 @@ const ReviewRegisterPage: React.FC = () => {
       navigate("/chatting/list");
     } catch (error) {
       console.error("리뷰 등록 오류:", error);
-      alert("리뷰 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
+      alert(
+        "리뷰 등록은 1 회만 가능합니다. 해당 상품에 대한 리뷰를 이미 등록되었습니다."
+      );
     } finally {
       setIsLoading(false);
     }
