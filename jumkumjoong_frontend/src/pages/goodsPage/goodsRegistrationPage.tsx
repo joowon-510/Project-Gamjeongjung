@@ -318,7 +318,7 @@ const GoodsRegistrationPage: React.FC = () => {
       isNaN(formData.price) ||
       formData.price <= 0 ||
       !formData.purchaseYear ||
-      formData.serialNumber.trim().length === 0 ||
+      (!isSerialUnknown && formData.serialNumber.trim().length === 0) ||
       imageData.images.length === 0
     ) {
       alert(
@@ -331,13 +331,18 @@ const GoodsRegistrationPage: React.FC = () => {
       setIsGenerating(true);
 
       // 구매일자 YYYY-MM 포맷
-      const purchaseDateString =
-        formData.purchaseMonth === "0"
-          ? formData.purchaseYear
-          : `${formData.purchaseYear}-${formData.purchaseMonth.padStart(
-              2,
-              "0"
-            )}`;
+      // const purchaseDateString =
+      //   formData.purchaseMonth === "0"
+      //     ? formData.purchaseYear
+      //     : `${formData.purchaseYear}-${formData.purchaseMonth.padStart(
+      //         2,
+      //         "0"
+      //       )}`;
+      const purchaseDateString = useCustomDate
+        ? formData.purchaseDate
+        : formData.purchaseMonth === "0"
+        ? formData.purchaseYear
+        : `${formData.purchaseYear}-${formData.purchaseMonth.padStart(2, "0")}`;
 
       // 1. 먼저 이미지를 업로드하고 객체 탐지 결과 받아오기
       let processedImageMap = {};
@@ -415,7 +420,7 @@ const GoodsRegistrationPage: React.FC = () => {
       alert("구매 일자는 필수 입력 항목입니다.");
       return;
     }
-    if (formData.serialNumber.trim().length === 0) {
+    if (formData.serialNumber.trim().length === 0 && !isSerialUnknown) {
       alert("시리얼 번호는 필수 입력 항목입니다.");
       return;
     }
@@ -466,7 +471,7 @@ const GoodsRegistrationPage: React.FC = () => {
         grades: formData.grades,
         status: formData.status,
         createdAt: date.toString(),
-        serialNumber: formData.serialNumber,
+        serialNumber: isSerialUnknown ? "unknown" : formData.serialNumber,
         scratchesStatus: "scratchesStatus",
         // imageUrls: formData.imageUrls, // 업로드된 이미지 URL 배열 추가
       };
@@ -529,6 +534,9 @@ const GoodsRegistrationPage: React.FC = () => {
     navigate(-1);
   };
 
+  const [useCustomDate, setUseCustomDate] = useState(false);
+  const [isSerialUnknown, setIsSerialUnknown] = useState(false);
+
   return (
     <div className="container h-screen mx-auto text-first">
       {/* 통일된 헤더 사용 */}
@@ -559,12 +567,29 @@ const GoodsRegistrationPage: React.FC = () => {
 
           {/* 구매일자 입력 - 드롭다운으로 변경 */}
           <div className="flex  flex-col">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              구매일자
-            </label>
-            <div className="flex space-x-2">
-              {/* 년도 선택 드롭다운 */}
-              <div className="w-1/2">
+            <div className="flex justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700 ">
+                구매일자
+              </label>
+
+              <div className=" flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="customDate"
+                  checked={useCustomDate}
+                  onChange={(e) => setUseCustomDate(e.target.checked)}
+                />
+                <label
+                  htmlFor="customDate"
+                  className="text-sm text-gray-700 font-medium"
+                >
+                  직접 입력
+                </label>
+              </div>
+            </div>
+            {/* <div className="flex space-x-2"> */}
+            {/* 년도 선택 드롭다운 */}
+            {/* <div className="w-1/2">
                 <select
                   id="purchaseYear"
                   name="purchaseYear"
@@ -582,10 +607,10 @@ const GoodsRegistrationPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
-              {/* 월 선택 드롭다운 */}
-              <div className="w-1/2">
+            {/* 월 선택 드롭다운 */}
+            {/* <div className="w-1/2">
                 <select
                   id="purchaseMonth"
                   name="purchaseMonth"
@@ -602,24 +627,106 @@ const GoodsRegistrationPage: React.FC = () => {
                     )
                   )}
                 </select>
+              </div> */}
+            {/* </div> */}
+
+            {!useCustomDate ? (
+              <div className="flex space-x-2">
+                {/* 년도 선택 드롭다운 */}
+                <div className="w-1/2">
+                  <select
+                    id="purchaseYear"
+                    name="purchaseYear"
+                    value={formData.purchaseYear}
+                    onChange={handleInputChange}
+                    className="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="" disabled>
+                      년도 선택
+                    </option>
+                    {yearOptions.map((year) => (
+                      <option key={year} value={year}>
+                        {year}년
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 월 선택 드롭다운 */}
+                <div className="w-1/2">
+                  <select
+                    id="purchaseMonth"
+                    name="purchaseMonth"
+                    value={formData.purchaseMonth}
+                    onChange={handleInputChange}
+                    className="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="0">기억 안남</option>
+                    {Array.from({ length: 12 }, (_, i) =>
+                      (i + 1).toString()
+                    ).map((month) => (
+                      <option key={month} value={month}>
+                        {month}월
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
+            ) : (
+              <input
+                type="text"
+                name="purchaseDate"
+                value={formData.purchaseDate}
+                onChange={handleInputChange}
+                placeholder="예: 2022-08 또는 2023"
+                className="w-full p-2 mt-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            )}
           </div>
 
           {/* 시리얼 넘버 입력 */}
           <div>
-            <label
-              htmlFor="price"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              시리얼 넘버
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label
+                htmlFor="price"
+                className="block text-sm font-medium text-gray-700"
+              >
+                시리얼 넘버
+              </label>
+              {/* ✅ "모름" 체크박스 */}
+              <div className=" flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="serialUnknown"
+                  checked={isSerialUnknown}
+                  onChange={(e) => {
+                    const isChecked = e.target.checked;
+                    setIsSerialUnknown(isChecked);
+                    if (isChecked) {
+                      // 입력값 초기화 또는 "모름" 처리
+                      setFormData((prev) => ({
+                        ...prev,
+                        serialNumber: "",
+                      }));
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="serialUnknown"
+                  className="text-sm text-gray-700 font-medium"
+                >
+                  시리얼 넘버를 모릅니다
+                </label>
+              </div>
+            </div>
             <SerialNumberInput
               // type="text"
               id="serialNumber"
               name="serialNumber"
               value={formData.serialNumber}
               onChange={handleSerialNumberChange}
+              disabled={isSerialUnknown} // 체크되면 비활성화
             />
           </div>
 
