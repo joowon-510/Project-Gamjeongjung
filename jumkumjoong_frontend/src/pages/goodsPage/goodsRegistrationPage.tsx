@@ -1,5 +1,5 @@
 // src/pages/goodsPage/goodsRegistrationPage.tsx
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import Header from "../../components/common/Header";
@@ -25,7 +25,7 @@ interface ExtendedGoodsData extends ItemRegistParams {
 
 interface ImageData {
   images: File[]; // base64 형식의 이미지 문자열 배열
-  aiImages?: File[]; // 캔버스에서 생성한 AI 분석 이미지
+  // aiImages: File[]; // 캔버스에서 생성한 AI 분석 이미지
 }
 
 interface Detection {
@@ -228,15 +228,16 @@ const GoodsRegistrationPage: React.FC = () => {
     if (editItem) {
       return {
         images: [] as File[], // 빈 이미지 배열로 초기화
+        // aiImages: [] as File[],
         // imageUrls: editItem.imageUrls || [], // 기존 이미지 URL이 있으면 사용
       };
     } else {
       return {
         images: [] as File[], // 빈 이미지 배열로 초기화
+        // aiImages: [] as File[],
       };
     }
   });
-  const [aiImages, setAiImages] = useState<File[]>([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -336,24 +337,6 @@ const GoodsRegistrationPage: React.FC = () => {
     }));
   };
 
-  function canvasToJpegFile(
-    canvas: HTMLCanvasElement,
-    filename: string
-  ): Promise<File> {
-    return new Promise((resolve) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const file = new File([blob], filename, { type: "image/jpeg" });
-            resolve(file);
-          }
-        },
-        "image/jpeg",
-        0.95 // quality (optional)
-      );
-    });
-  }
-
   // 판매글 생성 처리 - handleSubmit 함수 위에 추가
   const handleGenerateContent = async () => {
     // 필수 필드 검증
@@ -438,29 +421,6 @@ const GoodsRegistrationPage: React.FC = () => {
 
         setIsGenerated(true);
         alert("판매글이 생성되었습니다. 내용을 확인하고 등록해주세요.");
-        if (canvasRefs.current.length > 0) {
-          const jpegFiles: File[] = [];
-
-          for (let i = 0; i < canvasRefs.current.length; i++) {
-            const canvas = canvasRefs.current[i];
-            if (canvas) {
-              const file = await canvasToJpegFile(
-                canvas,
-                `ai_image_${i + 1}.jpg`
-              );
-              jpegFiles.push(file);
-            }
-          }
-
-          // 기존 이미지에 추가
-          // setImageData((prev) => ({
-          //   ...prev,
-          //   images: [...prev.images, ...jpegFiles],
-          // }));
-
-          // 기존 imageData.images 에는 추가하지 않고, 별도로 저장
-          setAiImages(jpegFiles);
-        }
       } else {
         alert(
           "이미지 분석 결과를 받지 못했거나 이미지 개수가 맞지 않습니다. 다시 시도해주세요."
@@ -563,15 +523,8 @@ const GoodsRegistrationPage: React.FC = () => {
         console.log("등록된 상품 정보:", response);
         const itemId = response;
 
-        const allImages = [...imageData.images, ...aiImages];
-        // if (itemId && response && imageData.images) {
-        if (itemId && allImages.length > 0) {
-          // const allImages = [
-          //   ...imageData.images,
-          //   ...(imageData.aiImages || []),
-          // ];
-          const data = await postGoodsImage(allImages, itemId);
-          // const data = await postGoodsImage(imageData.images, itemId);
+        if (itemId && response && imageData.images) {
+          const data = await postGoodsImage(imageData.images, itemId);
           console.log(data);
           if (data) {
             alert("상품이 등록되었습니다.");

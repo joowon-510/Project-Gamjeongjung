@@ -99,9 +99,9 @@ const MainPage: React.FC = () => {
         ? "찜한 상품이 없습니다.\n상품을 보러가볼까요?"
         : "";
     return (
-      <div className=" my-2 flex items-center">
+      <div className=" my-2 flex items-center  sm:justify-center">
         {items.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 ">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-12">
             {items.slice(0, 6).map((item, idx) => (
               <div
                 key={idx}
@@ -135,6 +135,23 @@ const MainPage: React.FC = () => {
       </div>
     );
   };
+  const keyword = ["노트북", "키보드", "휴대폰", "태블릿"];
+  const [keywordIndex, setKeywordIndex] = useState(0);
+  const [fadeState, setFadeState] = useState<"fade-in" | "fade-out">("fade-in");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFadeState("fade-out");
+
+      // 페이드아웃 후 텍스트 변경 + 페이드인
+      setTimeout(() => {
+        setKeywordIndex((prev) => (prev + 1) % keyword.length);
+        setFadeState("fade-in");
+      }, 400); // 페이드아웃 끝나는 시간 (ms)
+    }, 2500); // 전체 주기
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex flex-col h-screen text-first">
@@ -143,16 +160,26 @@ const MainPage: React.FC = () => {
       <main className="flex-1 overflow-auto pb-[150px] font-semibold flex flex-col gap-4">
         {/* <main className="font-semibold flex flex-col gap-4 mb-4 flex-1 overflow-y-auto"> */}
         {/* 카테고리 */}
-        <article className="px-4 py-2 text-first">
-          <p className="text-center text-[20px] my-3">
-            내가 찾는 중고 물품을 찾아보세요.
-          </p>
-          <div className="flex gap-4">
+        <article className="px-4 py-2 text-first ">
+          <div className="flex justify-center items-center gap-3 my-3 text-[20px] md:text-[24px]">
+            <span className="">내가 찾는 중고</span>
+            <span
+              className={`text-second text-[28px] md:text-[30px] font-bold transition-all duration-500 ease-in-out    ${
+                fadeState === "fade-in"
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 -translate-y-2"
+              }`}
+            >
+              {keyword[keywordIndex]}
+            </span>
+            <span className="">찾아보세요.</span>
+          </div>
+          <div className="flex gap-4 md:justify-center md:gap-10">
             {/* 각 카테고리 */}
             {categories.map(({ id, label, icon }) => (
               <div
                 key={id}
-                className="w-full h-fit bg-fourth px-2 rounded-lg cursor-pointer"
+                className="w-full h-fit bg-fourth px-2 rounded-lg cursor-pointer md:w-[10%] md:h-[100%] sm:flex sm:flex-col sm:items-center md:px-0"
                 onClick={() => handleCategoryClick(id)}
               >
                 <img src={icon} alt={id} className="w-[96px]" />
@@ -163,7 +190,7 @@ const MainPage: React.FC = () => {
         </article>
 
         {/* 찜한 아이템 중 거래 중인 상품 */}
-        <article className=" mx-4 border-b pb-5">
+        <article className=" mx-4 border-b pb-5 md:w-[47%] md:self-center">
           <div className="flex justify-between items-center pb-2">
             <div className="flex gap-2">
               <img src={heart} alt="heart" className="w-5" />
@@ -182,7 +209,7 @@ const MainPage: React.FC = () => {
         </article>
 
         {/* 최근 등록된 아이템 */}
-        <article className="mx-4">
+        <article className="mx-4 md:w-[47%] md:self-center">
           <div className="flex gap-2 items-center pb-2">
             <img src={newGoods} alt="new" className="w-7" />
             <p className="text-[20px]">방금 등록된 아이템</p>
