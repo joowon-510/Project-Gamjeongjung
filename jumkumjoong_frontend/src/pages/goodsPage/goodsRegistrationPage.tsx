@@ -965,7 +965,7 @@ const GoodsRegistrationPage: React.FC = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                rows={4}
+                rows={13}
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder={
                   formData.configuration === 1

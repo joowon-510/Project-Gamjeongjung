@@ -95,12 +95,14 @@ const MyPostsPage: React.FC = () => {
       <Header />
 
       {/* 내가 작성한 글 목록 제목 */}
-      <div className="px-4 pt-6 ">
+      <div className="px-4 pt-6 mb-3">
         <h1 className="text-2xl font-bold">{state.userName} 님이 작성한 글</h1>
       </div>
 
       {/* 내가 작성한 글 목록 */}
-      <main className="flex-1 overflow-y-auto pb-0">{renderContent()}</main>
+      <main className="flex-1 overflow-y-auto pb-[140px]">
+        {renderContent()}
+      </main>
 
       {/* 뒤로가기 버튼 */}
       <button
@@ -121,8 +123,6 @@ const MyPostsPage: React.FC = () => {
           />
         </svg>
       </button>
-      {/* 여백 추가 */}
-      <div className="h-16" />
 
       {/* NavigationBar 고정 위치로 배치 */}
       <div className="fixed bottom-0 left-0 w-full">
