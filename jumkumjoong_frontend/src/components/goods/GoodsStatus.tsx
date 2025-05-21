@@ -14,20 +14,8 @@ const GoodsStatus: React.FC<GoodsStatusProps> = ({ status }) => {
   const locations = locationStr.split("|"); // ["keyboard", "back", "side"]
   const damageData = damageStr.split("|"); // ["img1.jpg>Damage1;Damage2", ...]
 
-  // 각 위치별 damage count 맵
-  const locationDamageMap: {
-    [location: string]: {
-      [damageType: string]: number;
-    };
-  } = {};
-
-  // 가능한 파손 타입들
-  const DAMAGE_TYPES = [
-    "Damaged Keys",
-    "Scratch",
-    "Display Issues",
-    "Damaged Screen",
-  ];
+  // 각 위치별 총 손상 개수를 저장할 객체
+  const locationDamageCounts: { [location: string]: number } = {};
 
   // damageData 순회하며 위치별 파손 개수 카운트
 
@@ -38,47 +26,59 @@ const GoodsStatus: React.FC<GoodsStatusProps> = ({ status }) => {
     const location = locations[index]; // 이미지 순서에 따른 위치 결정
     if (!location) return; // 방어코드
 
-    if (!locationDamageMap[location]) {
-      locationDamageMap[location] = {};
-    }
-
-    DAMAGE_TYPES.forEach((type) => {
-      const regex = new RegExp(`${type}`, "gi");
-      const matches = damageList.match(regex);
-      const count = matches ? matches.length : 0;
-      locationDamageMap[location][type] =
-        (locationDamageMap[location][type] || 0) + count;
-    });
+    // 세미콜론으로 구분된 손상 항목들을 분리하여 개수 세기
+    const damages = damageList.split(";").filter((item) => item.trim());
+    // 해당 위치의 총 손상 개수 증가
+    locationDamageCounts[location] =
+      (locationDamageCounts[location] || 0) + damages.length;
   });
+
+  // 위치명 한글로 변환하는 함수
+  const getLocationName = (location: string): string => {
+    switch (location.toLowerCase()) {
+      case "back":
+        return "후면";
+      case "front":
+        return "전면";
+      case "screen":
+        return "화면";
+      case "side":
+        return "측면";
+      case "keyboard":
+        return "키보드";
+      default:
+        return "그 외";
+    }
+  };
 
   return (
     <div className="p-4">
       <h2 className="text-lg font-bold mb-4">상품 상태</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        {Object.entries(locationDamageMap).map(([location, damages]) => (
-          <div
-            key={location}
-            className="border rounded-lg p-3 bg-white shadow-sm"
-          >
-            <h3 className="font-medium border-b pb-2 mb-2 capitalize">
-              {location === "back"
-                ? "후면"
-                : location === "front"
-                ? "전면"
-                : location === "screen"
-                ? "화면"
-                : location === "side"
-                ? "측면"
-                : location === "keyboard"
-                ? "키보드"
-                : "그 외"}
+      <div className="grid grid-cols-1 grid-cols-2 gap-4 text-sm">
+        {/* {Object.entries(locationDamageCounts).map(([location, count]) => (
+          <div key={location} className="border rounded-lg p-3 shadow-sm">
+            <h3 className="font-medium border-b pb-2 mb-2 ">
+              {getLocationName(location)}
             </h3>
-            {Object.entries(damages).map(([type, count]) => (
-              <div className="flex justify-between" key={type}>
-                <span className="text-gray-600">{type}</span>
-                <span>{count}개</span>
-              </div>
-            ))}
+            <div className="flex justify-between">
+              <span className="text-gray-600">파손 여부</span>
+              {count > 0 ? <span>{count} 개</span> : <span>없음</span>}
+            </div>
+          </div>
+        ))} */}
+        {locations.map((location, index) => (
+          <div key={location} className="border rounded-lg p-3 shadow-sm">
+            <h3 className="font-medium border-b pb-2 mb-2 ">
+              {getLocationName(location)}
+            </h3>
+            <div className="flex justify-between">
+              <span className="text-gray-600">파손 여부</span>
+              <span>
+                {locationDamageCounts[location] > 0
+                  ? `${locationDamageCounts[location]} 개`
+                  : "없음"}
+              </span>
+            </div>
           </div>
         ))}
       </div>
