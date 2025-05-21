@@ -23,7 +23,7 @@ export const postReviewRegist = async (review: ReviewRegistProps) => {
 };
 
 // 리뷰 조회
-export const getReview = async (sellerId: number) => {
+export const getReview = async (sellerId?: number) => {
   try {
     const response = await axiosInstance.get("/reviews", {
       params: {
