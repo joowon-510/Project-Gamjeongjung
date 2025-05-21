@@ -471,6 +471,32 @@ const GoodsRegistrationPage: React.FC = () => {
               "0"
             )}`;
 
+      // finalDescription에 입력할 이미지 추가 정보.
+      // 이미지 URL 추출
+      const imageUrlsText = capturedImages.map((img) => img.url).join("|");
+
+      // 분류 결과 추출 (class만)
+      let classificationText = "";
+      if (uploadInfoResponse?.classification_results) {
+        classificationText = uploadInfoResponse.classification_results
+          .map((result) => result.classification.class)
+          .join("|");
+      }
+
+      // 객체 탐지 결과 추출 (class 및 bbox 좌표)
+      let detectionText = "";
+      if (uploadInfoResponse?.detection_results) {
+        detectionText = uploadInfoResponse.detection_results
+          .map((result) => {
+            // 각 이미지의 탐지 결과들을 처리
+            const detections = result.detections
+              .map((det) => `${det.class}:(${det.bbox.join(",")})`)
+              .join(";");
+            return `${result.filename}>${detections}`;
+          })
+          .join("|");
+      }
+
       let finalDescription = formData.description;
       if (
         formData.configuration === 1 &&
@@ -482,7 +508,7 @@ const GoodsRegistrationPage: React.FC = () => {
       console.log("formData.serialNumber:", formData.serialNumber);
 
       // 최종 설명에 구매일자와 구성여부 정보 포함
-      finalDescription = `${finalDescription}`;
+      finalDescription = `${finalDescription}@@${classificationText}##${detectionText}`;
       const date = new Date().toISOString();
       console.log(date);
 
