@@ -26,7 +26,7 @@ const MyPage: React.FC = () => {
     try {
       const [starRes, reviewRes] = await Promise.all([
         getReviewStars(),
-        getReview(0),
+        getReview(),
       ]);
 
       if (reviewRes) {

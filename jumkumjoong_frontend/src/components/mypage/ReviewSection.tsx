@@ -34,7 +34,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
 
   const fetchReviewData = async () => {
     try {
-      const response = await getReview(userId);
+      const response = await getReview();
       setReviews(response);
     } catch (error) {}
   };
@@ -65,7 +65,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               {review.createdAt ? (
                 <div className="flex justify-between pppp">
                   {/* 별점 */}
-                  <div className="flex gap-1 items-center">
+                  <div className="flex gap-1 items-start">
                     <img src={star} alt="star" className="w-5 h-5" />
                     <p className="font-semibold">{review.stars}</p>
                   </div>
