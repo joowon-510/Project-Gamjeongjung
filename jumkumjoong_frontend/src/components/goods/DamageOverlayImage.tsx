@@ -104,8 +104,8 @@ const DamageOverlayImage: React.FC<DamageOverlayImageProps> = ({
             )
           );
 
-          let scaledW = ((x2 - x1) / naturalSize.width) * drawWidth;
-          let scaledH = ((y2 - y1) / naturalSize.height) * drawHeight;
+          let scaledW = (((x2 - x1) * 3) / naturalSize.width) * drawWidth;
+          let scaledH = (((y2 - y1) * 3) / naturalSize.height) * drawHeight;
 
           // Adjust width/height to keep the box within canvas bounds
           if (scaledX + scaledW > width - borderWidth) {
