@@ -2,6 +2,7 @@ package com.ssafy.usedtrade.domain.redis.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.usedtrade.domain.redis.entity.ChattingTotalMessageRequest;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -21,10 +22,14 @@ public class ChattingTotalMessageService {
     }
 
     public void save(ChattingTotalMessageRequest chattingTotalMessageRequest) {
+        String key = getKey(chattingTotalMessageRequest);
+
         redisTemplate.opsForZSet().add(
-                getKey(chattingTotalMessageRequest),
+                key,
                 chattingTotalMessageRequest.getMessageId(),
                 getEpochMilli(chattingTotalMessageRequest));
+
+        redisTemplate.expire(key, Duration.ofDays(7));
     }
 
     public void delete(ChattingTotalMessageRequest chattingTotalMessageRequest) {

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -93,18 +94,35 @@ public class ChatReadStreamConsumer {
 
                 for (MapRecord<String, String, String> record : records) {
                     Map<String, String> msg = record.getValue();
+                    String decryptRoomId = aesUtil.decrypt(msg.get("roomId"));
+                    String userId = msg.get("userId");
 
-                    readPointRepository.save(
-                            ReadPoint.builder()
-                                    .roomId(aesUtil.decrypt(msg.get("roomId")))
-                                    .userId(msg.get("userId"))
-                                    .createdAt(LocalDateTime.parse(msg.get("createdAt")))
-                                    .build()
-                    );
+                    Optional<ReadPoint> readPointOptional =
+                            readPointRepository.findByUserIdAndRoomId(userId, decryptRoomId);
+
+                    //readPoint 존재 여부 확인 후, 수정 후 삽입 or 그냥 삽입
+                    if (readPointOptional.isPresent()) {
+                        readPointRepository.save(
+                                ReadPoint.builder()
+                                        .id(readPointOptional.get().getId())
+                                        .roomId(decryptRoomId)
+                                        .userId(userId)
+                                        .createdAt(LocalDateTime.parse(msg.get("createdAt")))
+                                        .build()
+                        );
+                    } else {
+                        readPointRepository.save(
+                                ReadPoint.builder()
+                                        .roomId(decryptRoomId)
+                                        .userId(userId)
+                                        .createdAt(LocalDateTime.parse(msg.get("createdAt")))
+                                        .build()
+                        );
+                    }
 
                     streamOps.acknowledge(streamKey, group, record.getId());
                     log.info("ACK chat-read-stream msgId={} roomId={} userId={}",
-                            record.getId(), msg.get("roomId"), msg.get("userId"));
+                            record.getId(), decryptRoomId, userId);
                 }
             } catch (Exception e) {
                 log.error("Error consuming Redis Stream: {}", e.getMessage(), e);

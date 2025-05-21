@@ -3,6 +3,7 @@ package com.ssafy.usedtrade.domain.redis.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.usedtrade.domain.redis.entity.MessageDetail;
 import com.ssafy.usedtrade.domain.websocket.dto.request.ChatMessageDto;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -44,7 +45,8 @@ public class MessageDetailService {
             String json = objectMapper.writeValueAsString(messageDetail.getMessage());
             redisTemplate.opsForValue().set(
                     String.valueOf(messageDetail.getMessageId()),
-                    json
+                    json,
+                    Duration.ofDays(7)
             );
         } catch (Exception e) {
             System.out.println("❌ 직렬화 실패: " + e.getMessage());

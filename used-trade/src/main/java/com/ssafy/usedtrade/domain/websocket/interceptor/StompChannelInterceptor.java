@@ -125,7 +125,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                                 .channelId(aesUtil.decrypt(chatMessageDto.roomId()))
                                 .userId(chatMessageDto.sender())
                                 .createdAt(chatMessageDto.createdAt())
-                                .build());
+                                .build()
+                        , false);
 
                 // session 만료시간 초기화
                 userWebsocketSessionService.saveSessionFor10(
@@ -168,7 +169,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                                 .channelId(aesUtil.decrypt(chatReadDto.roomId()))
                                 .userId(chatReadDto.receiver())
                                 .createdAt(chatReadDto.receiveAt())
-                                .build());
+                                .build(),
+                        false);
 
                 // session 만료시간 초기화
                 userWebsocketSessionService.saveSessionFor10(
