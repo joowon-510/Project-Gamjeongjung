@@ -3,7 +3,9 @@ import axios from "axios";
 import { useAuthStore } from "../stores/useUserStore";
 
 const fastapiInstance = axios.create({
-  baseURL: " https://3.39.9.184:8443",
+  // baseURL: "http://3.39.9.184:8000",
+  baseURL: "https://gamjeongjung.co.kr/ai",
+  // baseURL: "https://3.39.9.184:8443",
   // baseURL: process.env.REACT_APP_FASTAPI_URL, // 예: http://localhost:8000/
   timeout: 20000,
   headers: {
