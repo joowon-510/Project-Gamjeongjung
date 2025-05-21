@@ -364,7 +364,7 @@ const GoodsDetailPage: React.FC = () => {
                   <img
                     src={fullImageUrl}
                     alt="item-image"
-                    className="w-[40%] rounded-md"
+                    className="w-[40%] rounded-[4px]"
                   />
 
                   {/* 데미지 오버레이 이미지 */}
