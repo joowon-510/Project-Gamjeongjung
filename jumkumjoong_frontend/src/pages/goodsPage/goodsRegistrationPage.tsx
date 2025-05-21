@@ -77,6 +77,7 @@ export async function uploadProductAndImages(
   formData.append("price", String(productInfo.price || "0"));
   formData.append("description", String(productInfo.description || "설명"));
 
+  console.log("formData: ", formData);
   try {
     const response = await fastapiInstance.post("/upload-info", formData, {
       headers: {
@@ -1006,9 +1007,12 @@ const GoodsRegistrationPage: React.FC = () => {
           </button>
         )}
       </div>
+      <div className="h-[100px]"></div>
 
       {/* 하단 네비게이션 바 */}
-      <NavigationBar />
+      <div className="fixed bottom-0 left-0 right-0">
+        <NavigationBar />
+      </div>
     </div>
   );
 };

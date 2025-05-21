@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import NavigationBar from "../../components/common/NavigationBar";
 import GoodsImage from "../../components/goods/GoodsImage";
 import GoodsStatus from "../../components/goods/GoodsStatus";
+import DamageOverlayImage from "../../components/goods/DamageOverlayImage";
 import { GoodsDetailProps } from "../../components/goods/GoodsItem";
 
 import {
@@ -146,7 +147,6 @@ const GoodsDetailPage: React.FC = () => {
   const handleEdit = async () => {
     if (goods?.item) {
       navigate(`/goods/register`, { state: { ...goods.item, itemId } });
-      // navigate(`/goods/edit/${itemId}`, { state: goods.item });
     }
   };
 
@@ -340,18 +340,44 @@ const GoodsDetailPage: React.FC = () => {
         {/* 상품 상태 컴포넌트 */}
         <GoodsStatus status={productInfo} />
 
-        {images.length > 0 ? (
-          images.map((itemImg) => {
-            return (
-              <div className="flex flex-col items-center">
-                <img src={itemImg} alt="item-image" className="w-[60%]" />
-              </div>
-            );
-          })
-        ) : (
-          <></>
-        )}
-        <img src="" alt="" />
+        <div className="flex flex-col items-center gap-4">
+          {/* {images.length > 0 ? (
+            images.map((itemImg) => {
+              return (
+                <div className="flex justify-center gap-4 w-[100%]">
+                  <img src={itemImg} alt="item-image" className="w-[40%]" />
+                  <img src={itemImg} alt="item-image" className="w-[40%]" />
+                </div>
+              );
+            })
+          ) : (
+            <></>
+          )} */}
+          {images.length > 0 &&
+            productInfo.length > 1 &&
+            productInfo[1].split("|").map((entry, idx) => {
+              const [imageUrl, damageData] = entry.split(">");
+              const fullImageUrl = images[idx] || thumbnail;
+              return (
+                <div className="flex justify-center gap-4 w-full" key={idx}>
+                  {/* 원본 이미지 */}
+                  <img
+                    src={fullImageUrl}
+                    alt="item-image"
+                    className="w-[40%] rounded-md"
+                  />
+
+                  {/* 데미지 오버레이 이미지 */}
+                  <DamageOverlayImage
+                    imageUrl={fullImageUrl}
+                    damageStr={entry}
+                    width={150}
+                    height={200}
+                  />
+                </div>
+              );
+            })}
+        </div>
 
         {/* 하단 여백 (네비게이션 바와 액션 바 높이만큼) */}
         <div className="h-8"></div>
