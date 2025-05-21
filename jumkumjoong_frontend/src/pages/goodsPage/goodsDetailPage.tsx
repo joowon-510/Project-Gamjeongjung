@@ -70,9 +70,6 @@ const GoodsDetailPage: React.FC = () => {
         const goodsId = parseInt(itemId);
         const goodsData = await getGoodsDetail(goodsId);
 
-        console.log("🌐 API 전체 응답:", goodsData);
-        console.log("📦 API 응답 body:", goodsData.body);
-
         if (goodsData.status_code === 200) {
           // itemId를 명시적으로 설정
           const updatedGoodsData = {
@@ -93,16 +90,12 @@ const GoodsDetailPage: React.FC = () => {
               ? goodsData.body.item.description.split("@@")[1].split("##")
               : []
           );
-          console.log(exits);
-
-          console.log("🔍 업데이트된 상품 데이터:", updatedGoodsData);
         } else if (goodsData.status_code === 400) {
           setError("탈퇴한 사용자입니다.");
         } else {
           setError("상품을 찾을 수 없습니다.");
         }
       } catch (err) {
-        console.error("상품 상세 정보 로딩 오류:", err);
         setError("상품 정보를 불러오는 중 오류가 발생했습니다.");
       } finally {
         setIsLoading(false);
@@ -127,7 +120,6 @@ const GoodsDetailPage: React.FC = () => {
   const handleDelete = async () => {
     try {
       if (!itemId) {
-        console.error("itemId가 없습니다.");
         return;
       }
       const goodsId = parseInt(itemId, 10);
@@ -138,9 +130,7 @@ const GoodsDetailPage: React.FC = () => {
           state: { userId: 0, userName: useAuthStore.getState().nickname },
         });
       }
-    } catch (error) {
-      console.log();
-    }
+    } catch (error) {}
   };
 
   // 수정하기 처리
@@ -157,12 +147,10 @@ const GoodsDetailPage: React.FC = () => {
     e.preventDefault(); // 링크 이동 방지
 
     if (!itemId) {
-      console.error("itemId가 없습니다.");
       return;
     }
 
     if (!goods || !goods.item) {
-      console.error("상품 정보가 없습니다.");
       return;
     }
 
@@ -186,23 +174,17 @@ const GoodsDetailPage: React.FC = () => {
     // 찜 요청 api 연결
     try {
       if (exists) {
-        console.log("찜 해제 요청 보내는 중...");
         const response = await postGoodsFavorites(goodsId);
-        console.log(response);
+
         removeItem(wishItem.itemId);
-        console.log("removeItem: ", items);
       } else {
-        console.log("찜 추가 요청 보내는 중...");
         if (!exists) {
           const response = await postGoodsFavorites(goodsId);
-          console.log(response);
+
           addItem(wishItem);
-          console.log("wishItem: ", items);
         }
       }
     } catch (error) {
-      console.log("찜 요청 실패: ", error);
-
       setFavorite(exists); // 실패했으면 다시 원래대로
     }
   };
@@ -234,15 +216,7 @@ const GoodsDetailPage: React.FC = () => {
       </div>
     );
   }
-  // GoodsDetailPage 컴포넌트 내부
-  console.log("🔍 상품 상세 데이터:", {
-    goodsData: goods,
-    item: goods.item,
-    itemId: goods.item.itemId,
-    userId: goods.item.userId,
-    userName: goods.userName,
-    itemTitle: goods.item.title,
-  });
+
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* 스크롤 가능한 컨텐츠 영역 */}

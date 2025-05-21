@@ -72,11 +72,7 @@ const ReviewRegisterPage: React.FC = () => {
         content: formData.content.trim(),
       };
 
-      console.log("submission: ", submissionData);
-
       const response = await postReviewRegist(submissionData);
-
-      console.log("등록된 상품 정보:", response);
 
       if (response.status_code === 200) {
         useReviewStore.getState().addContent({
@@ -90,7 +86,6 @@ const ReviewRegisterPage: React.FC = () => {
       alert("리뷰가 등록되었습니다.");
       navigate("/chatting/list");
     } catch (error) {
-      console.error("리뷰 등록 오류:", error);
       alert(
         "리뷰 등록은 1 회만 가능합니다. 해당 상품에 대한 리뷰를 이미 등록되었습니다."
       );

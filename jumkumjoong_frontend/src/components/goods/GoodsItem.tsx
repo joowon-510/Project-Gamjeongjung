@@ -1,6 +1,6 @@
 // src/components/goods/GoodsItem.tsx
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import thumbnail from "../../assets/icons/nologo.svg";
 import Heart from "../../assets/icons/Heart.svg";
@@ -58,8 +58,6 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   canChangeStatus, // ✅ 기본값 false
   deviceImageUrl,
 }) => {
-  const navigate = useNavigate();
-
   const { items, removeItem, addItem } = useWishItemStore();
   const [favorite, setFavorite] = useState(isFavorite);
   const [status, setStatus] = useState<boolean>(itemStatus);
@@ -77,7 +75,6 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
     e.preventDefault(); // 링크 이동 방지
 
     if (!itemId) {
-      console.error("itemId가 없습니다.");
       return;
     }
     const exists = items.some((item) => item.itemId === itemId);
@@ -100,7 +97,6 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
         addItem(wishItem);
       }
     } catch (error) {
-      console.error("찜 요청 실패:", error);
       setFavorite(exists); // 실패 시 상태 복구
     }
   };

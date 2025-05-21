@@ -7,7 +7,6 @@ import useChat from "../../hooks/useChat";
 import {
   ChatUser,
   Message,
-  // ChatRouteState,
   ChatMessageParams,
   ChatMessageDTO,
   WebSocketMessage,
@@ -28,19 +27,6 @@ const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const state = location.state as {
-    roomId: string;
-    postId: string;
-    chattingUserNickname: string;
-    postTitle: string;
-    accessToken: string;
-  };
-
-  console.log("전달받은 postId: ", state);
-
-  console.log(location);
-  console.log("localstorage : ", localStorage);
-
   const [user, setUser] = useState<ChatUser | null>(() => {
     // 1. location.state에서 chattingUserNickname 확인 (최우선)
     const stateNickname = location.state?.chattingUserNickname;
@@ -48,19 +34,8 @@ const ChatPage: React.FC = () => {
     // 2. localStorage에서 nickname 확인 (두번째 우선순위)
     const storedNickname = localStorage.getItem("currentChatUserNickname");
 
-    console.log("🔍 ChatPage 닉네임 데이터 확인:", {
-      stateNickname,
-      storedNickname,
-      locationState: location.state,
-      allLocalStorage: Object.keys(localStorage).map((key) => ({
-        key,
-        value: localStorage.getItem(key),
-      })),
-    });
-
     // 닉네임 결정 (우선순위: state > localStorage > 기본값)
     const finalNickname = stateNickname || storedNickname || "채팅 상대";
-    console.log("✅ 최종 사용할 닉네임:", finalNickname);
 
     return {
       id: 0, // ID는 API 응답에서 업데이트 예정
@@ -69,18 +44,16 @@ const ChatPage: React.FC = () => {
   });
   const [goodsId, setGoodsId] = useState<number | null>(() => {
     const postIdFromState = location.state?.postId;
-    console.log("=============", postIdFromState, "============");
     if (postIdFromState) return Number(postIdFromState);
 
     const chatItemMapString = localStorage.getItem("currentPostId");
     if (chatItemMapString && chatid) {
       const chatItemMap = JSON.parse(chatItemMapString);
-      console.log("===========", chatItemMap, "===============");
       return chatItemMap || null;
     }
     return null;
   });
-  // const hasCheckedReadStatus = useRef(false);
+
   const processedRoomIds = useRef(new Set<string>());
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -99,10 +72,6 @@ const ChatPage: React.FC = () => {
     return storedUserId ? parseInt(storedUserId, 10) : null;
   });
 
-  // API 디버깅을 위한 상태 추가
-  const [apiStatus, setApiStatus] = useState<string>("아직 API 호출 전");
-  // const [manualFetchResult, setManualFetchResult] = useState<string>("");
-
   // ChatContext 사용 (읽음 표시를 위해)
   const { markRoomAsRead } = useChatContext();
   const chatService = useChatService(); // chatService 추가
@@ -119,28 +88,16 @@ const ChatPage: React.FC = () => {
     // 3. localStorage에서 roomId 확인
     const storedRoomId = localStorage.getItem("currentRoomId");
 
-    console.log("🔍 ChatPage 마운트 시 roomId 설정:", {
-      urlRoomId,
-      stateRoomId,
-      storedRoomId,
-    });
-
     // 우선순위 순서: URL > state > localStorage
     let finalRoomId = "";
 
     if (urlRoomId) {
-      console.log("✅ URL 파라미터에서 roomId 사용:", urlRoomId);
       finalRoomId = urlRoomId;
     } else if (stateRoomId) {
-      console.log("✅ location.state에서 roomId 사용:", stateRoomId);
       finalRoomId = stateRoomId;
     } else if (storedRoomId) {
-      console.log("✅ localStorage에서 roomId 사용:", storedRoomId);
       finalRoomId = storedRoomId;
     } else {
-      console.error(
-        "❌ roomId를 찾을 수 없음! 채팅 목록으로 리다이렉트합니다."
-      );
       // 비동기로 리다이렉트 처리
       setTimeout(() => {
         navigate("/chatting");
@@ -161,9 +118,7 @@ const ChatPage: React.FC = () => {
       try {
         const response = await getUserChatInfo();
         // 성공 시 로컬 스토리지에 저장 (아래 2번 참조)
-      } catch (error) {
-        console.error("사용자 ID 요청 실패:", error);
-      }
+      } catch (error) {}
     };
     fetchUserId(); // 조건문 제거 → 무조건 실행
   }, []);
@@ -198,7 +153,6 @@ const ChatPage: React.FC = () => {
       try {
         const response = await getGoodsDetail(goods.goodsId);
         setStatus(response.body.item.status);
-        console.log("상품 상세정보 조회: ", response);
         const updated = {
           title: response.body.item.title,
           goodsId: response.body.item.itemId,
@@ -210,16 +164,9 @@ const ChatPage: React.FC = () => {
               : thumbnail,
         };
         setGoods(updated);
-        console.log("✅ 상품 정보 상태로 업데이트됨:", updated);
-      } catch (error) {
-        console.log("상품 상세정보 조회 실패: ", error);
-      }
-      // } else {
-      //   console.log("⚠️ itemId가 없어서 상품 상세를 불러올 수 없습니다.");
-      // }
+      } catch (error) {}
     };
     fetchGoods();
-    console.log("===========", goods);
   }, []);
 
   // 날짜 포맷팅 함수
@@ -292,19 +239,14 @@ const ChatPage: React.FC = () => {
       const roomKey = getReadStatusKey(roomId);
       const savedStatuses = localStorage.getItem(roomKey);
 
-      console.log(`채팅방 ${roomId} 초기화 - 로컬 저장 읽음 상태 확인`);
-
       if (savedStatuses) {
         try {
           const readStatuses = JSON.parse(savedStatuses);
           const statusCount = Object.keys(readStatuses).length;
-          console.log(`저장된 읽음 상태 수: ${statusCount}개`);
         } catch (e) {
-          console.error("읽음 상태 파싱 오류, 초기화합니다:", e);
           localStorage.setItem(roomKey, JSON.stringify({}));
         }
       } else {
-        console.log("저장된 읽음 상태 없음, 새로 초기화합니다.");
         localStorage.setItem(roomKey, JSON.stringify({}));
       }
     };
@@ -350,16 +292,9 @@ const ChatPage: React.FC = () => {
 
     // 내가 보낸 메시지인 경우만 읽음 상태 확인
     if (isMe) {
-      console.log(`내가 보낸 메시지 ID ${messageId} 읽음 상태 확인 중...`);
-
       // 1. 메모리 캐시 확인 (가장 빠른 접근)
       if (messageId in readStatusCache) {
         isRead = readStatusCache[messageId];
-        console.log(
-          `메시지 ID ${messageId}의 메모리 캐시 읽음 상태: ${
-            isRead ? "읽음" : "읽지 않음"
-          }`
-        );
       } else {
         // 2. 로컬 스토리지 확인
         const roomKey = `chat_read_status_${roomId}`;
@@ -372,11 +307,6 @@ const ChatPage: React.FC = () => {
               isRead = readStatuses[messageId];
               // 메모리 캐시에 저장
               readStatusCache[messageId] = isRead;
-              console.log(
-                `메시지 ID ${messageId}의 로컬 저장 읽음 상태: ${
-                  isRead ? "읽음" : "읽지 않음"
-                } (캐시에 저장)`
-              );
             } else {
               // 서버 데이터 확인
               if ("readAt" in dto && dto.readAt) {
@@ -391,14 +321,8 @@ const ChatPage: React.FC = () => {
               readStatuses[messageId] = isRead;
               localStorage.setItem(roomKey, JSON.stringify(readStatuses));
               readStatusCache[messageId] = isRead;
-              console.log(
-                `메시지 ID ${messageId}의 서버 읽음 상태: ${
-                  isRead ? "읽음" : "읽지 않음"
-                } (로컬+캐시에 저장)`
-              );
             }
           } catch (e) {
-            console.error("읽음 상태 파싱 오류:", e);
             // 오류 발생 시 새 객체 생성하여 현재 상태 저장
             const newReadStatuses: { [key: string]: boolean } = {};
             newReadStatuses[messageId] = isRead;
@@ -411,11 +335,6 @@ const ChatPage: React.FC = () => {
           newReadStatuses[messageId] = isRead;
           localStorage.setItem(roomKey, JSON.stringify(newReadStatuses));
           readStatusCache[messageId] = isRead;
-          console.log(
-            `메시지 ID ${messageId}의 초기 읽음 상태: ${
-              isRead ? "읽음" : "읽지 않음"
-            } (새로 저장)`
-          );
         }
       }
     }
@@ -469,7 +388,6 @@ const ChatPage: React.FC = () => {
         if (isInitialLoad && response.body.otherParticipant) {
           // API 응답에서 받은 상대방 정보로 user 업데이트
           const apiNickname = response.body.otherParticipant.nickname;
-          console.log("📱 API에서 받은 상대방 닉네임:", apiNickname);
 
           // API 응답의 닉네임을 우선 사용하고, localStorage 값을 다시 업데이트
           setUser({
@@ -480,7 +398,6 @@ const ChatPage: React.FC = () => {
 
           // API에서 받은 닉네임으로 localStorage 업데이트
           if (apiNickname) {
-            console.log("🔄 localStorage의 닉네임 업데이트:", apiNickname);
             localStorage.setItem("currentChatUserNickname", apiNickname);
           }
         }
@@ -528,7 +445,6 @@ const ChatPage: React.FC = () => {
           });
         }
       } else {
-        console.log("API 응답 형식이 예상과 다릅니다:", response);
         // API 응답이 정상이 아닌 경우
         setHasMore(false);
 
@@ -553,7 +469,6 @@ const ChatPage: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error("채팅 메시지 로드 오류:", error);
       setHasMore(false);
 
       if (isInitialLoad) {
@@ -605,7 +520,6 @@ const ChatPage: React.FC = () => {
       const token = localStorage.getItem("accessToken");
 
       if (!token) {
-        console.warn("⚠️ 토큰이 없어 읽음 메시지를 보낼 수 없습니다.");
         return;
       }
 
@@ -621,7 +535,6 @@ const ChatPage: React.FC = () => {
           createdAt: currentTime,
         };
 
-        console.log("📤 채팅방 입장 시 읽음 메시지 전송:", receiveMessage);
         chatService.sendMessage(receiveMessage);
 
         // 채팅방 읽음 상태 업데이트 (UI에서 읽지 않은 메시지 카운트 등을 위함)
@@ -635,26 +548,17 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const markChatAsRead = async () => {
       if (!roomId) {
-        console.error("❌ roomId가 없어 읽음 상태를 업데이트할 수 없습니다.");
         return;
       }
 
       try {
-        console.log(`🔍 채팅방 읽음 API 호출 시작: ${roomId}`);
         const response = await readChatRoom(roomId);
-
-        console.log("✅ 채팅방 읽음 API 응답:", {
-          status: response.status_code,
-          readTime: response.body,
-        });
 
         // 응답이 성공이면 채팅방 컨텍스트에도 읽음 상태 업데이트
         if (response.status_code === 200) {
           markRoomAsRead(roomId);
         }
-      } catch (error) {
-        console.error("❌ 채팅방 읽음 API 호출 오류:", error);
-      }
+      } catch (error) {}
     };
 
     // 컴포넌트 마운트 시 API 호출
@@ -682,10 +586,6 @@ const ChatPage: React.FC = () => {
     if (!chatItemMap[chatid]) {
       chatItemMap[chatid] = goodsId;
       localStorage.setItem("chatItemMap", JSON.stringify(chatItemMap));
-      console.log("💾 chatItemMap에 itemId 저장 완료:", {
-        roomId: chatid,
-        itemId: goodsId,
-      });
     }
   }, [chatid, goodsId]);
 
@@ -702,7 +602,6 @@ const ChatPage: React.FC = () => {
   const handleSendButtonClick = () => {
     if (newMessage.trim() === "" || !isConnected) return;
 
-    console.log("메시지 전송:", newMessage);
     sendMessage();
 
     // 메시지 전송 후 읽음 상태 메시지 전송 (상대방이 보낸 메시지를 읽었다는 신호)
@@ -717,7 +616,6 @@ const ChatPage: React.FC = () => {
           createdAt: currentTime,
         };
 
-        console.log("📤 메시지 전송 후 읽음 메시지 전송:", receiveMessage);
         chatService.sendMessage(receiveMessage);
       }, 500);
     }
@@ -737,21 +635,14 @@ const ChatPage: React.FC = () => {
       processedRoomIds.current.add(roomId);
 
       if (!currentUserId) {
-        console.error(
-          "❌ currentUserId가 없어 읽음 상태를 업데이트할 수 없습니다."
-        );
         return;
       }
 
       try {
-        console.log(
-          `🔍 채팅방 읽음 API 호출 시작 (단 한 번만 실행): ${roomId}`
-        );
         const response = await readChatRoom(roomId);
 
         // API 응답에서 읽음 시간 추출
         const readTime = response.body;
-        console.log("✅ 상대방 마지막 접속 시간:", readTime);
 
         if (response.status_code === 200 && readTime) {
           // 메시지 로드 확인을 위한 대기
@@ -760,9 +651,7 @@ const ChatPage: React.FC = () => {
             updateMessagesWithReadTime(readTime);
           }, 500);
         }
-      } catch (error) {
-        console.error("❌ 채팅방 읽음 상태 업데이트 오류:", error);
-      }
+      } catch (error) {}
     };
 
     // 메시지 읽음 상태 업데이트 함수 분리
@@ -773,7 +662,6 @@ const ChatPage: React.FC = () => {
       // 현재 메시지 가져오기 (이 시점에서는 메시지가 로드되어 있어야 함)
       const currentMessages = messages;
       if (currentMessages.length === 0) {
-        console.warn("⚠️ 메시지가 아직 로드되지 않았습니다.");
         return;
       }
 
@@ -799,7 +687,6 @@ const ChatPage: React.FC = () => {
         try {
           readStatuses = JSON.parse(savedStatuses);
         } catch (e) {
-          console.error("읽음 상태 파싱 오류:", e);
           readStatuses = {};
         }
       }
@@ -813,7 +700,6 @@ const ChatPage: React.FC = () => {
 
       // 업데이트된 읽음 상태 저장
       localStorage.setItem(roomKey, JSON.stringify(readStatuses));
-      console.log("✅ 로컬 스토리지 읽음 상태 업데이트 완료");
 
       // 채팅방 컨텍스트 읽음 상태도 업데이트
       markRoomAsRead(roomId);
@@ -844,7 +730,6 @@ const ChatPage: React.FC = () => {
     setStatus(newStatus); // 로컬 상태 업데이트 (UI 즉시 반영)
     try {
       const response = await postGoodsChangeStatus(goods.goodsId, newStatus);
-      console.log(response);
       if (response) {
         // 실제 서버 상태를 다시 가져와서 동기화
         const updated = await getGoodsDetail(goods.goodsId);
@@ -854,7 +739,6 @@ const ChatPage: React.FC = () => {
       }
     } catch (error) {
       setStatus(!newStatus); // 실패 시 롤백
-      console.error("거래 상태 변경 실패:", error);
       alert("거래 상태 변경 중 오류가 발생했습니다.");
     }
   };

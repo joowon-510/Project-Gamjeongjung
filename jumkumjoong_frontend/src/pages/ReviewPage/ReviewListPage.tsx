@@ -3,8 +3,8 @@ import React, { useEffect } from "react";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import ReviewItem from "../../components/review/ReviewItem";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ReviewState, useReviewStore } from "../../stores/useReviewStore";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ReviewState } from "../../stores/useReviewStore";
 import { getReview } from "../../api/reviews";
 
 const ReviewListPage: React.FC = () => {
@@ -22,16 +22,12 @@ const ReviewListPage: React.FC = () => {
 
   useEffect(() => {
     fetchReviewData();
-    console.log(state.review);
   }, []);
 
   const fetchReviewData = async () => {
     try {
       const response = await getReview(state.userId);
-      console.log(response);
-    } catch (error) {
-      console.log("review 불러오기 실패: ", error);
-    }
+    } catch (error) {}
   };
 
   return (

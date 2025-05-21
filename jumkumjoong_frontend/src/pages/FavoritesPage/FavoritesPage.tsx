@@ -23,9 +23,7 @@ const FavoritePage: React.FC = () => {
       try {
         const data = await getGoodsFavorites(); // ✅ 비동기 처리
         setFavoriteItems(data);
-        console.log("찜한 상품 목록:", data);
       } catch (error) {
-        console.log("찜 목록 로딩 실패:", error);
         setFavoriteItems([]); // 에러 시 비워주기
       }
     };

@@ -31,11 +31,8 @@ const Header: React.FC<HeaderProps> = ({
   // 검색 처리
   const handleSearch = async () => {
     try {
-      console.log("검색어: ", searchTerm);
       navigate("/goods/list", { state: searchTerm });
-    } catch (error) {
-      console.log("검색 실패: ", error);
-    }
+    } catch (error) {}
   };
 
   // 로그아웃 처리

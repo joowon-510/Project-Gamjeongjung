@@ -105,36 +105,18 @@ const ChatListPage: React.FC = () => {
       0
     );
 
-    console.log(
-      "📊 채팅방 목록에서 계산된 전체 안읽은 메시지 수:",
-      totalUnread
-    );
-
     // 로컬 스토리지에 저장
     localStorage.setItem("totalUnreadMessages", totalUnread.toString());
-
-    // Context나 다른 전역 상태 업데이트 (필요한 경우)
-    // updateGlobalUnreadCount(totalUnread);
   }, [chatRooms]);
 
   // 채팅방 목록 로드 함수
   const loadChatRooms = async (page: number = 0, source: string = "manual") => {
-    console.log(
-      `🔄 [${source}] 채팅방 목록 로드 시작 - ${new Date().toLocaleTimeString()}`
-    );
-
     try {
       setLoading(true);
       setError(null);
 
       // 현재 액세스 토큰 가져오기
       const accessToken = localStorage.getItem("accessToken");
-      console.log(
-        `[${source}] 채팅방 목록 조회 API 호출 (페이지: ${page})...`,
-        {
-          hasToken: !!accessToken,
-        }
-      );
 
       // API 호출
       const response = await axios.get<ApiResponse>(
@@ -148,7 +130,6 @@ const ChatListPage: React.FC = () => {
       );
 
       if (response.data && response.data.status_code === 200) {
-        console.log(`✅ [${source}] 채팅방 목록 조회 성공:`, response.data);
         const responseBody = response.data.body;
 
         if (responseBody && Array.isArray(responseBody.content)) {
@@ -187,14 +168,11 @@ const ChatListPage: React.FC = () => {
           // 페이징 정보 업데이트
           setIsLastPage(responseBody.last);
           setPageNumber(responseBody.number);
-          console.log("=======", enhancedRooms, "========");
         }
       } else {
-        console.error(`❌ [${source}] 채팅방 목록 조회 실패:`, response.data);
         setError("채팅방 목록을 가져오는데 실패했습니다.");
       }
     } catch (error) {
-      console.error(`❌ [${source}] 채팅방 목록 로딩 오류:`, error);
       setError("채팅방 목록을 불러오는 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
@@ -221,11 +199,6 @@ const ChatListPage: React.FC = () => {
 
       // 현재 액세스 토큰 가져오기
       const accessToken = localStorage.getItem("accessToken");
-      console.log("🔍 채팅방 삭제 요청:", {
-        roomId: roomId,
-        type: typeof roomId,
-        hasToken: !!accessToken,
-      });
 
       // 로딩 상태 추가
       setLoading(true);
@@ -238,8 +211,6 @@ const ChatListPage: React.FC = () => {
           Authorization: `Bearer ${accessToken || ""}`,
         },
       });
-
-      console.log("🎉 채팅방 삭제 응답:", response);
 
       if (response.status === 200) {
         // 성공적으로 삭제된 경우 로컬 상태에서 제거
@@ -267,19 +238,11 @@ const ChatListPage: React.FC = () => {
         // 성공 메시지 표시
         alert("채팅방이 삭제되었습니다.");
       } else {
-        console.error("채팅방 삭제 실패:", response);
         alert("채팅방 삭제에 실패했습니다.");
       }
     } catch (error) {
       // Axios 오류의 경우 더 자세한 정보 로깅
       if (axios.isAxiosError(error)) {
-        console.error("❌ 채팅방 삭제 오류:", {
-          message: error.message,
-          status: error.response?.status,
-          data: error.response?.data,
-          headers: error.response?.headers,
-        });
-
         // 토큰 만료 오류인 경우
         if (error.response?.status === 401) {
           alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
@@ -287,8 +250,6 @@ const ChatListPage: React.FC = () => {
           // window.location.href = '/login';
           return;
         }
-      } else {
-        console.error("❌ 일반 오류:", error);
       }
 
       alert("채팅방 삭제 중 오류가 발생했습니다.");
@@ -298,8 +259,6 @@ const ChatListPage: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("🚀 폴링 설정 시작");
-
     // 초기 로드
     loadChatRooms(0, "initial");
 
@@ -307,16 +266,10 @@ const ChatListPage: React.FC = () => {
     intervalRef.current = setInterval(() => {
       setPollCount((prev) => {
         const newCount = prev + 1;
-        console.log(
-          `⏰ 폴링 ${newCount}번째 실행 - ${new Date().toLocaleTimeString()}`
-        );
 
         // 페이지가 보이는 상태일 때만 업데이트
         if (!document.hidden) {
-          console.log("👁️ 페이지가 보이는 상태 - 업데이트 진행");
           loadChatRooms(0, `polling-${newCount}`);
-        } else {
-          console.log("🙈 페이지가 숨겨진 상태 - 업데이트 건너뜀");
         }
 
         return newCount;
@@ -325,7 +278,6 @@ const ChatListPage: React.FC = () => {
 
     // 클린업
     return () => {
-      console.log("🛑 폴링 중지");
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
@@ -334,13 +286,11 @@ const ChatListPage: React.FC = () => {
 
   useEffect(() => {
     const handleFocus = () => {
-      console.log("📱 페이지 포커스 - 채팅방 목록 새로고침");
       loadChatRooms();
     };
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log("👁️ 페이지 표시됨 - 채팅방 목록 새로고침");
         loadChatRooms();
       }
     };
@@ -434,13 +384,7 @@ const ChatListPage: React.FC = () => {
                   accessToken: localStorage.getItem("accessToken"),
                 }}
                 onClick={(e) => {
-                  console.log(
-                    "💾 전달할 닉네임 확인:",
-                    chat.chattingUserNickname
-                  );
-
                   try {
-                    console.log("current item id: ", chat.postId);
                     localStorage.setItem("currentRoomId", chat.roomId);
                     localStorage.setItem("currentPostId", chat.postId);
                     localStorage.setItem(
@@ -460,26 +404,11 @@ const ChatListPage: React.FC = () => {
                       );
                     }
 
-                    const storedNickname = localStorage.getItem(
-                      "currentChatUserNickname"
-                    );
-                    console.log("💾 저장된 정보 확인:", {
-                      roomId: chat.roomId,
-                      nickname: storedNickname,
-                      postTitle: chat.postTitle,
-                      저장성공여부:
-                        storedNickname === chat.chattingUserNickname
-                          ? "✅ 성공"
-                          : "❌ 실패",
-                    });
-
                     // 채팅방으로 이동 시 해당 채팅방을 읽음 상태로 표시
                     if (chat.nonReadCount > 0) {
                       markRoomAsRead(chat.roomId);
                     }
-                  } catch (error) {
-                    console.error("로컬스토리지 저장 중 오류:", error);
-                  }
+                  } catch (error) {}
                 }}
               >
                 <ChatItem

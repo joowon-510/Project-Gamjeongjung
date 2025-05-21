@@ -3,8 +3,8 @@
 // 현재 시간을 HH:MM 형식으로 반환
 export const getCurrentTime = (): string => {
   return new Date().toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -23,9 +23,4 @@ export const getRandomReply = (): string => {
   ];
 
   return replies[Math.floor(Math.random() * replies.length)];
-};
-
-// 디버깅용 로그
-export const logMessage = (prefix: string, message: any): void => {
-  console.log(`[${prefix}] ${JSON.stringify(message)}`);
 };

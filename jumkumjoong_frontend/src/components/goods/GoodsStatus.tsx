@@ -55,17 +55,6 @@ const GoodsStatus: React.FC<GoodsStatusProps> = ({ status }) => {
     <div className="p-4">
       <h2 className="text-lg font-bold mb-4">상품 상태</h2>
       <div className="grid grid-cols-1 grid-cols-2 gap-4 text-sm">
-        {/* {Object.entries(locationDamageCounts).map(([location, count]) => (
-          <div key={location} className="border rounded-lg p-3 shadow-sm">
-            <h3 className="font-medium border-b pb-2 mb-2 ">
-              {getLocationName(location)}
-            </h3>
-            <div className="flex justify-between">
-              <span className="text-gray-600">파손 여부</span>
-              {count > 0 ? <span>{count} 개</span> : <span>없음</span>}
-            </div>
-          </div>
-        ))} */}
         {locations.map((location, index) => (
           <div key={location} className="border rounded-lg p-3 shadow-sm">
             <h3 className="font-medium border-b pb-2 mb-2 ">

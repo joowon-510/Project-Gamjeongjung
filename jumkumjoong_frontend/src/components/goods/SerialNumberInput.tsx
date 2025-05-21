@@ -23,17 +23,6 @@ const SerialNumberInput: React.FC<SerialNumberInputProps> = ({
     setDisplayValue(value.toString());
   }, [value]);
 
-  // 입력 처리
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-
-    // 숫자만 허용 (빈 문자열 또는 숫자)
-    if (inputValue === "" || /^[0-9]+$/.test(inputValue)) {
-      setDisplayValue(inputValue);
-      // onChange(inputValue === "" ? 0 : Number(inputValue));
-    }
-  };
-
   return (
     <div className="">
       <input
@@ -43,7 +32,6 @@ const SerialNumberInput: React.FC<SerialNumberInputProps> = ({
         value={displayValue || ""}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        // className="w-full p-2 pr-14 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         className={`w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
           disabled ? "bg-gray-100 cursor-not-allowed" : ""
         }`}
