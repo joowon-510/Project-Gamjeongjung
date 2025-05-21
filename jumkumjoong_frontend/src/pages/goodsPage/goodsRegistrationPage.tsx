@@ -68,16 +68,13 @@ export async function uploadProductAndImages(
     throw new Error("이미지가 필요합니다");
   }
 
-  console.log("FormData에 추가되는 내용:");
   images.forEach((img, index) => {
     formData.append("images", img, img.name); // 파일 이름 그대로 사용
-    console.log(`- images[${index}]:`, img.name, img.type, img.size);
   });
   formData.append("product_name", String(productInfo.product_name || "상품"));
   formData.append("price", String(productInfo.price || "0"));
   formData.append("description", String(productInfo.description || "설명"));
 
-  console.log("formData: ", formData);
   try {
     const response = await fastapiInstance.post("/upload-info", formData, {
       headers: {
@@ -87,7 +84,6 @@ export async function uploadProductAndImages(
 
     if (response.status < 200 || response.status >= 300) {
       const errorData = response.data; // Axios는 이미 JSON 파싱을 시도했을 수 있습니다.
-      console.error("FastAPI 응답 오류:", errorData);
       throw new Error(
         errorData.detail || `HTTP error! status: ${response.status}`
       );
@@ -97,7 +93,6 @@ export async function uploadProductAndImages(
     setUploadInfoResponse(data);
     return data;
   } catch (error: any) {
-    console.error("이미지 업로드 실패:", error);
     throw error;
   }
 }
@@ -157,17 +152,12 @@ const generateSalesContent = async (
       }
     );
 
-    console.log("✅ 판매글 생성 요청 성공");
-    console.log("🔄 response 객체:", response);
-    console.log("🟢 response.data:", response.data);
-
     return {
       title: response.data.title,
       description: response.data.description,
       imageUrls: response.data.image_urls || [],
     };
   } catch (error) {
-    console.error("판매글 생성 실패:", error);
     throw new Error("판매글 생성에 실패했습니다.");
   }
 };
@@ -229,13 +219,10 @@ const GoodsRegistrationPage: React.FC = () => {
     if (editItem) {
       return {
         images: [] as File[], // 빈 이미지 배열로 초기화
-        // aiImages: [] as File[],
-        // imageUrls: editItem.imageUrls || [], // 기존 이미지 URL이 있으면 사용
       };
     } else {
       return {
         images: [] as File[], // 빈 이미지 배열로 초기화
-        // aiImages: [] as File[],
       };
     }
   });
@@ -286,15 +273,8 @@ const GoodsRegistrationPage: React.FC = () => {
   const handlePackageTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = e.target.value as PackageType;
 
-    const configValueMap: Record<PackageType, number> = {
-      full: 0,
-      partial: 1,
-      single: 2,
-    };
-
     setFormData((prev) => ({
       ...prev,
-      // configuration: configValueMap[selected], // ✅ 숫자로 저장
       configuration: Number(e.target.value),
       packageType: selected, // 표시용으로 유지
     }));
@@ -370,10 +350,6 @@ const GoodsRegistrationPage: React.FC = () => {
       let uploadResult: UploadInfoResponse | null = null;
       if (imageData.images.length > 0) {
         try {
-          console.log(
-            "이미지 업로드 시작, 이미지 수:",
-            imageData.images.length
-          );
           uploadResult = await uploadProductAndImages(
             imageData.images,
             {
@@ -384,7 +360,6 @@ const GoodsRegistrationPage: React.FC = () => {
             setUploadInfoResponse // 콜백 함수 전달
           );
         } catch (error) {
-          console.error("이미지 업로드 실패:", error);
           alert("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
           setIsGenerating(false);
           return;
@@ -428,7 +403,6 @@ const GoodsRegistrationPage: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error("판매글 생성 오류:", error);
       alert("판매글 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsGenerating(false);
@@ -506,12 +480,9 @@ const GoodsRegistrationPage: React.FC = () => {
         finalDescription = `구성품 안내가 필요합니다. 어떤 구성품이 포함되어 있는지 작성해주세요.\n\n${finalDescription}`;
       }
 
-      console.log("formData.serialNumber:", formData.serialNumber);
-
       // 최종 설명에 구매일자와 구성여부 정보 포함
       finalDescription = `${finalDescription}@@${classificationText}##${detectionText}`;
       const date = new Date().toISOString();
-      console.log(date);
 
       // 상품 등록 API 호출
       const submissionData = {
@@ -522,37 +493,25 @@ const GoodsRegistrationPage: React.FC = () => {
         createdAt: date.toString(),
         serialNumber: isSerialUnknown ? "unknown" : formData.serialNumber,
         scratchesStatus: "scratchesStatus",
-        // imageUrls: formData.imageUrls, // 업로드된 이미지 URL 배열 추가
       };
-
-      console.log("submission: ", submissionData);
 
       if (editItem && editItem.itemId) {
         try {
           const goodsId = parseInt(editItem.itemId);
-          console.log("submissionData: ", {
-            ...submissionData,
-            itemId: goodsId,
-          });
+
           const response = await postGoodsEdit({
             ...submissionData,
             itemId: goodsId,
           });
           alert("상품 수정이 완료되었습니다.");
-          console.log("response: ", response);
           navigate(`/goods/detail/${editItem.itemId}`);
-        } catch (error) {
-          console.log("상품 상세 수정 실패 : ", error);
-        }
+        } catch (error) {}
       } else {
         const response = await postGoods(submissionData);
-
-        console.log("등록된 상품 정보:", response);
         const itemId = response;
 
         if (itemId && response && imageData.images) {
           const data = await postGoodsImage(imageData.images, itemId);
-          console.log(data);
           if (data) {
             alert("상품이 등록되었습니다.");
             navigate("/my-posts", {
@@ -569,7 +528,6 @@ const GoodsRegistrationPage: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error("상품 등록 오류:", error);
       alert("상품 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
@@ -866,12 +824,6 @@ const GoodsRegistrationPage: React.FC = () => {
                             const ctx = canvas?.getContext("2d");
 
                             if (img && canvas && ctx && detectionResult) {
-                              console.log(
-                                "Image Natural Width:",
-                                img.naturalWidth,
-                                "Image Natural Height:",
-                                img.naturalHeight
-                              );
                               canvas.width = img.naturalWidth;
                               canvas.height = img.naturalHeight;
                               ctx.clearRect(0, 0, canvas.width, canvas.height);

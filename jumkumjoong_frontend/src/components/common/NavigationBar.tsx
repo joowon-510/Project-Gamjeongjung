@@ -30,7 +30,7 @@ const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 const NavigationBar: React.FC<NavigationBarProps> = ({
   activeMenu = "home",
 }) => {
-  const { chatRooms, setChatRooms } = useChatStore();
+  const { chatRooms } = useChatStore();
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,7 +39,6 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
   const loadUnreadCounts = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
-      console.log("[NavigationBar] 읽지 않은 메시지 수 확인 중...");
 
       const response = await axios.get<ApiResponse>(
         `${BASE_URL}/chatting?page=0&size=10`,
@@ -61,11 +60,8 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
 
         // 로컬스토리지에 저장
         localStorage.setItem("totalUnreadMessages", total.toString());
-
-        console.log("[NavigationBar] 전체 읽지 않은 메시지 수:", total);
       }
     } catch (error) {
-      console.error("[NavigationBar] API 호출 실패:", error);
       // 에러 시 로컬스토리지에서 읽기
       const storedCount = localStorage.getItem("totalUnreadMessages");
       if (storedCount) {
@@ -82,7 +78,6 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
         0
       );
       setTotalUnreadCount(total);
-      console.log("[NavigationBar] Store에서 읽지 않은 메시지 수:", total);
     }
   }, [chatRooms]);
 

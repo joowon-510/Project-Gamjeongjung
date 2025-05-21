@@ -1,6 +1,12 @@
 // src/providers/ChatServiceProvider.tsx
-import React, { createContext, useContext, useRef, ReactNode, useEffect } from 'react';
-import ChatService from '../services/chatService';
+import React, {
+  createContext,
+  useContext,
+  useRef,
+  ReactNode,
+  useEffect,
+} from "react";
+import ChatService from "../services/chatService";
 
 // ChatService를 관리하는 컨텍스트 생성
 interface ChatServiceContextType {
@@ -14,9 +20,9 @@ interface ChatServiceProviderProps {
   websocketUrl: string;
 }
 
-export const ChatServiceProvider: React.FC<ChatServiceProviderProps> = ({ 
+export const ChatServiceProvider: React.FC<ChatServiceProviderProps> = ({
   children,
-  websocketUrl
+  websocketUrl,
 }) => {
   // 싱글톤 패턴으로 ChatService 인스턴스 관리
   const chatServiceRef = useRef<ChatService | null>(null);
@@ -26,23 +32,9 @@ export const ChatServiceProvider: React.FC<ChatServiceProviderProps> = ({
     if (!chatServiceRef.current) {
       chatServiceRef.current = new ChatService({
         url: websocketUrl,
-        debug: process.env.NODE_ENV === 'development',
-        onConnect: () => {
-          console.log('ChatService connected globally');
-        },
-        onError: (error) => {
-          // 상세한 에러 정보 확인
-          console.error('ChatService global error:', error);
-          
-          if (error && error.headers) {
-            console.error('에러 헤더 정보:', error.headers);
-            console.error('에러 메시지:', error.headers.message);
-          }
-          
-          if (error && error.body) {
-            console.error('에러 본문:', error.body);
-          }
-        },
+        debug: process.env.NODE_ENV === "development",
+        onConnect: () => {},
+        onError: (error) => {},
       });
     }
     return chatServiceRef.current;
@@ -69,7 +61,7 @@ export const ChatServiceProvider: React.FC<ChatServiceProviderProps> = ({
 export const useChatService = () => {
   const context = useContext(ChatServiceContext);
   if (!context) {
-    throw new Error('useChatService must be used within a ChatServiceProvider');
+    throw new Error("useChatService must be used within a ChatServiceProvider");
   }
   return context.getChatService();
 };

@@ -35,7 +35,6 @@ const InfoEditPage: React.FC = () => {
         alert("닉네임 변경에 실패했습니다.");
       }
     } catch (error) {
-      console.error("닉네임 변경 오류:", error);
       alert("오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsLoading(false);

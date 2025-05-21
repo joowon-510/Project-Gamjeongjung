@@ -8,14 +8,13 @@ export const postLoginUser = async (accessToken: string): Promise<any> => {
       accessToken,
     });
 
-    console.log("로그인/회원가입: ", response);
     if (response.data.status_code === 200) {
       const serverAccessToken = response.data.body.accessToken;
       const refreshToken = response.data.body.refreshToken;
 
       // 로컬 스토리지에 토큰 저장
-      localStorage.setItem('accessToken', serverAccessToken);
-      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem("accessToken", serverAccessToken);
+      localStorage.setItem("refreshToken", refreshToken);
 
       // Zustand 스토어 업데이트
       useAuthStore.getState().setAccessToken(serverAccessToken);
@@ -23,7 +22,6 @@ export const postLoginUser = async (accessToken: string): Promise<any> => {
     }
     return response.data;
   } catch (error) {
-    console.log("로그인/회원가입 실패: ", error);
     return null;
   }
 };
@@ -44,7 +42,6 @@ export const getUserInfo = async (): Promise<any> => {
     }
     return response.data;
   } catch (error) {
-    console.log("회원정보 조회 실패: ", error);
     return null;
   }
 };
@@ -54,10 +51,8 @@ export const getUserReview = async (): Promise<any> => {
   try {
     const response = await axiosInstance.get("/users/reviews");
 
-    console.log("리뷰 조회: ", response);
     return response;
   } catch (error) {
-    console.log("리뷰 조회 실패: ", error);
     return null;
   }
 };
@@ -69,10 +64,8 @@ export const patchUserInfo = async (nickname: string): Promise<any> => {
       nickname: nickname,
     });
 
-    console.log("정보 수정: ", response);
     return response;
   } catch (error) {
-    console.log("정보 수정 실패: ", error);
     return null;
   }
 };

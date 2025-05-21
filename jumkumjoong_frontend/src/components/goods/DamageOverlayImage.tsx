@@ -80,8 +80,6 @@ const DamageOverlayImage: React.FC<DamageOverlayImageProps> = ({
         const colonIndex = entry.indexOf(":");
         if (colonIndex === -1) return;
 
-        // const [type, coordStr] = entry.split(":");
-        const type = entry.substring(0, colonIndex);
         const coordStr = entry.substring(colonIndex + 1);
 
         const coords = coordStr?.replace(/[()]/g, "").split(",").map(Number);

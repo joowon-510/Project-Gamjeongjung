@@ -33,14 +33,12 @@ const MyPostsPage: React.FC = () => {
       setError(null);
 
       const response = await getGoodsUsers(state.userId);
-      console.log("유저가 만든 게시물: ", response);
       if (response) {
         setMyGoods(response);
       } else {
         setMyGoods([]);
       }
     } catch (error) {
-      console.log("내가 등록한 게시글 조회 실패: ", error);
       setError("게시글을 불러오는 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);

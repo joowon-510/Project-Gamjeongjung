@@ -36,16 +36,12 @@ const MainPage: React.FC = () => {
     const checkUser = async () => {
       try {
         const user = await getUserInfo();
-        console.log("----------", user, "----------");
-        console.log("User: ", useAuthStore.getState());
 
         if (user) {
           const wishItem = await getGoodsFavorites();
           useWishItemStore.getState().setItems(wishItem);
-          console.log("Wish item: ", useWishItemStore.getState().items);
         }
       } catch (error) {
-        console.error("유저 정보 로딩 실패:", error);
       } finally {
         setUserLoaded(true);
       }
@@ -54,7 +50,6 @@ const MainPage: React.FC = () => {
     const checkGoods = async () => {
       try {
         const goods = await getGoodsRecent();
-        console.log("goods: ", goods);
         if (!goods) {
           setRecentItem([]);
         }
@@ -64,9 +59,7 @@ const MainPage: React.FC = () => {
           title: item.itemName,
         }));
         setRecentItem(parsedItems);
-      } catch (error) {
-        console.log("상품 불러오기 실패:", error);
-      }
+      } catch (error) {}
     };
 
     checkUser();

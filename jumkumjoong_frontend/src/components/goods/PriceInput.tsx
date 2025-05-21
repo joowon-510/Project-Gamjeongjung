@@ -32,11 +32,6 @@ const PriceInput: React.FC<PriceInputProps> = ({
     }
   };
 
-  // 가격 포맷팅 (천 단위 쉼표)
-  // const formattedValue = displayValue
-  //   ? Number(displayValue).toLocaleString("ko-KR")
-  //   : "";
-
   return (
     <div className="flex items-baseline">
       <div className="flex">
@@ -53,13 +48,6 @@ const PriceInput: React.FC<PriceInputProps> = ({
           <span className="text-gray-500">원</span>
         </div>
       </div>
-
-      {/* 입력값이 있을 경우 원화 표시 */}
-      {/* {displayValue && (
-        <div className="mt-1 text-sm text-gray-500 w-full text-center">
-          ≈ {formattedValue}0,000원
-        </div>
-      )} */}
     </div>
   );
 };

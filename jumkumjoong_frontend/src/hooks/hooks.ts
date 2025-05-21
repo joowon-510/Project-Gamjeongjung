@@ -7,10 +7,8 @@ const KakaoRedirectPage = () => {
 
   useEffect(() => {
     const code = new URL(window.location.href).searchParams.get("code");
-    console.log("인가코드:", code);
 
     if (!code) {
-      console.error("code가 없습니다.");
       return;
     }
 
@@ -27,20 +25,11 @@ const KakaoRedirectPage = () => {
       })
       .then((data) => {
         localStorage.setItem("accessToken", data.token);
-        console.log("로그인 성공:", data);
         // JWT 저장 등 후처리
         navigate("/"); // 홈으로 이동
       })
-      .catch((error) => {
-        console.error("로그인 실패:", error);
-      });
+      .catch((error) => {});
   }, [navigate]);
-
-  // return (
-  //   <div className="h-screen flex justify-center items-center">
-  //     <p>로그인 처리 중입니다...</p>
-  //   </div>
-  // );
 };
 
 export default KakaoRedirectPage;
