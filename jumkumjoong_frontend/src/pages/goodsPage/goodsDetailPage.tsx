@@ -38,6 +38,7 @@ const GoodsDetailPage: React.FC = () => {
   const [edit, setEdit] = useState(false);
   const [favorite, setFavorite] = useState(true);
   const [rating, setRating] = useState<number>(0);
+  const [productInfo, setProductInfo] = useState<string[]>([]);
 
   // 상품 상태 정보 (하드코딩)
   const [productStatus] = useState({
@@ -86,6 +87,11 @@ const GoodsDetailPage: React.FC = () => {
           setImages(goodsData.body.item.deviceImageList);
           const exits = goodsData.body.isFavorite;
           setFavorite(exits);
+          setProductInfo(
+            goodsData.body.item.description.includes("@@")
+              ? goodsData.body.item.description.split("@@")[1].split("##")
+              : []
+          );
           console.log(exits);
 
           console.log("🔍 업데이트된 상품 데이터:", updatedGoodsData);
@@ -311,7 +317,7 @@ const GoodsDetailPage: React.FC = () => {
         {/* 상품 설명 */}
         <div className="p-4 border-b">
           <p className="text-gray-800 whitespace-pre-line">
-            {goods.item.description}
+            {goods.item.description.split("@@")[0]}
           </p>
         </div>
 
@@ -322,21 +328,6 @@ const GoodsDetailPage: React.FC = () => {
             <span className="font-medium">{goods.item.serialNumber}</span>
           </div>
         </div>
-        {/* 기종 정보 */}
-        {/* <div className="p-4 border-b">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">기종</span>
-            <span className="font-medium">갤럭시북 5 PRO</span>
-          </div>
-        </div> */}
-
-        {/* 가격 정보 */}
-        {/* <div className="p-4 border-b">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">AI의 평가점수</span>
-            <span className="font-medium">92점</span>
-          </div>
-        </div> */}
 
         {/* 판매가 정보 */}
         <div className="p-4 border-b">
@@ -347,22 +338,7 @@ const GoodsDetailPage: React.FC = () => {
         </div>
 
         {/* 상품 상태 컴포넌트 */}
-        <GoodsStatus
-          frontScratch={productStatus.frontScratch}
-          frontPan={productStatus.frontPan}
-          backScratch={productStatus.backScratch}
-          backPan={productStatus.backPan}
-          sideScratch={productStatus.sideScratch}
-          sidePan={productStatus.sidePan}
-          side1Scratch={productStatus.side1Scratch}
-          side1Pan={productStatus.side1Pan}
-          side2Scratch={productStatus.side2Scratch}
-          side2Pan={productStatus.side2Pan}
-          keyboardScratch={productStatus.keyboardScratch}
-          keyboardPan={productStatus.keyboardPan}
-          screenScratch={productStatus.screenScratch}
-          screenPan={productStatus.screenPan}
-        />
+        <GoodsStatus status={productInfo} />
 
         {images.length > 0 ? (
           images.map((itemImg) => {

@@ -470,31 +470,31 @@ const GoodsRegistrationPage: React.FC = () => {
               2,
               "0"
             )}`;
-      
+
       // finalDescription에 입력할 이미지 추가 정보.
       // 이미지 URL 추출
-      const imageUrlsText = capturedImages.map(img => img.url).join('|');
+      const imageUrlsText = capturedImages.map((img) => img.url).join("|");
 
       // 분류 결과 추출 (class만)
-      let classificationText = '';
+      let classificationText = "";
       if (uploadInfoResponse?.classification_results) {
         classificationText = uploadInfoResponse.classification_results
-          .map(result => result.classification.class)
-          .join('|');
+          .map((result) => result.classification.class)
+          .join("|");
       }
 
       // 객체 탐지 결과 추출 (class 및 bbox 좌표)
-      let detectionText = '';
+      let detectionText = "";
       if (uploadInfoResponse?.detection_results) {
         detectionText = uploadInfoResponse.detection_results
-          .map(result => {
+          .map((result) => {
             // 각 이미지의 탐지 결과들을 처리
-            const detections = result.detections.map(det => 
-              `${det.class}:(${det.bbox.join(',')})`
-            ).join(';');
+            const detections = result.detections
+              .map((det) => `${det.class}:(${det.bbox.join(",")})`)
+              .join(";");
             return `${result.filename}>${detections}`;
           })
-          .join('|');
+          .join("|");
       }
 
       let finalDescription = formData.description;
@@ -508,7 +508,7 @@ const GoodsRegistrationPage: React.FC = () => {
       console.log("formData.serialNumber:", formData.serialNumber);
 
       // 최종 설명에 구매일자와 구성여부 정보 포함
-      finalDescription = `${finalDescription}@@${imageUrlsText}##${classificationText}##${detectionText}`;
+      finalDescription = `${finalDescription}@@${classificationText}##${detectionText}`;
       const date = new Date().toISOString();
       console.log(date);
 
