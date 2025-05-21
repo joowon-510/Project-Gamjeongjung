@@ -54,7 +54,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
   itemName,
   itemPrice,
   itemStatus,
-  isFavorite = false,
+  isFavorite,
   canChangeStatus, // ✅ 기본값 false
   deviceImageUrl,
 }) => {

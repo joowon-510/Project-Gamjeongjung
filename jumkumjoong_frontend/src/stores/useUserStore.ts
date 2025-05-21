@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface AuthState {
   accessToken: string | null;
@@ -34,33 +35,47 @@ interface WishListState {
   removeItem: (itemId: number) => void; // 추후 삭제 기능 만들면 주석 해제
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  refreshToken: null,
-  nickname: null,
-  email: null,
-  status: null,
-  setAccessToken: (accessToken) => set({ accessToken: accessToken }),
-  setRefreshToken: (refreshToken) => set({ refreshToken: refreshToken }),
-  setNickname: (nickname) => set({ nickname: nickname }),
-  setEmail: (email) => set({ email: email }),
-  setStatus: (status) => set({ status: status }),
-  removeAccessToken: () => set({ accessToken: null }),
-  removeRefreshToken: () => set({ refreshToken: null }),
-  removeNickname: () => set({ nickname: null }),
-  removeEmail: () => set({ email: null }),
-  removeStatus: () => set({ status: null }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      accessToken: null,
+      refreshToken: null,
+      nickname: null,
+      email: null,
+      status: null,
+      setAccessToken: (accessToken) => set({ accessToken }),
+      setRefreshToken: (refreshToken) => set({ refreshToken }),
+      setNickname: (nickname) => set({ nickname }),
+      setEmail: (email) => set({ email }),
+      setStatus: (status) => set({ status }),
+      removeAccessToken: () => set({ accessToken: null }),
+      removeRefreshToken: () => set({ refreshToken: null }),
+      removeNickname: () => set({ nickname: null }),
+      removeEmail: () => set({ email: null }),
+      removeStatus: () => set({ status: null }),
+    }),
+    {
+      name: "user-auth-store", // 🔐 localStorage에 저장될 키 이름
+    }
+  )
+);
 
-export const useWishItemStore = create<WishListState>((set) => ({
-  items: [],
-  setItems: (items) => set({ items: items }),
-  addItem: (item) =>
-    set((state) => ({
-      items: [...state.items, item], // 기존 items에 새 item 추가
-    })),
-  removeItem: (itemId) =>
-    set((state) => ({
-      items: state.items.filter((item) => item.itemId !== itemId), // 해당 itemId를 가진 아이템 제거
-    })),
-}));
+export const useWishItemStore = create<WishListState>()(
+  persist(
+    (set) => ({
+      items: [],
+      setItems: (items) => set({ items }),
+      addItem: (item) =>
+        set((state) => ({
+          items: [...state.items, item],
+        })),
+      removeItem: (itemId) =>
+        set((state) => ({
+          items: state.items.filter((item) => item.itemId !== itemId),
+        })),
+    }),
+    {
+      name: "wish-item-storage", // localStorage key
+    }
+  )
+);

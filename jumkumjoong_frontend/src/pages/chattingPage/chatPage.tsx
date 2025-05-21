@@ -197,6 +197,7 @@ const ChatPage: React.FC = () => {
       // if (goodsId) {
       try {
         const response = await getGoodsDetail(goods.goodsId);
+        setStatus(response.body.item.status);
         console.log("상품 상세정보 조회: ", response);
         const updated = {
           title: response.body.item.title,
@@ -837,17 +838,24 @@ const ChatPage: React.FC = () => {
   const [status, setStatus] = useState<boolean>(goods.goodsStatus);
   const userInfo = useAuthStore();
   const handleTransactionClick = async () => {
+    if (userInfo.nickname !== goods.userName) return; // 본인만 변경 가능
+
+    const newStatus = !status; // 즉시 반영
+    setStatus(newStatus); // 로컬 상태 업데이트 (UI 즉시 반영)
     try {
-      if (userInfo.nickname === goods.userName) {
-        const newStatus = !status;
-        console.log("new statue: ", newStatus);
-        const response = await postGoodsChangeStatus(goods.goodsId, newStatus);
-        if (response) {
-          setStatus(newStatus);
-        }
+      const response = await postGoodsChangeStatus(goods.goodsId, newStatus);
+      console.log(response);
+      if (response) {
+        // 실제 서버 상태를 다시 가져와서 동기화
+        const updated = await getGoodsDetail(goods.goodsId);
+        setStatus(updated.body.item.status); // 서버 상태로 덮어쓰기
+      } else {
+        throw new Error("응답 없음");
       }
     } catch (error) {
+      setStatus(!newStatus); // 실패 시 롤백
       console.error("거래 상태 변경 실패:", error);
+      alert("거래 상태 변경 중 오류가 발생했습니다.");
     }
   };
 
@@ -899,7 +907,7 @@ const ChatPage: React.FC = () => {
               className="text-[#ffffff] self-end "
               onClick={handleTransactionClick}
             >
-              {goods.goodsStatus ? (
+              {status ? (
                 userInfo.nickname === goods.userName ? (
                   <div className="rounded-md bg-fifth p-[6px]">
                     <p>거래 중</p>
@@ -932,7 +940,12 @@ const ChatPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex p-2 justify-between items-center">
+        <div
+          className="flex p-2 justify-between items-center"
+          onClick={() => {
+            navigate(`/goods/detail/${goods.goodsId}`);
+          }}
+        >
           <div className="flex gap-2 items-center ml-1">
             <img
               src={goods.img}
@@ -947,14 +960,7 @@ const ChatPage: React.FC = () => {
               goods.title
             )}
           </div>
-          <div
-            onClick={() => {
-              navigate(`/goods/detail/${goods.goodsId}`);
-            }}
-            className="text-first/60 underline"
-          >
-            바로가기
-          </div>
+          <div className="text-first/60 underline">바로가기</div>
         </div>
       </header>
 
