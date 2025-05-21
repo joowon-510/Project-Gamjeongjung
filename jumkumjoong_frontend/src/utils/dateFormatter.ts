@@ -1,9 +1,6 @@
 // utils/dateFormatter.ts
 export function formatRelativeTime(dateString: string): string {
-  // const date = new Date(dateString);
   const now = new Date();
-  // console.log("지금 시간: ", now);
-  // console.log("작성 시간: ", date);
   const utcDate = new Date(dateString);
   const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
   const kstDate = new Date(utcDate.getTime() + kstOffset);

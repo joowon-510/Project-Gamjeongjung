@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import axiosInstance from "../../api/axios";
 
 interface ChatButtonProps {
@@ -32,31 +31,14 @@ const ChatButton: React.FC<ChatButtonProps> = ({
     try {
       setLoading(true);
 
-      // 디버깅용 로그 추가
-      console.log("🛍️ 채팅방 생성 요청 데이터:", {
-        sellerId,
-        itemId,
-        sellerName,
-        itemTitle,
-      });
-
       // 채팅방 생성 API 호출
       const response = await axiosInstance.post(`${BASE_URL}/chatting`, {
         sellerId,
         salesItemId: itemId,
       });
 
-      // 응답 전체 로깅
-      console.log("✅ 채팅방 생성 전체 응답:", response);
-
-      // 상세 응답 로깅
-      console.log("📦 응답 데이터:", response.data);
-      console.log("📊 응답 상태:", response.status);
-
       // 응답 확인
       if (response.data && response.data.status_code === 200) {
-        console.log("채팅방 생성 성공!", response.data);
-
         // 채팅 컨텍스트 정보 저장 (판매자 이름과 상품 제목)
         const existingContextString = localStorage.getItem(CHAT_CONTEXT_KEY);
         const existingContext = existingContextString
@@ -66,7 +48,6 @@ const ChatButton: React.FC<ChatButtonProps> = ({
         // 향상된 UX를 위한 지연 함수 생성
         const delayNavigation = (callback: () => void) => {
           // API 응답은 받았지만, UX를 위해 최소 2초의 로딩 시간 보장
-          const apiResponseTime = Date.now();
           const minimumLoadingTime = 2000; // 2초
 
           // API 응답 시간이 2초보다 빠르면, 남은 시간만큼 더 기다림
@@ -77,7 +58,6 @@ const ChatButton: React.FC<ChatButtonProps> = ({
         if (response.data.body) {
           // 기존 채팅방이 있는 경우: response.data.body가 암호화된 roomId
           const roomId = response.data.body;
-          console.log("🔄 기존 채팅방으로 리다이렉트:", roomId);
 
           // 🔽 itemId 저장 코드 추가
           const chatItemMapString = localStorage.getItem("chatItemMap");
@@ -160,8 +140,6 @@ const ChatButton: React.FC<ChatButtonProps> = ({
           });
         }
       } else {
-        console.error("❌ 채팅방 생성 실패:", response.data);
-
         // 에러 메시지도 2초 후에 표시
         setTimeout(() => {
           alert("채팅방을 생성할 수 없습니다. 다시 시도해 주세요.");
@@ -169,17 +147,6 @@ const ChatButton: React.FC<ChatButtonProps> = ({
         }, 2000);
       }
     } catch (error) {
-      console.error("❌ 채팅방 생성 오류:", error);
-
-      // 에러 상세 로깅
-      if (axios.isAxiosError(error)) {
-        console.error("📡 상세 에러 정보:", {
-          response: error.response?.data,
-          status: error.response?.status,
-          headers: error.response?.headers,
-        });
-      }
-
       // 에러 메시지도 2초 후에 표시
       setTimeout(() => {
         alert("채팅 시작 중 오류가 발생했습니다. 다시 시도해 주세요.");

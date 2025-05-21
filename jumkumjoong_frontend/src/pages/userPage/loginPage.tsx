@@ -25,7 +25,6 @@ const LoginPage: React.FC = () => {
     script.onload = () => {
       if (window.Kakao && !window.Kakao.isInitialized()) {
         window.Kakao.init(JS_KEY);
-        console.log("Kakao SDK 초기화:", window.Kakao.isInitialized());
       }
     };
     document.head.appendChild(script);
@@ -47,12 +46,9 @@ const LoginPage: React.FC = () => {
       scope: "profile_nickname, account_email",
       success: async function (authObj: any) {
         const accessToken = authObj.access_token;
-        console.log("카카오 access_token:", accessToken);
 
         try {
           const res = await postLoginUser(accessToken); // 👉 백엔드로 전송
-          console.log("로그인 성공:", res);
-          // localStorage.setItem("jwt", res.data.accessToken); // 필요시 저장
           navigate("/");
         } catch (err) {
           setError("백엔드 로그인 실패");
@@ -61,7 +57,6 @@ const LoginPage: React.FC = () => {
         }
       },
       fail: function (err: any) {
-        console.error("카카오 로그인 실패:", err);
         setError("카카오 로그인 실패");
         setLoading(false);
       },

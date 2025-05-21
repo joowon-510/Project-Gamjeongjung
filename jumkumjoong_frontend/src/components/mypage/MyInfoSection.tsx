@@ -1,16 +1,9 @@
 // src/components/mypage/ActionSection.tsx 수정
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../stores/useUserStore";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import settings from "../../assets/icons/settings.svg";
 import logout from "../../assets/icons/logout.svg";
 import Logout from "../../utils/logout";
-
-interface ActionSectionProps {
-  userId: number;
-  userName: string;
-  userRating: number;
-}
 
 const MyInfoSection: React.FC = () => {
   const navigate = useNavigate();

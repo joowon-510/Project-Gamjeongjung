@@ -50,7 +50,6 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       return stream;
     } catch (error) {
-      console.error("카메라 접근 오류:", error);
       return null;
     }
   };
@@ -58,31 +57,7 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
   useEffect(() => {
     const video = videoRef.current;
     const initCamera = async () => {
-      // try {
-      //   const stream = await navigator.mediaDevices.getUserMedia({
-      //     video: {
-      //       facingMode: { ideal: "environment" },
-      //     } satisfies MediaTrackConstraints,
-      //     audio: false,
-      //     // video: true,
-      //   });
-      //   const video = videoRef.current;
-
-      //   if (video) {
-      //     const prevStream = video.srcObject as MediaStream;
-      //     prevStream?.getTracks().forEach((track) => track.stop());
-
-      //     video.srcObject = stream;
-      //     video.onloadedmetadata = () => {
-      //       video
-      //         .play()
-      //         .catch((err) => console.error("비디오 재생 오류:", err));
-      //     };
-      //   }
-      // } catch (error) {
-      //   console.error("카메라 접근 오류:", error);
-      // }
-      const stream = await getBackCameraStream(); // ✅ 위에서 정의한 함수 호출
+      const stream = await getBackCameraStream();
       if (stream && video) {
         video.srcObject = stream;
         await video.play();
@@ -92,12 +67,10 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
     initCamera();
 
     return () => {
-      // const stream = video?.srcObject as MediaStream;
-      // stream?.getTracks().forEach((track) => track.stop());
       if (video && video.srcObject instanceof MediaStream) {
         const stream = video.srcObject;
-        stream.getTracks().forEach((track) => track.stop()); // ✅ 트랙 정지
-        video.srcObject = null; // ✅ 연결 해제
+        stream.getTracks().forEach((track) => track.stop());
+        video.srcObject = null;
       }
     };
   }, []);
@@ -159,22 +132,10 @@ const CameraModal: React.FC<CameraProps> = ({ onClose, onCapture }) => {
   }: {
     position: string;
     style: React.CSSProperties;
-  }) => (
-    <div
-      className={`absolute ${position} z-10`}
-      // className={`absolute ${position} z-10 blur-section`}
-      style={style}
-    ></div>
-  );
+  }) => <div className={`absolute ${position} z-10`} style={style}></div>;
 
   return (
     <div className="fixed inset-0 z-[120] bg-black text-white">
-      {/* <video
-        ref={videoRef}
-        className="absolute top-0 left-0 w-full h-full object-cover"
-        playsInline
-        muted
-      /> */}
       <Webcam
         audio={false}
         ref={webcamRef}

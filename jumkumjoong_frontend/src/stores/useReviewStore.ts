@@ -4,9 +4,6 @@ export interface ReviewState {
   content: string | null;
   stars: number | null;
   createdAt: string | null;
-  // setContent: (content: string | null) => void;
-  // setStars: (stars: number | null) => void;
-  // setCreatedAt: (createdAt: string | null) => void;
 }
 
 export interface ReviewListState {

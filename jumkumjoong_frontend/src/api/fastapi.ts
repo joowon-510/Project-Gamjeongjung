@@ -22,24 +22,16 @@ fastapiInstance.interceptors.request.use(
     const localToken = localStorage.getItem("accessToken");
     const tokenToUse = storeToken || localToken;
 
-    console.log("🔑 토큰 확인:", {
-      스토어: storeToken ? "있음" : "없음",
-      로컬스토리지: localToken ? "있음" : "없음",
-    });
-
     if (tokenToUse) {
       config.headers["Authorization"] = `Bearer ${tokenToUse}`;
       if (!storeToken && localToken) {
         useAuthStore.getState().setAccessToken(localToken);
       }
-    } else {
-      console.warn("⚠️ FastAPI: 액세스 토큰이 없습니다.");
     }
 
     return config;
   },
   (error) => {
-    console.error("❌ FastAPI 요청 인터셉터 오류:", error);
     return Promise.reject(error);
   }
 );
@@ -47,11 +39,6 @@ fastapiInstance.interceptors.request.use(
 fastapiInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("📡 FastAPI 응답 오류:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      headers: error.response?.headers,
-    });
     return Promise.reject(error);
   }
 );

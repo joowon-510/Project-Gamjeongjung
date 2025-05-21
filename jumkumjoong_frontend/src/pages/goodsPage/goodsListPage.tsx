@@ -4,7 +4,6 @@ import GoodsItem, { GoodsItemProps } from "../../components/goods/GoodsItem";
 import Header from "../../components/common/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 import FloatingActionButton from "../../components/common/FloatingActionButton";
-import SearchBar from "../../components/common/SearchBar";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { getGoodsSearch } from "../../api/goods";
 import { useLocation } from "react-router-dom";
@@ -46,18 +45,14 @@ const GoodsListPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
 
-        // 서비스 함수를 통해 데이터 로드 (현재는 모의 데이터, 향후 API 연동 예정)
-        console.log("searchTerm: ", searchItem);
         const data = await getGoodsSearch(searchItem);
-        console.log("data: ", data);
+
         if (data === null) {
-          console.log("상품 목록 비어있음");
           setGoods([]);
         } else {
           setGoods(data);
         }
       } catch (err) {
-        console.log("상품 로딩 오류:", err);
         setError("상품을 불러오는 중 오류가 발생했습니다.");
         setGoods([]);
       } finally {
@@ -66,12 +61,6 @@ const GoodsListPage: React.FC = () => {
     };
     fetchGoods(searchItem);
   }, [item, searchTerm]);
-
-  // 검색 실행 함수
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    setIsSearchVisible(false); // 검색 완료 후 검색창 숨기기
-  };
 
   // 검색 버튼 클릭 처리
   const handleSearchButtonClick = () => {

@@ -52,14 +52,6 @@ const ChatItem: React.FC<ChatItemProps> = ({
     // 닉네임 유효성 확인
     const validNickname = chattingUserNickname || "알 수 없음";
 
-    // 디버깅을 위한 로그
-    console.log("📋 ChatItem에서 확인한 정보:", {
-      roomId,
-      nickname: validNickname,
-      postTitle,
-      postId,
-    });
-
     // 로컬 스토리지에 채팅방 정보 미리 저장 (임시 데이터)
     try {
       // 로컬 스토리지에 임시 데이터 저장
@@ -78,9 +70,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
 
       // 업데이트된 컨텍스트 정보 저장
       localStorage.setItem(chatContextKey, JSON.stringify(existingContext));
-    } catch (error) {
-      console.error("로컬스토리지 저장 오류:", error);
-    }
+    } catch (error) {}
   }, [roomId, chattingUserNickname, postTitle, postId]);
 
   // 채팅방 선택 핸들러
@@ -92,13 +82,6 @@ const ChatItem: React.FC<ChatItemProps> = ({
 
     // 로컬 스토리지에 현재 선택한 채팅방 정보 저장
     try {
-      console.log("💾 ChatItem에서 저장할 정보:", {
-        roomId,
-        nickname: validNickname,
-        postTitle,
-        postId,
-      });
-
       // 선택한 채팅방 정보 저장
       localStorage.setItem("currentRoomId", roomId);
       localStorage.setItem("currentPostId", postId);
@@ -110,19 +93,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
       if (currentToken) {
         localStorage.setItem(`token_${roomId}`, currentToken);
       }
-
-      // 저장 확인
-      setTimeout(() => {
-        const storedNickname = localStorage.getItem("currentChatUserNickname");
-        console.log("✅ ChatItem에서 저장 확인:", {
-          저장한닉네임: validNickname,
-          확인한닉네임: storedNickname,
-          성공여부: storedNickname === validNickname ? "성공" : "실패",
-        });
-      }, 50);
-    } catch (error) {
-      console.error("채팅방 선택 중 로컬스토리지 저장 오류:", error);
-    }
+    } catch (error) {}
 
     // 상위 컴포넌트에 선택 이벤트 전달
     if (onSelect) {

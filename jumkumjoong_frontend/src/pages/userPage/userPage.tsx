@@ -23,20 +23,16 @@ const UserPage: React.FC = () => {
 
   useEffect(() => {
     loadReviewData();
-    console.log(review);
   }, []);
 
   const loadReviewData = async () => {
     try {
       const response = await getReview(state.userId);
-      console.log(response);
 
       if (response) {
         setReview(response);
       }
-    } catch (error) {
-      console.log("리뷰 로딩 실패: ", error);
-    }
+    } catch (error) {}
   };
 
   return (
