@@ -37,7 +37,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class StompChannelInterceptor implements ChannelInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
-    //    private final ChattingContentService chattingContentService;
     private final ChattingReadPointService chattingReadPointService;
     private final UserWebsocketSessionService userWebsocketSessionService;
     private final MessageDetailService messageDetailService;

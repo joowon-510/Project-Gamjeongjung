@@ -7,7 +7,6 @@ import com.ssafy.usedtrade.domain.item.dto.ItemDto;
 import com.ssafy.usedtrade.domain.item.dto.ItemListDto;
 import com.ssafy.usedtrade.domain.item.dto.RegistResponse;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
-import com.ssafy.usedtrade.domain.item.entity.SaveItem;
 import com.ssafy.usedtrade.domain.item.error.ItemErrorCode;
 import com.ssafy.usedtrade.domain.item.exception.ItemException;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
@@ -82,10 +81,7 @@ public class ItemService {
         Map<Integer, ItemListDto> dbItemMap =
                 itemSalesRepository.findItemListDtoByTitle(keyword).stream()
                         .collect(Collectors.toMap(ItemListDto::getItemId, Function.identity()));
-        System.out.println(dbItemMap);
-
         List<EsItemDto> esResult = elasticSearchService.searchItem(keyword);
-        System.out.println(esResult);
 
         return esResult.stream()
                 .map(item -> {
@@ -136,7 +132,7 @@ public class ItemService {
 
     //아이템 찜하기
     public void saveItem(Integer itemId, Integer userId) {
-        saveItemRepository.handleWishItem(itemId,userId);
+        saveItemRepository.handleWishItem(itemId, userId);
     }
 
     //아이템 수정

@@ -28,7 +28,6 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @RequiredArgsConstructor
 public class KakaoOAuthService {
-
     private final UserRepository userRepository;
 
     @Value("${spring.security.oauth2.client.provider.kakao.user-info-uri}")
@@ -82,8 +81,6 @@ public class KakaoOAuthService {
     }
 
     public KakaoOAuth2Response parseKakaoResponse(String jsonResponse) {
-        System.out.println(jsonResponse);
-
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
