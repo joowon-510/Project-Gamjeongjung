@@ -81,10 +81,7 @@ public class ItemService {
         Map<Integer, ItemListDto> dbItemMap =
                 itemSalesRepository.findItemListDtoByTitle(keyword).stream()
                         .collect(Collectors.toMap(ItemListDto::getItemId, Function.identity()));
-        System.out.println(dbItemMap);
-
         List<EsItemDto> esResult = elasticSearchService.searchItem(keyword);
-        System.out.println(esResult);
 
         return esResult.stream()
                 .map(item -> {

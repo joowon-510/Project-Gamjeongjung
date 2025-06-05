@@ -8,6 +8,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @EnableCaching
@@ -37,5 +38,10 @@ public class RedisConfig {
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(new StringRedisSerializer());
         return template;
+    }
+
+    @Bean
+    public StreamOperations<String, String, String> streamOperations(RedisTemplate<String, String> redisTemplate) {
+        return redisTemplate.opsForStream();
     }
 }

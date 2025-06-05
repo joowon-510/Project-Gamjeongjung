@@ -5,11 +5,15 @@ import com.ssafy.usedtrade.common.encryption.AESUtil;
 import com.ssafy.usedtrade.domain.chat.dto.ChatContentResponse;
 import com.ssafy.usedtrade.domain.chat.dto.ChatListResponse;
 import com.ssafy.usedtrade.domain.chat.dto.ChatRoomCreateRequest;
+import com.ssafy.usedtrade.domain.chat.entity.ChattingContent;
 import com.ssafy.usedtrade.domain.chat.entity.ChattingList;
+import com.ssafy.usedtrade.domain.chat.repository.ChattingContentRepository;
 import com.ssafy.usedtrade.domain.chat.repository.ChattingListRepository;
 import com.ssafy.usedtrade.domain.item.entity.SalesItem;
 import com.ssafy.usedtrade.domain.item.repository.ItemSalesRepository;
 import com.ssafy.usedtrade.domain.redis.entity.ChattingReadPointRequest;
+import com.ssafy.usedtrade.domain.redis.entity.ChattingTotalMessageRequest;
+import com.ssafy.usedtrade.domain.redis.entity.MessageDetail;
 import com.ssafy.usedtrade.domain.redis.service.ChattingReadPointService;
 import com.ssafy.usedtrade.domain.redis.service.ChattingTotalMessageService;
 import com.ssafy.usedtrade.domain.redis.service.MessageDetailService;
@@ -37,6 +41,8 @@ public class ChatService {
     private final ChattingReadPointService chattingReadPointService;
     private final ItemSalesRepository itemSalesRepository;
     private final AESUtil aesUtil;
+    private final ChattingContentRepository chattingContentRepository;
+
     private final ChattingTotalMessageService chattingTotalMessageService;
     private final MessageDetailService messageDetailService;
     private final ObjectMapper objectMapper;
@@ -45,10 +51,7 @@ public class ChatService {
         /*
          * TODO:
          *  - 필수
-         *  1. Redis에 값 유무 확인, 없으면 RDB에서 가져오기
-         *  2. Redis에 라스트 message
-         *      + 세션 시간 이후 값을 count
-         *      + 해당 유저의 이름 return
+         *  1. Redis, RDB 유동적인 환경에서의 라스트 message 관련 로직 구현
          * */
 
         Pageable pageable = PageRequest.of(
@@ -83,19 +86,16 @@ public class ChatService {
         return new SliceImpl<>(list, pageable, hasNext);
     }
 
+    /*
+     * TODO:
+     *  - 필수
+     *  1. Redis, RDB 유동적인 환경에서의 라스트 message 관련 로직 구현
+     * */
     public Slice<ChatContentResponse> findAllMyChat(
             Integer userId,
             String roomId,
             LocalDateTime createdAt
     ) {
-        /*
-         * TODO:
-         *  - 필수
-         *  1. Test 값 -> Redis 적용으로 동적으로
-         *  2. 최근 chat 참가 기준으로 전체 return 후 진행
-         *  - 부가
-         *  3. 채팅 list에 동적으로 가능인 지도 front와 상의
-         * */
         Integer decryptRoomId = Integer.parseInt(aesUtil.decrypt(roomId));
 
         // 해당 roomId로 해당 유저의 입장 가능성 판단
@@ -113,6 +113,41 @@ public class ChatService {
                 createdAt == null
                         ? Double.MAX_VALUE
                         : Timestamp.valueOf(createdAt.plusHours(9)).getTime() - 1);
+
+        // 비어 있다면, rdb -> redis + redis에서 다시 가져오기
+        if (messageList.isEmpty()) {
+            List<ChattingContent> rdbChattingList =
+                    chattingContentRepository.findAllByChattingListId(
+                            decryptRoomId);
+
+            for (ChattingContent chattingContent : rdbChattingList) {
+                chattingTotalMessageService.save(
+                        ChattingTotalMessageRequest.builder()
+                                .chattingRoomId(roomId)
+                                .messageId(chattingContent.getCreatedAt() + "_" + chattingContent.getUserId())
+                                .timestamp(chattingContent.getCreatedAt())
+                                .build()
+                );
+
+                messageDetailService.save(MessageDetail.builder()
+                        .messageId(chattingContent.getCreatedAt() + "_" + chattingContent.getUserId())
+                        .message(ChatMessageDto.builder()
+                                .type("MESSAGE")
+                                .roomId(aesUtil.encrypt(String.valueOf(chattingContent.getChattingList().getId())))
+                                .sender(String.valueOf(chattingContent.getUserId()))
+                                .message(chattingContent.getContents())
+                                .createdAt(chattingContent.getCreatedAt())
+                                .build())
+                        .build()
+                );
+            }
+
+            messageList = chattingTotalMessageService.multiGetMessage(
+                    roomId,
+                    createdAt == null
+                            ? Double.MAX_VALUE
+                            : Timestamp.valueOf(createdAt.plusHours(9)).getTime() - 1);
+        }
 
         // +9
         boolean hasMoreMessage =
@@ -133,7 +168,8 @@ public class ChatService {
                 continue;
             }
             try {
-                ChatMessageDto dto = objectMapper.readValue(json, ChatMessageDto.class);
+                ChatMessageDto dto =
+                        objectMapper.readValue(json, ChatMessageDto.class);
                 chatMessages.add(ChatContentResponse.builder()
                         .message(dto.message())
                         .toSend(dto.sender().equals(String.valueOf(userId)))
@@ -176,15 +212,17 @@ public class ChatService {
 
             // 초기 읽기 시간 세팅
             chattingReadPointService.saveOrUpdate(ChattingReadPointRequest.builder()
-                    .userId(String.valueOf(salesItem.getUserId()))
-                    .channelId(String.valueOf(salesItem.getId()))
-                    .createdAt(now)
-                    .build());
+                            .userId(String.valueOf(salesItem.getUserId()))
+                            .channelId(String.valueOf(salesItem.getId()))
+                            .createdAt(now)
+                            .build(),
+                    false);
             chattingReadPointService.saveOrUpdate(ChattingReadPointRequest.builder()
-                    .userId(String.valueOf(userId))
-                    .channelId(String.valueOf(salesItem.getId()))
-                    .createdAt(now)
-                    .build());
+                            .userId(String.valueOf(userId))
+                            .channelId(String.valueOf(salesItem.getId()))
+                            .createdAt(now)
+                            .build(),
+                    false);
 
             // 생성된 채팅방의 id를 return
             return redirectUrlExistChatting(Optional.of(chattingList));
@@ -223,9 +261,42 @@ public class ChatService {
     }
 
     private String getLastMessage(ChatListResponse chatListResponse) {
-        return messageDetailService.find(
+        String message = messageDetailService.find(
                 chattingTotalMessageService.getLatestMessageId(
                         chatListResponse.roomId())).message();
+
+        // 메세지 없으면 RDB -> Redis 저장 후, RDB 마지막 데이터를 Message에 저장
+        if (message.equals("메세지가 존재하지 않습니다!")) {
+            List<ChattingContent> rdbChattingList =
+                    chattingContentRepository.findAllByChattingListId(
+                            Integer.valueOf(chatListResponse.roomId()));
+
+            for (ChattingContent chattingContent : rdbChattingList) {
+                chattingTotalMessageService.save(
+                        ChattingTotalMessageRequest.builder()
+                                .chattingRoomId(chatListResponse.roomId())
+                                .messageId(chattingContent.getCreatedAt() + "_" + chattingContent.getUserId())
+                                .timestamp(chattingContent.getCreatedAt())
+                                .build()
+                );
+
+                messageDetailService.save(MessageDetail.builder()
+                        .messageId(chattingContent.getCreatedAt() + "_" + chattingContent.getUserId())
+                        .message(ChatMessageDto.builder()
+                                .type("MESSAGE")
+                                .roomId(aesUtil.encrypt(String.valueOf(chattingContent.getChattingList().getId())))
+                                .sender(String.valueOf(chattingContent.getUserId()))
+                                .message(chattingContent.getContents())
+                                .createdAt(chattingContent.getCreatedAt())
+                                .build())
+                        .build()
+                );
+            }
+
+            message = rdbChattingList.get(rdbChattingList.size() - 1).getContents();
+        }
+
+        return message;
     }
 
     private int getNonReadCount(Integer userId, ChatListResponse chatListResponse) {

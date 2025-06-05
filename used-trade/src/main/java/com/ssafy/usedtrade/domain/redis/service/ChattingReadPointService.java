@@ -32,8 +32,11 @@ public class ChattingReadPointService {
     }
 
     // +9
-    public void saveOrUpdate(ChattingReadPointRequest chattingReadPointRequest) {
-        LocalDateTime now = chattingReadPointRequest.createdAt().plusHours(9);
+    public void saveOrUpdate(ChattingReadPointRequest chattingReadPointRequest, boolean isRdbData) {
+        LocalDateTime now =
+                isRdbData
+                        ? chattingReadPointRequest.createdAt()
+                        : chattingReadPointRequest.createdAt().plusHours(9);
 
         redisTemplate.opsForHash().put(
                 getKey(chattingReadPointRequest),

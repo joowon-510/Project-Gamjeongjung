@@ -1,6 +1,7 @@
 package com.ssafy.usedtrade.domain.websocket.controller;
 
-import com.ssafy.usedtrade.domain.redis.service.UserWebsocketSessionService;
+import com.ssafy.usedtrade.common.encryption.AESUtil;
+import com.ssafy.usedtrade.domain.redis.stream.RedisStreamService;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class WebsocketController {
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final UserWebsocketSessionService websocketSessionService;
+    private final RedisStreamService redisStreamService;
+    private final AESUtil aesUtil;
 
     @MessageMapping("/{roomId}")
     public void send(
@@ -33,5 +35,24 @@ public class WebsocketController {
 
         simpMessagingTemplate.convertAndSend(
                 "/receive/" + roomId, message);
+
+        switch (message.get("type")) {
+            case "MESSAGE" -> {
+                String roomIdInMessage = message.get("roomId");
+                String sender = message.get("sender");
+                String messageContent = message.get("message");
+                LocalDateTime createdAt = LocalDateTime.parse(message.get("createdAt")).plusHours(9);
+
+                redisStreamService.saveChatMessageToStream(roomIdInMessage, sender, messageContent, createdAt);
+                redisStreamService.saveChatReadPointToStream(roomIdInMessage, sender, createdAt);
+            }
+            case "RECEIVE" -> {
+                String roomIdInMessage = message.get("roomId");
+                String receiver = message.get("receiver");
+                LocalDateTime receiveAt = LocalDateTime.parse(message.get("receiveAt")).plusHours(9);
+
+                redisStreamService.saveChatReadPointToStream(roomIdInMessage, receiver, receiveAt);
+            }
+        }
     }
 }
